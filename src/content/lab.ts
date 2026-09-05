@@ -126,7 +126,10 @@ export const MODES: ModeDefinition[] = [
       'An aperture cut in the sheet with the territory behind it. Immersive XR is offered only where the browser reports it, and the fallback is the same portal driven by device tilt or the pointer — never a dead end.',
     status: 'online',
     tier: 'flagship',
-    material: 'ink',
+    // Paper: the mode is a bone sheet with a hole cut in it. The mode host's
+    // chrome takes its colour from this, so declaring `ink` here would have
+    // printed a bone EXIT control onto bone stock.
+    material: 'paper',
     requirements: { ...NONE, cost: 'low', mobile: 'full', reducedMotion: 'adapted' },
     load: () => import('../modes/portal/PortalMode'),
   },

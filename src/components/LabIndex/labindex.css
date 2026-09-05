@@ -269,3 +269,61 @@
     transform: none !important;
   }
 }
+
+/* ==========================================================================
+   THE TRAIL — Phase 5
+   The index is a map, and a map is more useful once it records where you have
+   walked. A visited reality carries a struck register mark in its margin, and
+   its number stops being the brightest thing in the row. Session only: nothing
+   is persisted, because PERFORMANCE reports STORAGE — NONE and that has to
+   stay true.
+   ========================================================================== */
+
+.row__trace {
+  position: absolute;
+  /* In the margin, outside the plate number — a surveyor's mark beside the
+     row, not a stamp across it. */
+  left: -20px;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  opacity: 0;
+  transition: opacity var(--d-3) var(--e-glide);
+  pointer-events: none;
+}
+.row[data-visited='true'] .row__trace {
+  opacity: 1;
+}
+/* A registration cross, struck through — the mark a surveyor leaves behind. */
+.row__trace::before,
+.row__trace::after {
+  content: '';
+  position: absolute;
+  background: var(--signal);
+  opacity: 0.65;
+}
+.row__trace::before {
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: var(--hair);
+}
+.row__trace::after {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: var(--hair);
+}
+
+/* A walked row settles back: its number dims, so unvisited realities are the
+   ones that read forward. The title is untouched. */
+.row[data-visited='true'] .row__index {
+  color: var(--figure-faint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row__trace {
+    transition-duration: 1ms;
+  }
+}

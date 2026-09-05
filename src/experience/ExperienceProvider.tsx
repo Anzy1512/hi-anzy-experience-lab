@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { CleanupScope, emergencyReset, setScrollLock } from '../core/cleanup';
 import { findMode } from '../content/lab';
 import { isEnterable, type ModePhase } from './types';
+import { markVisited } from './visited';
 import { ExperienceContext, type ExperienceValue, type Stage } from './context';
 
 /**
@@ -113,6 +114,8 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
       setError(null);
 
       if (loc.stage === 'mode' && loc.modeId) {
+        // The map remembers where this visitor has walked, for this session.
+        markVisited(loc.modeId);
         closeScope();
         openScope(loc.modeId);
         setActiveId(loc.modeId);

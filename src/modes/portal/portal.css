@@ -5,13 +5,45 @@
    depth on the other side. Trim marks at the corners, not a glowing ring.
    ========================================================================== */
 
+/* ==========================================================================
+   THE SHEET IS PAPER. THE APERTURE IS A HOLE IN IT.
+
+   Phase 5. Portal was a dark rectangle on a dark ground — legible as geometry,
+   not as an opening. The material is now inverted and the metaphor becomes the
+   picture: you are looking at a bone sheet with a hole cut in it, and what is
+   through the hole is the territory. It also stops Portal being a fourth dark
+   grid screen in a row, which was the standing repetition risk.
+
+   The paper material is re-declared locally, the same mechanism the launcher,
+   Agency Simulator and the OS sheets use.
+   ========================================================================== */
 .pt {
+  --ground: var(--c-bone);
+  --ground-deep: var(--c-bone-deep);
+  --figure: var(--c-ink);
+  --figure-dim: #5d605a;
+  --figure-faint: rgba(25, 29, 28, 0.34);
+  --rule: rgba(25, 29, 28, 0.22);
+  --rule-faint: rgba(25, 29, 28, 0.1);
+
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: var(--ground-deep);
+  background: var(--ground);
+  color: var(--figure);
   perspective: 1400px;
   perspective-origin: 50% 50%;
+}
+
+/* The stock is printed stock: the same screen the launcher uses. */
+.pt::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(var(--screen-dot) 1px, transparent 1px);
+  background-size: 4px 4px;
+  opacity: 0.6;
 }
 
 .pt-stage {
@@ -43,7 +75,12 @@
   content: '';
   position: absolute;
   inset: 0;
-  border: var(--hair) solid var(--figure-dim);
+  border: var(--hair) solid var(--c-ink);
+  /* The thickness of the stock, seen at the cut. */
+  box-shadow:
+    inset 0 1px 0 rgba(233, 226, 208, 0.5),
+    0 0 0 3px var(--c-bone),
+    0 0 0 4px rgba(25, 29, 28, 0.18);
   pointer-events: none;
   z-index: 3;
 }
@@ -64,7 +101,7 @@
   inset: 0;
   overflow: hidden;
   transform-style: preserve-3d;
-  background: radial-gradient(ellipse 90% 70% at 50% 46%, #121615 0%, #070908 78%);
+  background: radial-gradient(ellipse 90% 70% at 50% 46%, #161a19 0%, #070908 82%);
 }
 
 .pt-layer {
@@ -73,7 +110,7 @@
   top: 50%;
   width: 108%;
   height: 108%;
-  border: var(--hair) solid var(--figure);
+  border: var(--hair) solid var(--c-bone);
   /* Each plane sits further back and is shifted by the look direction, so the
      stack shears as you move — parallax from geometry, not a filter. */
   transform: translate(-50%, -50%)
@@ -109,7 +146,8 @@
 .pt-trim::after {
   content: '';
   position: absolute;
-  background: var(--figure-dim);
+  background: var(--c-ink);
+  opacity: 0.55;
 }
 .pt-trim::before {
   left: 0;

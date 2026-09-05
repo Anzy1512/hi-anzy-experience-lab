@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { EXPERIMENT_MODES, FLAGSHIP_MODES, MODES } from '../../content/lab';
 import { INDEX_COPY, indexNote } from '../../content/brand';
 import { isEnterable, STATUS_LABEL, type ModeDefinition } from '../../experience/types';
 import { useExperience } from '../../experience/context';
+import { hasVisited, subscribeVisited, visitedCount } from '../../experience/visited';
 import { useReducedMotion } from '../../core/hooks';
 import { setPointerIntent } from '../../core/pointer';
 import { guaranteeCompletion, rowsIn, settleImmediately } from '../../motion/primitives';
@@ -38,9 +39,10 @@ interface RowProps {
   mode: ModeDefinition;
   expanded: boolean;
   onToggle: (id: string) => void;
+  visited: boolean;
 }
 
-function Row({ mode, expanded, onToggle }: RowProps) {
+function Row({ mode, expanded, onToggle, visited }: RowProps) {
   const { enterMode } = useExperience();
   const enterable = isEnterable(mode);
 
@@ -50,7 +52,12 @@ function Row({ mode, expanded, onToggle }: RowProps) {
   }, [enterable, enterMode, mode.id, onToggle]);
 
   return (
-    <li className="row" data-status={mode.status} data-expanded={expanded ? 'true' : 'false'}>
+    <li
+      className="row"
+      data-status={mode.status}
+      data-expanded={expanded ? 'true' : 'false'}
+      data-visited={visited ? 'true' : 'false'}
+    >
       <button
         type="button"
         className="row__hit"
@@ -66,6 +73,9 @@ function Row({ mode, expanded, onToggle }: RowProps) {
             : `${mode.title}. ${mode.tagline} Status: ${STATUS_LABEL[mode.status]}. Not yet enterable.`
         }
       >
+        {/* The trace: a struck register mark on a reality this visitor has
+            already been inside. It is the map remembering, not a badge. */}
+        <span className="row__trace" aria-hidden="true" />
         <span className="row__index t-index" aria-hidden="true">
           {mode.index}
         </span>
@@ -136,6 +146,10 @@ export function LabIndex() {
   // for two phases.
   const onlineCount = MODES.filter((m) => m.status === 'online').length;
 
+  // The index redraws when the visitor's trail changes, so returning from a
+  // reality visibly marks it. Session-only; nothing is persisted.
+  const seen = useSyncExternalStore(subscribeVisited, visitedCount);
+
   return (
     <main className="index" id="lab-main">
       <header className="index__head">
@@ -144,7 +158,7 @@ export function LabIndex() {
           <h1 className="t-display t-display-m index__title">REALITIES</h1>
         </div>
         <div className="index__head-right">
-          <p className="t-mono t-mono-xs t-faint index__note">{indexNote(onlineCount, MODES.length)}</p>
+          <p className="t-mono t-mono-xs t-faint index__note">{seen > 0 ? `${indexNote(onlineCount, MODES.length)} ${seen} VISITED THIS SESSION.` : indexNote(onlineCount, MODES.length)}</p>
         </div>
       </header>
 
@@ -156,7 +170,13 @@ export function LabIndex() {
 
       <ul className="index__list" ref={listRef}>
         {FLAGSHIP_MODES.map((mode) => (
-          <Row key={mode.id} mode={mode} expanded={expanded === mode.id} onToggle={onToggle} />
+          <Row
+            key={mode.id}
+            mode={mode}
+            expanded={expanded === mode.id}
+            onToggle={onToggle}
+            visited={hasVisited(mode.id)}
+          />
         ))}
       </ul>
 
@@ -164,7 +184,13 @@ export function LabIndex() {
         <p className="t-mono t-mono-xs t-dim index__reverse-label">{INDEX_COPY.reverse}</p>
         <ul className="index__list index__list--dense" ref={reverseRef}>
           {EXPERIMENT_MODES.map((mode) => (
-            <Row key={mode.id} mode={mode} expanded={expanded === mode.id} onToggle={onToggle} />
+            <Row
+              key={mode.id}
+              mode={mode}
+              expanded={expanded === mode.id}
+              onToggle={onToggle}
+              visited={hasVisited(mode.id)}
+            />
           ))}
         </ul>
       </div>

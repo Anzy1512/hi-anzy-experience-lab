@@ -436,3 +436,102 @@
     transition-delay: 0ms !important;
   }
 }
+
+/* ==========================================================================
+   THE WORKING TABLE — method registers, ties, and weighted material
+   Phase 5. The surface was a blank field with a few tags on it; it is now a
+   ruled working surface where material lands in the register that produced it.
+   ========================================================================== */
+
+.sim-registers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.sim-register {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: calc((100% - 17%) / 5);
+  opacity: 0.34;
+  transition: opacity var(--d-3) var(--e-glide);
+}
+.sim-register:nth-child(1) { top: 11%; }
+.sim-register:nth-child(2) { top: calc(11% + ((100% - 17%) / 5) * 1); }
+.sim-register:nth-child(3) { top: calc(11% + ((100% - 17%) / 5) * 2); }
+.sim-register:nth-child(4) { top: calc(11% + ((100% - 17%) / 5) * 3); }
+.sim-register:nth-child(5) { top: calc(11% + ((100% - 17%) / 5) * 4); }
+
+.sim-register[data-reached='true'] {
+  opacity: 1;
+}
+
+.sim-register__rule {
+  position: absolute;
+  left: var(--trim);
+  right: 4%;
+  top: 0;
+  height: var(--hair);
+  background: var(--rule-faint);
+}
+.sim-register[data-reached='true'] .sim-register__rule {
+  background: var(--rule);
+}
+/* The register being worked in is the only one the signal marks. */
+.sim-register[data-now='true'] .sim-register__rule {
+  background: var(--signal);
+}
+
+.sim-register__name {
+  position: absolute;
+  /* Inside the trim, not against the viewport edge — "03 BLUEPRINT" was
+     printing as "3 BLUEPRINT". */
+  left: var(--trim);
+  top: 6px;
+  display: flex;
+  gap: var(--s-1);
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--figure-faint);
+}
+.sim-register[data-reached='true'] .sim-register__name {
+  color: var(--figure-dim);
+}
+.sim-register__n {
+  color: var(--figure-faint);
+}
+
+/* Consequences between one answer's fragments, drawn as hairlines. */
+/* Clipped: an unclipped tie between two fragments near the edge drew a line
+   straight across the question panel. */
+.sim-ties {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+}
+.sim-ties line {
+  stroke: var(--rule);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+
+/* Weight says which fragment is the answer and which are its implications. */
+.sim-frag[data-lead='true'] {
+  font-size: 0.8125rem;
+  border-color: var(--figure-dim);
+  color: var(--figure);
+}
+
+/* The method rail is a single line of five stages; wrapping it broke the
+   reading and left an orphan. It scales down rather than folding. */
+.sim-panel__stage {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.55em;
+  white-space: nowrap;
+  font-size: 0.5625rem;
+}

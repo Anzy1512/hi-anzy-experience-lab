@@ -183,6 +183,22 @@ src/
   content/        copy, the reality index and the territory, apart from rendering
 ```
 
+### Phase 5 material decisions
+
+- **PORTAL is a paper mode.** It was a dark rectangle on a dark ground, legible as geometry
+  rather than as an opening. The sheet is now bone and the aperture is a hole cut in it with
+  the territory beyond — which is both the correct metaphor and the thing that stops four
+  dark screens running consecutively. Its registered `material` is `paper` so the mode host's
+  chrome stays legible; declaring `ink` there printed a bone EXIT control onto bone stock.
+- **AGENCY SIMULATOR's table is ruled into the five method registers.** Material lands in the
+  register of the stage that produced it, fragments from one answer are tied by a drawn rule,
+  and untouched registers are drawn but empty so the surface shows how much method is ahead.
+  The blank space is composed rather than absent — that was the single largest gap between
+  concept and execution in the Lab.
+- **The Reality Index records where the visitor has walked**, in memory, for the session only
+  (`experience/visited.ts`). Nothing is written to storage: PERFORMANCE reports
+  `STORAGE — NONE` and that has to keep being true.
+
 ## Phase discipline
 
 Phases 1–4 are complete and all sixteen realities are `online`.
