@@ -535,3 +535,9 @@
   white-space: nowrap;
   font-size: 0.5625rem;
 }
+
+/* The canonical service category a cluster belongs to. */
+.sim-cluster__cat {
+  margin-top: 0.35em;
+  letter-spacing: var(--tr-mono-wide);
+}

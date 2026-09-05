@@ -1,3 +1,5 @@
+import { METHOD, SERVICES } from './canonical';
+
 /**
  * ANZY.OS — an operating environment for a consultancy.
  *
@@ -7,8 +9,9 @@
  * place everything else in the Lab comes from — the source material was a
  * printed proposal — rather than from Windows, macOS or a hacker terminal.
  *
- * All application content is service language from the deck. Nothing here names
- * a client, an award, a metric, a result or a partnership.
+ * Application content is the company's real service taxonomy and method, read
+ * through `canonical.ts`. Nothing here names a client, an award, a metric, a
+ * result or a partnership — see that file for why client marks are excluded.
  */
 
 export type AppId =
@@ -34,20 +37,20 @@ export const APPS: OsApp[] = [
   {
     id: 'strategy',
     name: 'STRATEGY.app',
-    line: 'Positioning, market reading, roadmap.',
+    line: 'Business audit, positioning, roadmaps.',
     status: 'resident',
   },
-  { id: 'design', name: 'DESIGN.app', line: 'Identity, type, packaging, guidelines.', status: 'resident' },
+  { id: 'design', name: 'DESIGN.app', line: 'Brand, identity, experience, design systems.', status: 'resident' },
   {
     id: 'technology',
     name: 'TECHNOLOGY.app',
-    line: 'Web, app, cloud, CMS, automation.',
+    line: 'Web, commerce, cloud, integration, automation.',
     status: 'resident',
   },
   {
     id: 'network',
     name: 'NETWORK.app',
-    line: 'Creators, venues, media, on-ground.',
+    line: 'Creators, PR, media, events, partnerships.',
     status: 'resident',
   },
   { id: 'method', name: 'METHOD.app', line: 'How the work actually proceeds.', status: 'resident' },
@@ -64,35 +67,33 @@ export const FUTURE_PROCESSES = [
   'PORTAL.svc',
 ];
 
-/** Content for the resident applications. Deck service language only. */
+/**
+ * Content for the resident applications.
+ *
+ * The three capability sheets are now the company's real service taxonomy,
+ * mirrored through `canonical.ts` — STRATEGY is the AUDIT category, DESIGN is
+ * ARCHITECT, TECHNOLOGY is BUILD, NETWORK is CONNECT. The paraphrase that used
+ * to live here predated the commercial site stating them itself.
+ */
+/** One capability sheet, built from a real service category. */
+function sheetFor(slug: string): string[][] {
+  const cat = SERVICES.find((c) => c.slug === slug);
+  if (!cat) return [];
+  return [
+    [cat.label, cat.copy],
+    ['CAPABILITIES', cat.capabilities.join(' · ')],
+    ['STAGE', `${cat.stage} · typically ${cat.typical}`],
+  ];
+}
+
 export const APP_BODY: Record<Exclude<AppId, 'terminal' | 'system'>, string[][]> = {
-  strategy: [
-    ['FOUNDATION', 'Workshop. Market and competition analysis. Consumer study.'],
-    ['POSITION', 'Differentiation. Value proposition mapping. Objectives.'],
-    ['ROADMAP', 'Go-to-market. Product line sequence. Distribution planning.'],
-  ],
-  design: [
-    ['IDENTITY', 'Logo and visual system. Typography and colour. Iconography.'],
-    ['SURFACE', 'Packaging. Unboxing. Retail display and point of sale.'],
-    ['SYSTEM', 'Brand guidelines. Merchandising. UI/UX blueprints.'],
-  ],
-  technology: [
-    ['BUILD', 'Static, dynamic, e-commerce and D2C. iOS and Android.'],
-    ['RUN', 'Cloud setup and migration. CMS. Analytics dashboards.'],
-    ['CONNECT', 'CRM and CDP. Workflow automation. API integration.'],
-  ],
-  network: [
-    ['CREATORS', 'Artist collaboration. Creator marketing. UGC development.'],
-    ['ROOMS', 'Pop-ups, college festivals, music and gaming partnerships.'],
-    ['MEDIA', 'Placement, ORM, crisis communication, sentiment reading.'],
-  ],
-  method: [
-    ['ABSORB', 'Deep-dive consultation. Brand and business audit.'],
-    ['CLARIFY', 'Audience mapping. Pain point extraction. Threat analysis.'],
-    ['BLUEPRINT', 'Communication strategy. Voice alignment. Growth plan.'],
-    ['ASSEMBLE', 'Handpicked collaborators. Project-specific action pods.'],
-    ['SUSTAIN', 'Measurable results. Sustained systems. Long-term support.'],
-  ],
+  strategy: sheetFor('business-audit-strategy'),
+  design: sheetFor('brand-experience'),
+  technology: sheetFor('digital-technology-automation'),
+  network: sheetFor('media-creators-experiences'),
+  // The real method, mirrored from the commercial frontend rather than kept as
+  // a second copy here. Each sheet prints the stage's own promise and duration.
+  method: METHOD.map((m) => [m.label, `${m.title} ${m.page} (${m.duration})`]),
 };
 
 export const BOOT_LINES = [
@@ -119,7 +120,7 @@ export const COMMANDS: Command[] = [
   { name: 'close', args: '<app>', help: 'Close a sheet.' },
   { name: 'run', args: '<reality>', help: 'Leave ANZY.OS and enter another reality.' },
   { name: 'status', help: 'Report system state.' },
-  { name: 'method', help: 'Print the five stages.' },
+  { name: 'method', help: 'Print the five stages of the method.' },
   { name: 'clear', help: 'Clear this terminal.' },
   { name: 'about', help: 'What this operating environment is.' },
 ];

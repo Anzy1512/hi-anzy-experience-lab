@@ -1,3 +1,4 @@
+import { METHOD_LABELS } from './canonical';
 /**
  * THE SCRIPT.
  *
@@ -102,8 +103,8 @@ export const RUNTIME = SHOTS.reduce((a, s) => a + s.dur, 0);
 /** The disconnected fragments of Act II. Service language, nothing claimed. */
 export const FRAGMENTS = ['STRATEGY', 'DESIGN', 'TECHNOLOGY', 'CULTURE'];
 
-/** The method, as the deck states it. */
-export const STAGES = ['ABSORB', 'CLARIFY', 'BLUEPRINT', 'ASSEMBLE', 'SUSTAIN'];
+/** The method, as the company's own site states it. */
+export const STAGES = METHOD_LABELS;
 
 export const DIRECTOR_COPY = {
   title: 'DIRECTOR',

@@ -1,3 +1,5 @@
+import { METHOD_LABELS } from './canonical';
+
 /**
  * AGENCY SIMULATOR — content and model inputs.
  *
@@ -65,7 +67,7 @@ export interface Question {
 export const QUESTIONS: Question[] = [
   {
     id: 'intent',
-    stage: 'ABSORB',
+    stage: 'AUDIT',
     prompt: 'What are you trying to change?',
     note: 'Everything downstream is a consequence of this one answer.',
     options: [
@@ -121,7 +123,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: 'state',
-    stage: 'ABSORB',
+    stage: 'AUDIT',
     prompt: 'Where is it now?',
     note: 'Not maturity as a score — maturity as a constraint on sequence.',
     options: [
@@ -153,7 +155,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: 'audience',
-    stage: 'CLARIFY',
+    stage: 'ARCHITECT',
     prompt: 'Who has to change their mind?',
     note: 'A brief with no named audience is a brief that cannot be finished.',
     options: [
@@ -185,7 +187,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: 'pressure',
-    stage: 'CLARIFY',
+    stage: 'ARCHITECT',
     prompt: 'How much time is there?',
     note: 'Time pressure does not change what is right. It changes the order.',
     options: [
@@ -211,7 +213,7 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: 'obstacle',
-    stage: 'BLUEPRINT',
+    stage: 'BUILD',
     prompt: 'What is actually in the way?',
     note: 'The honest answer here decides which capabilities lead.',
     options: [
@@ -264,12 +266,21 @@ export interface Cluster {
   needs: string[];
   /** The Living World district this corresponds to, where one does. */
   district?: string;
+  /**
+   * Which of the company's six real service categories this capability sits
+   * inside. The clusters are finer-grained than the commercial site's taxonomy
+   * on purpose — a reading is more useful when it names the specific capability
+   * — but every one of them belongs to a category the company actually sells,
+   * and the reading says which.
+   */
+  category: string;
 }
 
 export const CLUSTERS: Cluster[] = [
   {
     id: 'strategy',
     name: 'STRATEGY',
+    category: 'business-audit-strategy',
     line: 'Positioning, market and competition reading, a roadmap that survives contact.',
     affinity: { ambiguity: 2.2, identity: 1.4, proof: 0.8 },
     needs: [],
@@ -278,6 +289,7 @@ export const CLUSTERS: Cluster[] = [
   {
     id: 'design',
     name: 'DESIGN',
+    category: 'brand-experience',
     line: 'Identity system, typography and colour, packaging, guidelines.',
     affinity: { identity: 2.4, ambiguity: 0.4 },
     needs: ['strategy'],
@@ -286,6 +298,7 @@ export const CLUSTERS: Cluster[] = [
   {
     id: 'technology',
     name: 'TECHNOLOGY',
+    category: 'digital-technology-automation',
     line: 'Web and app build, cloud and CMS, the systems the rest runs on.',
     affinity: { infrastructure: 2.6 },
     needs: ['design'],
@@ -294,6 +307,7 @@ export const CLUSTERS: Cluster[] = [
   {
     id: 'martech',
     name: 'MAR-TECH',
+    category: 'digital-technology-automation',
     line: 'CRM, customer data, workflow automation, integration.',
     affinity: { infrastructure: 1.8, proof: 1.0, reach: 0.6 },
     needs: ['technology'],
@@ -302,6 +316,7 @@ export const CLUSTERS: Cluster[] = [
   {
     id: 'digital',
     name: 'DIGITAL MARKETING',
+    category: 'growth-content-commerce',
     line: 'Search, paid media, funnels, remarketing.',
     affinity: { reach: 2.4, urgency: 0.8 },
     needs: ['technology'],
@@ -310,6 +325,7 @@ export const CLUSTERS: Cluster[] = [
   {
     id: 'social',
     name: 'SOCIAL',
+    category: 'growth-content-commerce',
     line: 'Platform strategy, content, community, listening.',
     affinity: { reach: 1.8, presence: 1.2, identity: 0.6 },
     needs: ['design'],
@@ -318,6 +334,7 @@ export const CLUSTERS: Cluster[] = [
   {
     id: 'production',
     name: 'PRODUCTION',
+    category: 'media-creators-experiences',
     line: 'Film, photography, sound, the material the rest distributes.',
     affinity: { identity: 1.2, reach: 1.0, presence: 1.2 },
     needs: ['design'],
@@ -326,6 +343,7 @@ export const CLUSTERS: Cluster[] = [
   {
     id: 'creators',
     name: 'CREATORS',
+    category: 'media-creators-experiences',
     line: 'Artist and creator collaboration, UGC, co-branded work.',
     affinity: { presence: 2.4, reach: 1.2 },
     needs: ['production'],
@@ -334,6 +352,7 @@ export const CLUSTERS: Cluster[] = [
   {
     id: 'experience',
     name: 'ON-GROUND',
+    category: 'media-creators-experiences',
     line: 'Pop-ups, festivals, venues, rooms with people actually in them.',
     affinity: { presence: 2.6, urgency: 0.6 },
     needs: ['production'],
@@ -342,6 +361,7 @@ export const CLUSTERS: Cluster[] = [
   {
     id: 'reputation',
     name: 'REPUTATION',
+    category: 'media-creators-experiences',
     line: 'Review monitoring, ORM, crisis communication, customer success.',
     affinity: { proof: 2.6 },
     needs: ['strategy'],
@@ -350,6 +370,7 @@ export const CLUSTERS: Cluster[] = [
   {
     id: 'mainline',
     name: 'MAINLINE',
+    category: 'media-creators-experiences',
     line: 'Outdoor, radio, cinema, transit, integrated ATL.',
     affinity: { reach: 1.4, urgency: 1.6, presence: 0.8 },
     needs: ['production'],
@@ -365,7 +386,8 @@ export const SIM_COPY = {
   begin: 'STATE THE PROBLEM',
   restart: 'START AGAIN',
   back: 'REVISE',
-  stages: ['ABSORB', 'CLARIFY', 'BLUEPRINT', 'ASSEMBLE', 'SUSTAIN'],
+  /** The real method, mirrored from the commercial frontend. */
+  stages: METHOD_LABELS,
   mapTitle: 'THE SYSTEM',
   disclaimer:
     'A structured reading of what you described, produced by fixed rules. It is a starting point for a conversation, not a plan, a quote, or a prediction.',

@@ -1,4 +1,5 @@
 import { MODES } from './lab';
+import { METHOD, POSITION, SERVICES } from './canonical';
 
 /**
  * ONE SOURCE, SEVEN INTERFACES.
@@ -12,22 +13,13 @@ import { MODES } from './lab';
 
 export const SOURCE = {
   company: 'HI ANZY',
-  statement: 'One company. Multiple realities.',
+  statement: POSITION.statement,
   blurb:
     'A creative consultancy that works as one system rather than four suppliers: strategy, design, technology and culture assembled per problem.',
-  method: [
-    { name: 'ABSORB', line: 'Deep-dive consultation. Brand and business audit.' },
-    { name: 'CLARIFY', line: 'Audience mapping. Pain point extraction. Threat analysis.' },
-    { name: 'BLUEPRINT', line: 'Communication strategy. Voice alignment. Growth plan.' },
-    { name: 'ASSEMBLE', line: 'Handpicked collaborators. Project-specific action pods.' },
-    { name: 'SUSTAIN', line: 'Measurable results. Sustained systems. Long-term support.' },
-  ],
-  services: [
-    { name: 'STRATEGY', line: 'Positioning, market reading, roadmap.' },
-    { name: 'DESIGN', line: 'Identity, type, packaging, guidelines.' },
-    { name: 'TECHNOLOGY', line: 'Web, app, cloud, CMS, automation.' },
-    { name: 'NETWORK', line: 'Creators, venues, media, on-ground.' },
-  ],
+  /** The real method. Seven interfaces render this one array. */
+  method: METHOD.map((m) => ({ name: m.label, line: `${m.title} ${m.page}` })),
+  /** The real service taxonomy, shortened to what an era can show. */
+  services: SERVICES.map((c) => ({ name: c.title.toUpperCase(), line: c.copy })),
   /** The index, read live — so even the past eras report the real state. */
   get realities() {
     return MODES.map((m) => ({ index: m.index, title: m.title, online: m.status === 'online' }));

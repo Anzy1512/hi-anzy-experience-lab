@@ -1,3 +1,4 @@
+import { SERVICES } from '../../content/canonical';
 import { CLUSTERS, SIM_COPY } from '../../content/simulator';
 import { setPointerIntent } from '../../core/pointer';
 import type { SystemReading } from './model';
@@ -25,6 +26,12 @@ const BAND_LABEL: Record<string, string> = {
   supporting: 'SUPPORTING',
   watch: 'WATCH',
 };
+
+/** The real service category a cluster belongs to, named as the site names it. */
+function categoryOf(slug: string): string {
+  const cat = SERVICES.find((x) => x.slug === slug);
+  return cat ? `${cat.num} ${cat.title.toUpperCase()} · ${cat.stage}` : '';
+}
 
 export function SystemMap({ reading, onDistrict }: Props) {
   const nameOf = (id: string) => CLUSTERS.find((c) => c.id === id)?.name ?? id;
@@ -65,6 +72,12 @@ export function SystemMap({ reading, onDistrict }: Props) {
                 <span className="t-display t-display-s sim-cluster__name">{c.cluster.name}</span>
               </p>
               <p className="t-body-s t-dim sim-cluster__line">{c.cluster.line}</p>
+              {/* Where this capability sits in the company's real service
+                  taxonomy, so the reading connects to something buyable
+                  rather than ending at a Lab-internal label. */}
+              <p className="t-mono t-mono-xs t-faint sim-cluster__cat">
+                {categoryOf(c.cluster.category)}
+              </p>
             </li>
           ))}
         </ul>
