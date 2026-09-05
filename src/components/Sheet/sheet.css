@@ -96,6 +96,36 @@
 .sheet__band--top {
   top: calc(var(--trim) * 0.5 - 0.35em);
 }
+/*
+ * THE HEAD MARGIN IS A MARGIN, NOT A TRANSPARENT BAR.
+ *
+ * The band is fixed and had no ground of its own. That was invisible while
+ * every page was about a screen tall; once the Reality Index grew a
+ * cross-reference section it became obvious, with the list's own rows printing
+ * straight through "HA/XL / SHEET 01".
+ *
+ * The fix is the one the metaphor already implies: a printed sheet's head
+ * margin is empty paper. This is a short fade from the page's own colour, so
+ * type dissolves into the margin instead of overprinting the notation. It is
+ * deliberately not a sticky header — no rule, no panel, no shadow, and it moves
+ * with the sheet rather than announcing itself.
+ */
+.sheet__band--top::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--trim) * -1);
+  right: calc(var(--trim) * -1);
+  top: calc(var(--trim) * -0.5 - 0.7em);
+  height: calc(var(--trim) + 2.4em);
+  background: linear-gradient(
+    to bottom,
+    var(--ground) 0%,
+    var(--ground) 58%,
+    color-mix(in srgb, var(--ground) 0%, transparent) 100%
+  );
+  pointer-events: none;
+  z-index: -1;
+}
 
 .sheet__id {
   color: var(--figure);

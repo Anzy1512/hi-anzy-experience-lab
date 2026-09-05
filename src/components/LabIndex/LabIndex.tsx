@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { EXPERIMENT_MODES, FLAGSHIP_MODES, MODES } from '../../content/lab';
+import { EXPERIMENT_MODES, FLAGSHIP_MODES, findMode, MODES } from '../../content/lab';
+import { EDGES } from '../../content/graph';
 import { INDEX_COPY, indexNote } from '../../content/brand';
 import { isEnterable, STATUS_LABEL, type ModeDefinition } from '../../experience/types';
 import { useExperience } from '../../experience/context';
-import { hasVisited, subscribeVisited, visitedCount } from '../../experience/visited';
+import { hasVisited, subscribeVisited, takeReturningFrom, visitedCount } from '../../experience/visited';
 import { useReducedMotion } from '../../core/hooks';
 import { setPointerIntent } from '../../core/pointer';
 import { guaranteeCompletion, rowsIn, settleImmediately } from '../../motion/primitives';
@@ -54,6 +55,7 @@ function Row({ mode, expanded, onToggle, visited }: RowProps) {
   return (
     <li
       className="row"
+      data-mode-id={mode.id}
       data-status={mode.status}
       data-expanded={expanded ? 'true' : 'false'}
       data-visited={visited ? 'true' : 'false'}
@@ -111,6 +113,58 @@ function Row({ mode, expanded, onToggle, visited }: RowProps) {
   );
 }
 
+/**
+ * CROSS-REFERENCES — the reality graph, printed.
+ *
+ * The mode host offers an onward move inside a reality, but only where a fixed
+ * overlay has room: below 900px it would print through the reality's own copy,
+ * so it is hidden there. This block is where the graph actually lives. It is
+ * reference matter on the back of the plate list — every edge, both ends named
+ * by their index numeral, and the reason stated in full.
+ *
+ * Deliberately not interactive. Every reality named here has its own enterable
+ * row a few centimetres up the same sheet; a second set of controls pointing at
+ * the same sixteen destinations would be duplicate navigation, and it would put
+ * thirteen more stops in the tab order for nothing.
+ */
+function CrossReferences() {
+  const edges = EDGES.map((edge) => ({
+    edge,
+    from: findMode(edge.from),
+    to: findMode(edge.to),
+  })).filter((row) => row.from && row.to);
+
+  if (edges.length === 0) return null;
+
+  return (
+    <section className="index__graph" aria-labelledby="index-graph-label">
+      <h2 className="t-mono t-mono-xs t-dim index__graph-label" id="index-graph-label">
+        CROSS-REFERENCES — WHERE EACH REALITY LEADS
+      </h2>
+      <ul className="index__graph-list">
+        {edges.map(({ edge, from, to }) => (
+          <li className="index__graph-row" key={`${edge.from}-${edge.to}`}>
+            <p className="t-mono t-mono-xs index__graph-pair">
+              <span className="index__graph-num" aria-hidden="true">
+                {from!.index}
+              </span>
+              <span className="index__graph-name">{from!.title}</span>
+              <span className="index__graph-arrow" aria-hidden="true">
+                &rarr;
+              </span>
+              <span className="index__graph-num" aria-hidden="true">
+                {to!.index}
+              </span>
+              <span className="index__graph-name index__graph-name--to">{to!.title}</span>
+            </p>
+            <p className="t-body-s t-dim index__graph-why">{edge.because}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 export function LabIndex() {
   const { error } = useExperience();
   const reduced = useReducedMotion();
@@ -141,6 +195,27 @@ export function LabIndex() {
       settleImmediately(all);
     };
   }, [reduced]);
+
+  /**
+   * Put the keyboard back where it was.
+   *
+   * Leaving a reality used to land focus on `<body>`: the focus trap restores
+   * whatever was focused when it turned on, and by then this list had already
+   * unmounted, so it captured nothing worth returning to. Sixteen rows and no
+   * caret is a real loss of place for a keyboard visitor. The provider hands
+   * over the id of the reality just left, once, and the row it names takes
+   * focus. `preventScroll` is off deliberately — the point is to bring the
+   * visitor back to where they were on the sheet, not merely to the element.
+   *
+   * A fresh load or a deep link to `#index` reads `null` and moves nothing.
+   */
+  useEffect(() => {
+    const from = takeReturningFrom();
+    if (!from) return;
+    const row = listRef.current?.querySelector<HTMLElement>(`[data-mode-id="${from}"] .row__hit`)
+      ?? reverseRef.current?.querySelector<HTMLElement>(`[data-mode-id="${from}"] .row__hit`);
+    row?.focus();
+  }, []);
 
   // Counted, not asserted. The note used to claim a number that had been wrong
   // for two phases.
@@ -194,6 +269,8 @@ export function LabIndex() {
           ))}
         </ul>
       </div>
+
+      <CrossReferences />
     </main>
   );
 }

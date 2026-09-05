@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ModeViewProps } from '../../experience/types';
 import { useCapability, useCoarsePointer, useReducedMotion } from '../../core/hooks';
+import { spatialFallbackReason } from '../../content/brand';
 import { onFrame } from '../../core/raf';
 import { pointer, setPointerIntent } from '../../core/pointer';
 import { detectWebGPU } from '../../core/capability';
@@ -192,7 +193,7 @@ export default function MatterMode({ onReady, scope }: ModeViewProps) {
           </SpatialCanvas>
         </div>
       ) : (
-        <MatterFallback state={state} />
+        <MatterFallback capability={capability} state={state} />
       )}
 
       <div className="mx-band">
@@ -296,11 +297,17 @@ export default function MatterMode({ onReady, scope }: ModeViewProps) {
 /* -------------------------------------------------------------------------- */
 /* No WebGL — the states still exist, as a printed plate                        */
 /* -------------------------------------------------------------------------- */
-function MatterFallback({ state }: { state: MatterState }) {
+function MatterFallback({
+  state,
+  capability,
+}: {
+  state: MatterState;
+  capability: { webgl: boolean; reducedMotion: boolean };
+}) {
   return (
     <div className="mx-fallback">
       <p className="t-mono t-mono-xs mx-fallback__note">
-        THIS FIELD NEEDS WEBGL, WHICH IS UNAVAILABLE HERE. THE MATERIAL STATES ARE LISTED BELOW.
+        {`${spatialFallbackReason('This field', capability)} The material states are listed below.`}
       </p>
       <ol className="mx-fallback__list">
         {STATE_ORDER.map((s, i) => (

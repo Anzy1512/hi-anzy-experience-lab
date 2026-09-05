@@ -5,6 +5,7 @@ import type { ModeViewProps } from '../../experience/types';
 import { useCapability, useCoarsePointer, useReducedMotion } from '../../core/hooks';
 import { onFrame } from '../../core/raf';
 import { pointer, setPointerIntent } from '../../core/pointer';
+import { spatialFallbackReason } from '../../content/brand';
 import { spatialQuality, type SpatialQuality } from '../../spatial/quality';
 import { SpatialCanvas } from '../../spatial/SpatialCanvas';
 import { damp, lerp } from '../../spatial/projection';
@@ -283,7 +284,7 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
         </div>
       ) : (
         <p className="lw-fallback t-mono t-mono-xs" role="status">
-          {WORLD_COPY.fallback}
+          {`${spatialFallbackReason(WORLD_COPY.fallbackSubject, capability)} ${WORLD_COPY.fallbackRemains}`}
         </p>
       )}
 

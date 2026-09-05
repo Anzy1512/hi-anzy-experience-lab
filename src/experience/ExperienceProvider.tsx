@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { CleanupScope, emergencyReset, setScrollLock } from '../core/cleanup';
 import { findMode } from '../content/lab';
 import { isEnterable, type ModePhase } from './types';
-import { markVisited } from './visited';
+import { markReturningFrom, markVisited } from './visited';
 import { clearTransition, runTransition, transitionFor } from './transitions';
 import { prefersReducedMotion } from '../core/capability';
 import { ExperienceContext, type ExperienceValue, type Stage } from './context';
@@ -109,6 +109,17 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
     exitTimerRef.current = 0;
   }, []);
 
+  /**
+   * The active mode id, mirrored in a ref.
+   *
+   * `applyLocation` needs to know which reality it is leaving, and it must not
+   * take `activeId` as a dependency: the callback is what drives navigation, so
+   * rebuilding it on every mode change would make the effect that owns it fire
+   * against a location it has already applied. The ref is written on the two
+   * lines that also call `setActiveId`, so the two cannot drift.
+   */
+  const activeIdRef = useRef<string | null>(initial.modeId);
+
   /* ---- navigation ------------------------------------------------------- */
   const applyLocation = useCallback(
     (loc: Loc) => {
@@ -126,6 +137,7 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
           scope: next,
           reduced: prefersReducedMotion(),
         });
+        activeIdRef.current = loc.modeId;
         setActiveId(loc.modeId);
         setStage('mode');
         setPhase('loading');
@@ -134,7 +146,10 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
       }
 
       // Leaving mode territory in any way disposes the mode — and takes any
-      // in-flight transition overlay with it.
+      // in-flight transition overlay with it. The id is handed to the index so
+      // the keyboard lands back on the row it left from rather than on <body>.
+      markReturningFrom(activeIdRef.current);
+      activeIdRef.current = null;
       clearTransition();
       closeScope();
       setActiveId(null);
@@ -237,6 +252,19 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
     setPhase('exiting');
     clearTimers();
     exitTimerRef.current = window.setTimeout(() => {
+      /*
+       * This is the second way out of a reality — Escape and the EXIT control
+       * both land here rather than in `applyLocation`, because the exit beat has
+       * to play before the teardown. A second teardown route must not be a
+       * quieter one: the index needs the same handover it gets from the first,
+       * or a keyboard visitor who presses Escape is returned to a sixteen-row
+       * list with focus on <body>, which is exactly what happened.
+       *
+       * (The in-flight transition needs no explicit clear: it is registered on
+       * the mode scope, so `closeScope()` cancels it and removes the overlay.)
+       */
+      markReturningFrom(activeIdRef.current);
+      activeIdRef.current = null;
       closeScope();
       setActiveId(null);
       setPhase('idle');

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ModeViewProps } from '../../experience/types';
 import { useCapability, useCoarsePointer, useReducedMotion } from '../../core/hooks';
+import { spatialFallbackReason } from '../../content/brand';
 import { onFrame } from '../../core/raf';
 import { pointer, setPointerIntent } from '../../core/pointer';
 import { spatialQuality } from '../../spatial/quality';
@@ -167,8 +168,7 @@ export default function PresenceMode({ onReady, scope }: ModeViewProps) {
         </div>
       ) : (
         <p className="pr-fallback t-mono t-mono-xs" role="status">
-          THIS FIELD NEEDS WEBGL, WHICH IS UNAVAILABLE HERE. PRESENCE IS STILL BEING READ — THE
-          READOUT BELOW RESPONDS TO YOUR POINTER OR TOUCH.
+          {`${spatialFallbackReason('This field', capability)} Presence is still being read — the readout below responds to your pointer or touch.`}
         </p>
       )}
 

@@ -135,16 +135,17 @@
   padding: 6px 9px;
   /* Its own ground: this floats over whatever the reality is rendering. */
   background: color-mix(in srgb, var(--ground) 88%, transparent);
-  border-right: 2px solid var(--rule);
+  /* Recession is carried by the rule, the scale and the corner — never by
+     fading the group. Group opacity blends the type toward the backdrop at the
+     same rate as the box behind it, so the two converge: at rest this measured
+     1.83:1 against its own ground, and no opacity below 1 could clear 4.5:1.
+     The quiet state is now a dimmed rule with type at full strength. */
+  border-right: 2px solid color-mix(in srgb, var(--rule) 55%, transparent);
   text-align: right;
-  opacity: 0.4;
-  transition:
-    opacity var(--d-2) var(--e-snap),
-    border-right-color var(--d-2) var(--e-snap);
+  transition: border-right-color var(--d-2) var(--e-snap);
 }
 .modehost__onward-btn:hover,
 .modehost__onward-btn:focus-visible {
-  opacity: 1;
   border-right-color: var(--signal);
 }
 .modehost__onward-why {
@@ -158,24 +159,21 @@
   letter-spacing: var(--tr-mono-wide);
 }
 
-/* On a phone the chrome is already busy; the graph folds to one move. */
+/* THE GRAPH DOES NOT FLOAT ON A PHONE.
+   A fixed overlay at a fixed offset cannot dodge sixteen unrelated layouts. At
+   375x812 this one printed straight through body copy in four of the thirteen
+   realities that have an onward move — X-Ray's opening paragraph, the Reality
+   Compiler's service lines, Matter Engine's statement, and Memory's WebGL
+   capability notice, which is the single worst thing in the Lab to cover.
+   Making it opaque would have hidden that copy rather than overlapped it.
+   The alternative — reserving a bottom band in every reality — is a layout
+   contract sixteen modes would have to obey, which the phase brief rules out.
+   So below 900px the graph lives on the Reality Index instead, where it has
+   room, and where it is reachable from inside every reality by one control
+   that already exists. Nothing is lost; only the shortcut is. */
 @media (max-width: 900px) {
   .modehost__onward {
-    left: var(--trim);
-    max-width: none;
-    align-items: stretch;
-    bottom: calc(var(--trim) * 0.5 + 210px);
-  }
-  .modehost__onward-btn:nth-child(n + 2) {
     display: none;
-  }
-  .modehost__onward-btn {
-    justify-items: start;
-    text-align: left;
-    border-right: 0;
-    border-left: 2px solid var(--rule);
-    padding: 8px;
-    opacity: 0.75;
   }
 }
 
@@ -205,12 +203,30 @@
 }
 
 /* The Agency Simulator reserves the right third for its question panel and the
-   left two thirds for a composed working table. The graph tucks under the
-   panel's own bottom edge rather than sitting across either. */
+   left two thirds for a composed working table.
+
+   It was tucked under the panel, which put it straight through the panel's own
+   "CLICK TO COMPILE" hint — two different instructions in the same corner, one
+   printed over the other. The table's foot is the right home: the lower
+   registers are drawn but unfilled until late in a run, so there is composed
+   emptiness there by design, and the graph reads as a note in the margin of the
+   work rather than as a second control competing with the panel's. */
 .modehost[data-mode='agency-simulator'] .modehost__onward {
-  bottom: calc(var(--trim) * 0.5 + 4px);
-  right: var(--trim);
-  max-width: 30ch;
+  bottom: calc(var(--trim) * 0.5);
+  left: var(--trim);
+  right: auto;
+  align-items: flex-start;
+  max-width: 42ch;
+}
+.modehost[data-mode='agency-simulator'] .modehost__onward-btn {
+  justify-items: start;
+  text-align: left;
+  border-right: 0;
+  border-left: 2px solid color-mix(in srgb, var(--rule) 55%, transparent);
+}
+.modehost[data-mode='agency-simulator'] .modehost__onward-btn:hover,
+.modehost[data-mode='agency-simulator'] .modehost__onward-btn:focus-visible {
+  border-left-color: var(--signal);
 }
 @media (max-width: 900px) {
   .modehost[data-mode='agency-simulator'] .modehost__onward {

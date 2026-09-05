@@ -18,6 +18,19 @@
 | Canonical source | `Anzy1512/hi-anzy-platform`, branch `main`, commit `6e36db1` |
 | Sync check | `node scripts/check-canonical-sync.mjs` → `STATUS CURRENT` |
 | `NOT_MAPPED` | **0** — the treatment union does not contain the value |
+| Manifest | 116 entries · 18 routes · 27 exports · 64 components · 7 asset/font |
+| Exclusions | 28, every one with a written reason, enforced by `exclusionsWithoutReason()` |
+
+### The exclusion guard is a check, not a character count
+
+`exclusionsWithoutReason()` began as `rationale.length < 20`, which tests that a
+sentence is long rather than that it says anything. It now passes an entry only if
+the rationale states the reason itself (70+ characters) **or** names a sibling entry
+that does — `"As BRAND_REFS — the curated top tier, same policy."` is a reason;
+repeating the BRAND_REFS paragraph nine times would make the file worse. A deferral
+to an entry that does not exist, or to another deferral, fails. Tightening it caught
+three entries the length check had passed, including `ClientMarquee.js`, which is the
+single exclusion in this file least entitled to be compressed into a cross-reference.
 
 ### What changed in the continuation
 
@@ -32,6 +45,41 @@
   worth making.
 - **`scripts/check-canonical-sync.mjs`** — development-only drift detection. Not part of
   the build; the deployed Lab never requires the canonical repo to exist.
+
+### What the closing QA pass changed
+
+Seven defects, each found by running the thing rather than by reading it:
+
+1. **The onward graph washed out its own text.** Group `opacity: 0.4` at rest dimmed
+   the type and its box toward the backdrop at the same rate, so they converged: the
+   reason line measured **1.83:1** and no opacity below 1 could reach 4.5:1. Recession
+   is now carried by the rule, the scale and the corner. Measured **5.16:1** desktop,
+   **6.04:1** mobile.
+2. **On a phone the graph printed through the reality.** A fixed overlay cannot dodge
+   sixteen layouts; at 375×812 it crossed body copy in four of the thirteen realities
+   that have an onward move, including Memory's WebGL capability notice. It is hidden
+   below 900px, and the graph now lives on the Reality Index instead — which is where
+   `EDGES` is rendered whole.
+3. **An edge pointed at something that was not a reality.** `time-machine →
+   reality-index` rendered a button reading `REALITY-INDEX` (the raw id, uppercased)
+   wired to `enterMode()` with an id no mode has. Both ends were strings and nothing
+   checked them. The edge is gone — leaving is what EXIT is for — and a development-only
+   check makes the next one loud.
+4. **Escape did not restore focus.** `exitMode` tears down inline rather than through
+   `applyLocation`, so the index never learned which reality it was returning from and
+   a keyboard visitor landed on `<body>` in front of sixteen rows. All three exit paths
+   — Escape, the EXIT control, browser Back — now put the caret back on the row it left.
+5. **Four realities told capable browsers they could not do WebGL.** The `lite` spatial
+   tier sets `webgl: false` whatever the machine can do, and reduced motion routes to
+   `lite` — so asking for less movement produced "…which is unavailable here". That is
+   the brief's own prohibition, in the product's own copy. `spatialFallbackReason()`
+   derives the sentence from actual capability, and there are three of them.
+6. **The sheet's head margin had no ground.** Fixed, transparent, and invisible while
+   every page was a screen tall — until the cross-reference section made the Index long
+   enough to scroll its own rows through `HA/XL / SHEET 01`.
+7. **Two sub-28px touch targets survived, both in Time Machine's 1995 era.** 1995 is a
+   reconstruction of how the web looked, not of how hard it was to use: the hit area is
+   grown to 44px with a pseudo-element on coarse pointers and the typography is untouched.
 
 ### The 2D → 3D primitive mapping
 
@@ -56,6 +104,21 @@ evidence that they are expressions of one design system rather than a reskin.
 `REGISTRATION_SHIFT` (default) · `PAPER_APERTURE` (Portal, Anzy.OS, Time Machine) ·
 `PLATE_SEPARATE` (Compiler, Living World, Chaos) · `INK_DISSOLVE` (Matter, Presence) ·
 `ARCHIVE_RESOLVE` (Memory, Dream).
+
+Interrupted at half their duration, all five report progress within 0.4950–0.5093 —
+which is also the proof they are reading wall time rather than the RAF loop's clamped
+`dt` — remove their overlay on cancel, tolerate a second cancel, and leave zero RAF
+subscribers. Under `reduced`, each marks the change with its own `tr--static` state and
+subscribes no frame callback at all.
+
+### Cross-reality graph
+
+Twelve edges, each stating why the move is worth making, in `src/content/graph.ts`.
+Rendered in two places: at most two onward moves in the mode host above 900px, and the
+whole set as **CROSS-REFERENCES** on the Reality Index at every width. The index block is
+deliberately not interactive — every reality it names has an enterable row a few
+centimetres up the same sheet, and a second set of controls pointing at the same sixteen
+destinations would be duplicate navigation and twelve more stops in the tab order.
 
 All five are DOM overlays. None creates a WebGL context, none is load-bearing — navigation
 has already happened when one plays — and all are registered on the mode scope.

@@ -166,8 +166,10 @@ export const MEMORY_COPY = {
   hintCoarse: 'SWIPE TO MOVE THROUGH THE ARCHIVE · TAP AND HOLD TO RECONSTRUCT',
   unrecovered: 'UNRECOVERED',
   note: 'Fields marked unrecovered are not reconstructed and not guessed. An incomplete record stays incomplete.',
-  fallback:
-    'THIS ARCHIVE RECONSTRUCTS IN WEBGL, WHICH IS UNAVAILABLE HERE. THE RECORDS THEMSELVES ARE BELOW, IN FULL.',
+  /* See `spatialFallbackReason` in brand.ts: the reason is derived, because
+     "unavailable here" was being printed on browsers where it was available. */
+  fallbackRemains: 'The records themselves are below, in full.',
+  fallbackSubject: 'This archive',
 } as const;
 
 /** Reconstruction states, in the order a record passes through them. */

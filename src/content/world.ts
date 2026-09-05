@@ -223,8 +223,10 @@ export const WORLD_COPY = {
   hintTouch: 'DRAG TO LOOK · TAP A DISTRICT',
   mapLabel: 'TERRITORY',
   arriving: 'ARRIVING',
-  fallback:
-    'This territory needs WebGL, which is unavailable here. The district index below is the same map, and every place in it is listed.',
+  /* The reason clause is derived — see `spatialFallbackReason` in brand.ts.
+     This is only the half that is always true: what is still here. */
+  fallbackRemains: 'The district index below is the same map, and every place in it is listed.',
+  fallbackSubject: 'This territory',
   intro:
     'A territory assembled from the sheet: contour ground from the specimen plate, districts built as stacked plates, routes drawn as rules.',
 } as const;

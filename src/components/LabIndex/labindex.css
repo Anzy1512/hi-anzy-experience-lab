@@ -327,3 +327,65 @@
     transition-duration: 1ms;
   }
 }
+
+/* ==========================================================================
+   CROSS-REFERENCES — the reality graph as reference matter.
+
+   Set as a two-column register list rather than a diagram. A node-and-line
+   drawing of thirteen edges would be a picture of a graph; this is the thing
+   the picture would be describing, and it reads at 375px as well as at 1920.
+   ========================================================================== */
+.index__graph {
+  margin-top: var(--s-8);
+}
+.index__graph-label {
+  padding-bottom: var(--s-2);
+  border-bottom: var(--hair) solid var(--rule);
+  letter-spacing: var(--tr-mono-wide);
+  margin: 0;
+}
+.index__graph-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.index__graph-row {
+  display: grid;
+  grid-template-columns: minmax(0, 34ch) minmax(0, 1fr);
+  gap: var(--s-3);
+  align-items: baseline;
+  padding: var(--s-2) 0;
+  border-bottom: var(--hair) solid var(--rule);
+}
+.index__graph-pair {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.5ch;
+  margin: 0;
+  letter-spacing: var(--tr-mono-wide);
+}
+.index__graph-num {
+  color: var(--figure-faint);
+}
+.index__graph-name {
+  color: var(--figure-dim);
+}
+/* The destination is the one thing in the row that is a proposition. */
+.index__graph-name--to {
+  color: var(--figure);
+}
+.index__graph-arrow {
+  color: var(--signal);
+  padding: 0 0.25ch;
+}
+.index__graph-why {
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .index__graph-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s-1);
+  }
+}

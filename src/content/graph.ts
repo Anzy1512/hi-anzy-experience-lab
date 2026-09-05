@@ -16,6 +16,8 @@
  * should not exist.
  */
 
+import { MODES } from './lab';
+
 export interface Edge {
   from: string;
   to: string;
@@ -80,29 +82,43 @@ export const EDGES: Edge[] = [
     because: 'A measured document is ready to be lifted off the page.',
   },
   {
-    from: 'time-machine',
-    to: 'reality-index',
-    because: 'The last era on the scrubber is the Lab you are standing in.',
-  },
-  {
     from: 'after-dark',
     to: 'sonic-architecture',
     because: 'The room is already dark. Give it a sound.',
   },
 ];
 
+/**
+ * Every endpoint must be a reality.
+ *
+ * There was a fourteenth edge here pointing at `reality-index`, which is not a
+ * mode. It rendered in the mode host as a button reading "REALITY-INDEX" — the
+ * raw id, uppercased, hyphen and all — wired to `enterMode()` with an id no
+ * mode has. It survived because both ends were plain strings and nothing ever
+ * checked them. The edge is gone (leaving the Index is what EXIT is for, not an
+ * onward relationship), and this check makes the next one loud instead of
+ * silent. Development only; it is dead code in the production bundle.
+ */
+if (import.meta.env.DEV) {
+  const ids = new Set(MODES.map((m) => m.id));
+  for (const e of EDGES) {
+    if (!ids.has(e.from) || !ids.has(e.to)) {
+      console.error(`[graph] edge names a reality that does not exist: ${e.from} -> ${e.to}`);
+    }
+  }
+}
+
 /** Onward moves from a reality. At most two are ever offered. */
 export function edgesFrom(id: string): Edge[] {
   return EDGES.filter((e) => e.from === id).slice(0, 2);
 }
 
-/** What leads here — used by the Index to draw relationships. */
-export function edgesTo(id: string): Edge[] {
-  return EDGES.filter((e) => e.to === id);
-}
-
-export function relatedTo(id: string): string[] {
-  return [
-    ...new Set([...edgesFrom(id).map((e) => e.to), ...edgesTo(id).map((e) => e.from)]),
-  ];
-}
+/*
+ * There were two more helpers here — `edgesTo` and `relatedTo` — and the
+ * comment on one of them said it was "used by the Index to draw relationships".
+ * Nothing used either. A helper with a comment naming a consumer it does not
+ * have is a worse artefact than no helper, so both were removed rather than
+ * kept warm for a caller that might arrive. `EDGES` is rendered whole by the
+ * Reality Index and filtered by `edgesFrom` in the mode host; that is the
+ * entire surface, and it is the entire surface that is used.
+ */

@@ -159,6 +159,20 @@
 .e95 a:visited {
   color: #551a8b;
 }
+/* 1995 is a reconstruction of how the web looked, not of how hard it was to
+   use. An 18px inline link is period-correct and also the only sub-28px touch
+   target left in the Lab, so the hit area is grown with a pseudo-element on
+   coarse pointers: 44px tall, and not one pixel of the typography changes. */
+@media (pointer: coarse) {
+  .e95 a {
+    position: relative;
+  }
+  .e95 a::after {
+    content: '';
+    position: absolute;
+    inset: -13px -8px;
+  }
+}
 .e95-small {
   font-size: 0.8em;
   color: #444;

@@ -47,9 +47,40 @@ export function subscribeVisited(fn: () => void): () => void {
   return () => listeners.delete(fn);
 }
 
+/* -------------------------------------------------------------------------- */
+/* Where to put the keyboard back                                              */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The reality the visitor has just come back from, held exactly once.
+ *
+ * `useFocusTrap` restores focus to whatever was focused when the trap turned
+ * on — but by then the index has already unmounted, so the thing it captured
+ * was `<body>`, and pressing Escape dropped a keyboard visitor at the top of a
+ * sixteen-row list with no focus and no place. That is the whole reason this
+ * exists: the index reads it on mount and puts the caret back on the row the
+ * visitor left from.
+ *
+ * One-shot on purpose. A deep link straight to `#index`, a reload, or a second
+ * render must not move anybody's focus; only an actual return does.
+ */
+let returningFrom: string | null = null;
+
+export function markReturningFrom(id: string | null): void {
+  returningFrom = id;
+}
+
+/** Reads and clears. Calling it twice gives you `null` the second time. */
+export function takeReturningFrom(): string | null {
+  const id = returningFrom;
+  returningFrom = null;
+  return id;
+}
+
 /** Only for tests and emergency reset. */
 export function clearVisited(): void {
   visited.clear();
   order.length = 0;
+  returningFrom = null;
   listeners.forEach((l) => l());
 }

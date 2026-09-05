@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ModeViewProps } from '../../experience/types';
 import { useCapability, useCoarsePointer, useReducedMotion } from '../../core/hooks';
+import { spatialFallbackReason } from '../../content/brand';
 import { onFrame } from '../../core/raf';
 import { setPointerIntent } from '../../core/pointer';
 import { spatialQuality } from '../../spatial/quality';
@@ -227,7 +228,7 @@ export default function MemoryMode({ onReady, scope }: ModeViewProps) {
           </SpatialCanvas>
         </div>
       ) : (
-        <MemoryDocument />
+        <MemoryDocument capability={capability} />
       )}
 
       {/* ---- the record, as an archive card ------------------------------- */}
@@ -322,10 +323,12 @@ export default function MemoryMode({ onReady, scope }: ModeViewProps) {
 /* -------------------------------------------------------------------------- */
 /* No WebGL — the archive is a document, and stays complete                    */
 /* -------------------------------------------------------------------------- */
-function MemoryDocument() {
+function MemoryDocument({ capability }: { capability: { webgl: boolean; reducedMotion: boolean } }) {
   return (
     <div className="mem-doc">
-      <p className="t-mono t-mono-xs mem-doc__note">{MEMORY_COPY.fallback}</p>
+      <p className="t-mono t-mono-xs mem-doc__note">
+        {`${spatialFallbackReason(MEMORY_COPY.fallbackSubject, capability)} ${MEMORY_COPY.fallbackRemains}`}
+      </p>
       <ol className="mem-doc__list">
         {RECORDS.map((r) => (
           <li key={r.id}>

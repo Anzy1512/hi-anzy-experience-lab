@@ -459,10 +459,25 @@ export const COMPONENTS: ManifestEntry[] = [
   comp('NotesSubscribe.js', 'DOM_ONLY', [], 'Email capture.'),
   comp('MagneticButton.js', 'EXCLUDED', [], 'Pointer-attracted control. The Lab’s controls are instrument-like and deliberately do not chase the cursor.'),
   comp('Picture.js', 'DOM_ONLY', [], 'Responsive image element.'),
-  comp('PopIllustration.js', 'EXCLUDED', [], 'Illustration delivery. As deck/.'),
-  comp('PunPop.js', 'EXCLUDED', [], 'Editorial joke component. Voice belongs to the site.'),
+  comp(
+    'PopIllustration.js',
+    'EXCLUDED',
+    [],
+    'The delivery component for the deck/ illustration set — it renders artwork the Lab does not ship. Excluded for the same reason as the artwork itself: every mark in the Lab is drawn at runtime, and there is no image file in the bundle for this to render.',
+  ),
+  comp(
+    'PunPop.js',
+    'EXCLUDED',
+    [],
+    'A component whose whole job is to land a joke in the brand’s editorial voice. That voice is the commercial site’s, written by people, and the Lab does not get to borrow it — originality of copy is a standing rule here, and a wisecrack lifted across the boundary would be the site talking, not this product. The behaviour is also not spatial: there is nothing underneath it to translate.',
+  ),
   comp('CharacterQuote.js', 'EXCLUDED', [], 'Attributed quote with a portrait — consent risk, as CHARACTERS.'),
-  comp('ClientMarquee.js', 'EXCLUDED', [], 'Client logos — as BRAND_REFS.'),
+  comp(
+    'ClientMarquee.js',
+    'EXCLUDED',
+    [],
+    'A scrolling wall of real client logos. This is the exclusion the Lab is least willing to compress into a cross-reference: it is the one place a single imported component would turn a product that has never claimed a client into one that appears to claim fourteen. The marquee stays on the commercial site, which carries the context that makes a client list mean something. See BRAND_REFS for the same decision at the data layer.',
+  ),
   comp('CardCarousel.js', 'MATERIAL_SOURCE', ['translation.SPATIAL_DECK'], 'Superseded by EvidenceDeck as the deck behaviour; recorded for completeness.'),
   comp('Packages.js', 'EXCLUDED', [], 'Commercial packaging UI — as PACKAGES.'),
   comp('PackageBuilder.js', 'EXCLUDED', [], 'Interactive offer construction. Genuinely good, and genuinely a buying tool; the Agency Simulator produces a reading, not a quote, and mixing the two would make the reading look like a sales funnel.'),
@@ -514,7 +529,8 @@ export const ASSETS: ManifestEntry[] = [
     sourceType: 'assetFamily',
     treatment: 'EXCLUDED',
     destinations: [],
-    rationale: 'As pop-*.',
+    rationale:
+      'Collated artwork for the site’s editorial sections, as pop-*. Verified: the Lab ships zero raster or vector image files — public/ contains six woff2 fonts and nothing else, and every mark is drawn at runtime. Importing these would make one of these the first image in the bundle, for decoration.',
     consentRisk: 'none',
     payloadRisk: 'high',
     status: 'done',
@@ -582,9 +598,34 @@ export function coverage(): Coverage {
   };
 }
 
-/** Every exclusion must carry a reason. Enforced, not merely intended. */
+/** A rationale this short cannot state a reason on its own. */
+const SELF_CONTAINED_MIN = 70;
+
+/**
+ * Every exclusion must carry a reason. Enforced, not merely intended.
+ *
+ * A rationale passes if it either states the reason itself, or defers to a
+ * sibling entry that does — "As BRAND_REFS — the curated top tier, same
+ * policy." is a reason; repeating the BRAND_REFS paragraph nine times would
+ * make this file worse, not more honest. What does not pass is a deferral whose
+ * target does not exist, or whose target is itself a deferral, because that is
+ * how a reason quietly becomes a chain of pointers to nothing.
+ *
+ * This used to be a character count, which is a check that a sentence is long
+ * rather than a check that it says anything.
+ */
 export function exclusionsWithoutReason(): ManifestEntry[] {
-  return MANIFEST.filter(
-    (e) => (e.treatment === 'EXCLUDED' || e.treatment === 'UNAVAILABLE') && e.rationale.trim().length < 20,
+  const reasoned = new Set(
+    MANIFEST.filter((e) => e.rationale.trim().length >= SELF_CONTAINED_MIN).map((e) => e.source),
   );
+  // Match a deferral target by its bare name: `Work.js`, `BRAND_REFS`, `deck/`.
+  const names = MANIFEST.map((e) => ({ source: e.source, token: e.source.split('/').pop() || e.source }));
+
+  return MANIFEST.filter((e) => {
+    if (e.treatment !== 'EXCLUDED' && e.treatment !== 'UNAVAILABLE') return false;
+    const r = e.rationale.trim();
+    if (r.length >= SELF_CONTAINED_MIN) return false;
+    // Short: it must name a sibling that carries the reason in full.
+    return !names.some((n) => n.source !== e.source && r.includes(n.token) && reasoned.has(n.source));
+  });
 }

@@ -44,6 +44,31 @@ export function indexNote(online: number, total: number): string {
 }
 
 /**
+ * WHY THIS REALITY IS NOT BEING DRAWN IN WEBGL.
+ *
+ * The `lite` spatial tier sets `webgl: false` whatever the machine can actually
+ * do, and four realities printed "…which is unavailable here" off the back of
+ * it. On a reduced-motion visitor's perfectly capable browser that sentence is
+ * simply false — the Lab telling someone their browser is broken because they
+ * asked for less movement. It is the same failure as the index note that
+ * claimed one reality was online for two phases: copy asserting something the
+ * system had not checked.
+ *
+ * So the reason is derived from the actual capability, and there are three of
+ * them. `indexNote()` above exists for the same reason and is worth reading
+ * alongside this.
+ */
+export function spatialFallbackReason(
+  subject: string,
+  cap: { webgl: boolean; reducedMotion: boolean },
+): string {
+  if (!cap.webgl) return `${subject} needs WebGL, which is unavailable here.`;
+  if (cap.reducedMotion)
+    return `${subject} is not drawn in WebGL here: you have asked for reduced motion, and this is the calm version.`;
+  return `${subject} is not drawn in WebGL here, to stay light on this device.`;
+}
+
+/**
  * The X-Ray specimen. A real editorial composition, built so that X-Ray has
  * something honest to measure. The text is the Lab's own position statement,
  * carrying the deck's ideas without repeating its sentences.
