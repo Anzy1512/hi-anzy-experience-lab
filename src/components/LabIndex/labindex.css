@@ -1,0 +1,271 @@
+/* THE REALITY INDEX — a plate list.
+   Rules, numerals and scale do the work that boxes would otherwise do. */
+
+.index {
+  position: relative;
+  z-index: var(--z-content);
+  min-height: 100svh;
+  padding: calc(var(--trim) * 2.6) var(--trim) calc(var(--trim) * 2);
+  max-width: 1800px;
+  margin-inline: auto;
+}
+
+/* ---- head --------------------------------------------------------------- */
+.index__head {
+  display: grid;
+  grid-template-columns: 1fr minmax(0, 34ch);
+  align-items: end;
+  gap: var(--s-4);
+  padding-bottom: var(--s-4);
+  border-bottom: var(--hair) solid var(--rule);
+  margin-bottom: var(--s-5);
+}
+.index__title {
+  margin-top: var(--s-1);
+}
+.index__note {
+  text-align: right;
+  line-height: 1.7;
+}
+
+.index__error {
+  margin: 0 0 var(--s-4);
+  padding: var(--s-2) var(--s-3);
+  border-left: 2px solid var(--signal-hot);
+  color: var(--signal-hot);
+}
+
+/* ---- list --------------------------------------------------------------- */
+.index__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  position: relative;
+  border-top: var(--hair) solid transparent;
+  /* the rule is drawn by GSAP via --row-rule during entry */
+}
+.row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--hair);
+  background: var(--rule);
+  transform: scaleX(var(--row-rule, 1));
+  transform-origin: left center;
+}
+.index__list > .row:last-child::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--hair);
+  background: var(--rule);
+  transform: scaleX(var(--row-rule, 1));
+  transform-origin: left center;
+}
+
+/* ---- the hit area is the whole row ------------------------------------- */
+.row__hit {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, 24ch) auto;
+  align-items: baseline;
+  column-gap: clamp(var(--s-3), 2.4vw, var(--s-6));
+  padding: clamp(var(--s-3), 1.9vw, var(--s-5)) 0;
+  text-align: left;
+  position: relative;
+  transition: opacity var(--d-3) var(--e-snap);
+}
+
+.row__index {
+  font-size: clamp(1.1rem, 2.3vw, 2.1rem);
+  color: var(--figure-dim);
+  min-width: 2.6ch;
+  transition: color var(--d-2) var(--e-snap);
+}
+
+.row__title {
+  font-size: clamp(1.75rem, 4.6vw, 3.9rem);
+  line-height: 0.9;
+  color: var(--figure);
+  transition: transform var(--d-3) var(--e-glide);
+  transform-origin: left center;
+}
+
+.row__tagline {
+  align-self: center;
+}
+
+.row__status {
+  align-self: center;
+  color: var(--figure-dim);
+  white-space: nowrap;
+  letter-spacing: var(--tr-mono-wide);
+}
+.row[data-status='online'] .row__status {
+  color: var(--signal);
+}
+/* the one online reality gets a filled marker; nothing else does */
+.row[data-status='online'] .row__status::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: var(--signal);
+  margin-right: 0.7em;
+  vertical-align: 0.05em;
+}
+
+/* Unbuilt realities recede, but stay completely legible. The status column and
+   the online row's filled marker already carry availability — dimming only has
+   to whisper, and it compounds with the proximity fade below. */
+.row:not([data-status='online']) .row__title {
+  color: var(--figure);
+  opacity: 0.82;
+}
+
+/* ---- the scan line ------------------------------------------------------ */
+.row__scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--figure-faint);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--d-4) var(--e-mechanical);
+}
+.row[data-status='online'] .row__scan {
+  background: var(--signal);
+}
+
+/* ---- hover / focus : proximity ----------------------------------------- */
+@media (hover: hover) and (pointer: fine) {
+  .index__list:has(.row__hit:hover) .row:not(:has(.row__hit:hover)) .row__hit {
+    opacity: 0.46;
+  }
+  .row__hit:hover .row__scan {
+    transform: scaleX(1);
+  }
+  .row__hit:hover .row__title {
+    transform: translateX(clamp(6px, 0.9vw, 16px));
+  }
+  .row__hit:hover .row__index {
+    color: var(--signal);
+  }
+  /* hovering expands the row on desktop; no click required to read it */
+  .row:has(.row__hit:hover) .row__expand {
+    grid-template-rows: 1fr;
+  }
+}
+
+.index__list:has(.row__hit:focus-visible) .row:not(:has(.row__hit:focus-visible)) .row__hit {
+  opacity: 0.46;
+}
+.row__hit:focus-visible .row__scan {
+  transform: scaleX(1);
+}
+.row__hit:focus-visible .row__index {
+  color: var(--signal);
+}
+.row:has(.row__hit:focus-visible) .row__expand {
+  grid-template-rows: 1fr;
+}
+
+/* ---- expansion ---------------------------------------------------------- */
+.row__expand {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--d-4) var(--e-weight);
+}
+.row[data-expanded='true'] .row__expand {
+  grid-template-rows: 1fr;
+}
+.row__expand-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+.row__desc {
+  max-width: 62ch;
+  padding-bottom: var(--s-2);
+  color: var(--figure-dim);
+}
+.row__req {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1) var(--s-3);
+  margin: 0;
+  padding: 0 0 var(--s-4);
+}
+
+/* ---- reverse side : denser, quieter ------------------------------------ */
+.index__reverse {
+  margin-top: var(--s-8);
+}
+.index__reverse-label {
+  padding-bottom: var(--s-2);
+  border-bottom: var(--hair) solid var(--rule);
+  margin-bottom: 0;
+  letter-spacing: var(--tr-mono-wide);
+}
+.index__list--dense .row__hit {
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, 26ch) auto;
+  padding: clamp(var(--s-2), 1.1vw, var(--s-3)) 0;
+}
+.index__list--dense .row__title {
+  font-size: clamp(1.05rem, 2.2vw, 1.75rem);
+}
+.index__list--dense .row__index {
+  font-size: clamp(0.8rem, 1.3vw, 1.05rem);
+}
+
+/* ======================================================================== */
+/* RESPONSIVE — the index re-composes rather than shrinking                  */
+/* ======================================================================== */
+@media (max-width: 900px) {
+  .index__head {
+    grid-template-columns: 1fr;
+  }
+  .index__note {
+    text-align: left;
+  }
+
+  .row__hit {
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      'idx status'
+      'title title'
+      'tag tag';
+    row-gap: var(--s-1);
+    padding: var(--s-4) 0;
+  }
+  .row__index {
+    grid-area: idx;
+  }
+  .row__status {
+    grid-area: status;
+    justify-self: end;
+  }
+  .row__title {
+    grid-area: title;
+  }
+  .row__tagline {
+    grid-area: tag;
+  }
+  .index__list--dense .row__hit {
+    grid-template-columns: auto 1fr;
+    padding: var(--s-3) 0;
+  }
+  /* touch: tapping reveals; no hover expansion to fight with */
+  .row__title {
+    transform: none !important;
+  }
+}

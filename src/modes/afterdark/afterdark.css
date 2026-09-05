@@ -1,0 +1,211 @@
+/* ==========================================================================
+   AFTER DARK — THE LAB, UNATTENDED
+
+   Night stock. The one mode that changes paper: black card, one warm colour,
+   grain instead of halftone, a stage lamp instead of a registration target.
+   Poster culture — big type, printed to be read from across a road.
+   ========================================================================== */
+
+.ad {
+  --stock: #070908;
+  --sodium: #ff9a2e;
+  --chalk: #ded7c6;
+
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--stock);
+  color: var(--chalk);
+  cursor: pointer;
+}
+
+/* One sodium lamp. Warm, low, and never a neon glow. */
+.ad-lamp {
+  --lx: 50%;
+  --ly: 44%;
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at var(--lx) var(--ly),
+    rgba(255, 154, 46, 0.16) 0%,
+    rgba(255, 154, 46, 0.06) 26%,
+    transparent 58%
+  );
+  opacity: 0;
+  transition: opacity 1400ms var(--e-glide);
+}
+.ad[data-armed='true'] .ad-lamp {
+  opacity: 1;
+}
+
+.ad-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-repeat: repeat;
+  opacity: 0.5;
+  mix-blend-mode: screen;
+}
+
+/* ==========================================================================
+   THE POSTER
+   ========================================================================== */
+.ad-poster {
+  position: absolute;
+  inset: calc(var(--trim) * 2.6) var(--trim) calc(var(--trim) * 0.5 + 74px);
+  display: grid;
+  align-content: center;
+  gap: var(--s-3);
+  opacity: 0;
+  transform: translateY(12px);
+  animation: ad-in 620ms var(--e-glide) forwards;
+}
+@keyframes ad-in {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ad-poster__kicker {
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--sodium);
+}
+
+.ad-poster__lines {
+  display: grid;
+  gap: 0;
+}
+.ad-poster__line {
+  display: block;
+  font-size: clamp(2.6rem, 12vw, 9rem);
+  line-height: 0.86;
+  letter-spacing: -0.035em;
+  color: var(--chalk);
+  text-transform: uppercase;
+}
+
+.ad-poster__foot {
+  letter-spacing: var(--tr-mono-wide);
+  color: rgba(222, 215, 198, 0.5);
+  border-top: var(--hair) solid rgba(222, 215, 198, 0.22);
+  padding-top: var(--s-2);
+  max-width: 62ch;
+}
+
+/* Three layouts, so the wall is not one composition repeated. */
+.ad-poster[data-layout='split'] {
+  align-content: space-between;
+}
+.ad-poster[data-layout='split'] .ad-poster__line {
+  font-size: clamp(3rem, 16vw, 12rem);
+}
+.ad-poster[data-layout='block'] .ad-poster__lines {
+  justify-items: start;
+}
+.ad-poster[data-layout='block'] .ad-poster__line {
+  font-size: clamp(2rem, 8.5vw, 6rem);
+  /* The block poster prints its lines reversed out of a sodium bar. */
+  background: var(--sodium);
+  color: var(--stock);
+  padding: 0 0.18em;
+  margin-bottom: 3px;
+}
+
+/* ==========================================================================
+   CHROME
+   ========================================================================== */
+.ad-head {
+  position: absolute;
+  left: var(--trim);
+  top: calc(var(--trim) * 0.5 + 44px);
+  z-index: var(--z-xray-ui);
+}
+.ad-head__title {
+  margin: 0;
+  letter-spacing: var(--tr-mono-wide);
+  font-weight: 400;
+  color: rgba(222, 215, 198, 0.55);
+}
+.ad-sodium {
+  color: var(--sodium);
+}
+
+.ad-strip {
+  position: absolute;
+  left: var(--trim);
+  right: var(--trim);
+  bottom: calc(var(--trim) * 0.5);
+  z-index: var(--z-xray-ui);
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid rgba(222, 215, 198, 0.18);
+}
+
+.ad-btn {
+  padding: 6px 11px;
+  border: var(--hair) solid rgba(222, 215, 198, 0.28);
+  color: rgba(222, 215, 198, 0.72);
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-mono-wide);
+  white-space: nowrap;
+  transition:
+    background-color var(--d-1) var(--e-snap),
+    border-color var(--d-1) var(--e-snap),
+    color var(--d-1) var(--e-snap);
+}
+.ad-btn:hover,
+.ad-btn:focus-visible {
+  border-color: var(--sodium);
+  color: var(--sodium);
+}
+.ad-btn--sodium {
+  border-color: var(--sodium);
+  color: var(--sodium);
+}
+.ad-btn--sodium:hover,
+.ad-btn--sodium:focus-visible {
+  background: var(--sodium);
+  color: var(--stock);
+}
+
+.ad-count {
+  letter-spacing: var(--tr-mono-wide);
+  color: rgba(222, 215, 198, 0.5);
+  font-variant-numeric: tabular-nums;
+}
+.ad-hint {
+  margin-left: auto;
+  letter-spacing: var(--tr-mono-wide);
+  color: rgba(222, 215, 198, 0.32);
+}
+
+@media (max-width: 900px) {
+  .ad-poster {
+    inset: calc(var(--trim) * 3.2) var(--trim) calc(var(--trim) * 0.5 + 96px);
+  }
+  .ad-hint {
+    display: none;
+  }
+  .ad-strip {
+    flex-wrap: wrap;
+  }
+  .ad-btn {
+    padding: 9px 11px;
+  }
+}
+
+/* Reduced motion keeps the stock, the lamp, the grain and the wall turning —
+   it only stops the lamp sweeping and the poster sliding in. */
+@media (prefers-reduced-motion: reduce) {
+  .ad-poster {
+    animation-duration: 1ms;
+  }
+  .ad-lamp {
+    transition-duration: 200ms;
+  }
+}

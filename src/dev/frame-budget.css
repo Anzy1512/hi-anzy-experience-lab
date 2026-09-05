@@ -1,0 +1,48 @@
+/* Development-only diagnostics panel. Never present in a production bundle. */
+
+.fb {
+  position: fixed;
+  right: 8px;
+  bottom: 8px;
+  z-index: 9999;
+  pointer-events: none;
+  padding: 8px 10px;
+  background: rgba(8, 11, 11, 0.92);
+  border: 1px solid rgba(228, 221, 202, 0.22);
+  border-left: 2px solid var(--signal, #f2911b);
+  font-family: var(--f-mono, ui-monospace, monospace);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b9b4a4;
+  min-width: 168px;
+}
+
+.fb__title {
+  margin: 0 0 6px;
+  color: rgba(228, 221, 202, 0.45);
+  font-size: 9px;
+}
+
+.fb__body {
+  margin: 0;
+  display: grid;
+  gap: 1px;
+}
+.fb__body > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  line-height: 1.7;
+}
+.fb__body dt {
+  color: rgba(228, 221, 202, 0.4);
+}
+.fb__body dd {
+  margin: 0;
+  color: #e4ddca;
+  font-variant-numeric: tabular-nums;
+}
+.fb__body dd[data-warn='true'] {
+  color: #ee4322;
+}

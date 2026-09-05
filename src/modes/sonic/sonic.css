@@ -1,0 +1,311 @@
+/* ==========================================================================
+   SONIC ARCHITECTURE — THE INTERFACE IS AN INSTRUMENT
+
+   The score is an elevation: sixteen bays with a height and a material,
+   standing on the sheet's own ground rule. Instrument / spatial sound.
+   ========================================================================== */
+
+.sn {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--ground-deep);
+  touch-action: none;
+}
+
+.sn-head {
+  position: absolute;
+  left: var(--trim);
+  top: calc(var(--trim) * 0.5 + 44px);
+  z-index: var(--z-xray-ui);
+}
+.sn-head__title {
+  margin: 0;
+  letter-spacing: var(--tr-mono-wide);
+  font-weight: 400;
+}
+
+/* ==========================================================================
+   THE ELEVATION
+   ========================================================================== */
+.sn-field {
+  position: absolute;
+  left: var(--trim);
+  right: var(--trim);
+  top: calc(var(--trim) * 0.5 + 92px);
+  bottom: 148px;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  cursor: ns-resize;
+  opacity: 0;
+  transition: opacity var(--d-4) var(--e-glide);
+}
+.sn[data-armed='true'] .sn-field {
+  opacity: 1;
+}
+
+.sn-ground {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  height: var(--hair);
+  background: var(--rule);
+  pointer-events: none;
+}
+
+.sn-bay {
+  position: relative;
+  flex: 1 1 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: stretch;
+  padding-bottom: 18px;
+}
+
+.sn-bay__mass {
+  position: relative;
+  width: 100%;
+  min-height: 2px;
+  border: var(--hair) solid var(--rule);
+  border-bottom: 0;
+  background: rgba(233, 226, 208, 0.04);
+  transition:
+    height 140ms var(--e-snap),
+    background-color var(--d-1) var(--e-snap),
+    border-color var(--d-1) var(--e-snap);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 4px;
+  overflow: hidden;
+}
+
+/* Six materials, six treatments of the same bone. Not six hues — the Lab has
+   one accent and this is not the place to spend it. */
+.sn-bay__mass[data-family='SIGNAL'] {
+  background: rgba(242, 145, 27, 0.16);
+  border-color: rgba(242, 145, 27, 0.5);
+}
+.sn-bay__mass[data-family='PAPER'] {
+  background: rgba(233, 226, 208, 0.14);
+}
+.sn-bay__mass[data-family='INK'] {
+  background: rgba(233, 226, 208, 0.03);
+  border-color: rgba(233, 226, 208, 0.4);
+}
+.sn-bay__mass[data-family='STRUCTURE'] {
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(233, 226, 208, 0.16) 0 1px,
+    transparent 1px 7px
+  );
+}
+.sn-bay__mass[data-family='MACHINE'] {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(233, 226, 208, 0.2) 0 1px,
+    transparent 1px 5px
+  );
+}
+.sn-bay__mass[data-family='CULTURE'] {
+  background: rgba(233, 226, 208, 0.09);
+  border-style: dashed;
+}
+
+.sn-bay__label {
+  font-size: 0.5rem;
+  letter-spacing: 0.12em;
+  color: var(--figure-faint);
+}
+
+.sn-bay__n {
+  position: absolute;
+  bottom: 2px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: var(--figure-faint);
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+}
+
+/* The playhead is the bay itself lighting, not a line sliding over the top. */
+.sn-bay[data-now='true'] .sn-bay__mass {
+  background: var(--signal);
+  border-color: var(--signal);
+}
+.sn-bay[data-now='true'] .sn-bay__label {
+  color: var(--c-ink);
+}
+.sn-bay[data-now='true'] .sn-bay__n {
+  color: var(--signal);
+}
+
+/* ==========================================================================
+   CONTROLS
+   ========================================================================== */
+.sn-strip {
+  position: absolute;
+  left: var(--trim);
+  right: var(--trim);
+  bottom: calc(var(--trim) * 0.5);
+  z-index: var(--z-xray-ui);
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(12px, 2vw, 32px);
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule);
+}
+
+.sn-btn {
+  padding: 6px 11px;
+  border: var(--hair) solid var(--rule);
+  color: var(--figure-dim);
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-mono-wide);
+  white-space: nowrap;
+  transition:
+    background-color var(--d-1) var(--e-snap),
+    border-color var(--d-1) var(--e-snap),
+    color var(--d-1) var(--e-snap);
+}
+.sn-btn:hover,
+.sn-btn:focus-visible {
+  border-color: var(--figure-dim);
+  color: var(--figure);
+}
+.sn-btn--signal {
+  border-color: var(--signal);
+  color: var(--signal);
+}
+.sn-btn--signal:hover,
+.sn-btn--signal:focus-visible {
+  background: var(--signal);
+  color: var(--c-ink);
+}
+.sn-btn--tiny {
+  padding: 3px 7px;
+}
+.sn-btn[data-on='true'] {
+  background: var(--signal);
+  border-color: var(--signal);
+  color: var(--c-ink);
+}
+
+.sn-tempo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sn-tempo__row {
+  display: flex;
+  gap: 2px;
+}
+.sn-tempo span {
+  letter-spacing: var(--tr-mono-wide);
+}
+
+.sn-legend {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px var(--s-3);
+  flex: 1 1 auto;
+  max-width: 60ch;
+}
+.sn-legend > div {
+  display: flex;
+  gap: var(--s-1);
+  align-items: baseline;
+  font-family: var(--f-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.08em;
+}
+.sn-legend dt {
+  color: var(--figure-dim);
+  flex: 0 0 auto;
+}
+.sn-legend dt[data-family='SIGNAL'] {
+  color: var(--signal);
+}
+.sn-legend dd {
+  margin: 0;
+  color: var(--figure-faint);
+}
+
+.sn-hint {
+  margin-left: auto;
+  letter-spacing: var(--tr-mono-wide);
+  align-self: flex-end;
+}
+
+.sn-silent {
+  position: absolute;
+  right: var(--trim);
+  top: calc(var(--trim) * 0.5 + 44px);
+  letter-spacing: var(--tr-mono-wide);
+  z-index: var(--z-xray-ui);
+}
+
+/* ==========================================================================
+   MOBILE — a touch instrument. Bays stay tall; the legend folds away.
+   ========================================================================== */
+@media (max-width: 900px) {
+  .sn-field {
+    top: calc(var(--trim) * 0.5 + 84px);
+    bottom: 190px;
+    gap: 2px;
+  }
+  .sn-bay__label {
+    display: none;
+  }
+  .sn-bay__n {
+    font-size: 0.4375rem;
+  }
+  .sn-strip {
+    flex-wrap: wrap;
+    gap: var(--s-2);
+  }
+  .sn-legend {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    order: 5;
+    width: 100%;
+  }
+  .sn-legend dd {
+    display: none;
+  }
+  .sn-hint {
+    margin-left: 0;
+    width: 100%;
+  }
+  /* The strip grew when the legend wrapped; this line was printing across the
+     bay numbers. It belongs with the title, above the elevation. */
+  .sn-silent {
+    left: var(--trim);
+    right: var(--trim);
+    top: calc(var(--trim) * 0.5 + 62px);
+    bottom: auto;
+  }
+  .sn-field {
+    top: calc(var(--trim) * 0.5 + 108px);
+  }
+  .sn-btn {
+    padding: 9px 11px;
+  }
+}
+
+/* Reduced motion keeps the instrument entirely — an instrument that will not
+   play is not an accessible instrument. Only the bar's height eases away. */
+@media (prefers-reduced-motion: reduce) {
+  .sn-bay__mass {
+    transition-duration: 1ms;
+  }
+  .sn-field {
+    transition-duration: 120ms;
+  }
+}

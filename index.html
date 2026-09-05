@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en" data-material="paper">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Hi Anzy — Experience Lab</title>
+    <meta
+      name="description"
+      content="Hi Anzy Experience Lab. One company. Multiple realities. An experimental interface institution."
+    />
+
+    <!-- A registration target: the product's own graphic device, inline, 0 requests. -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23e9e2d0'/%3E%3Cg fill='none' stroke='%23191d1c' stroke-width='2'%3E%3Ccircle cx='16' cy='16' r='9'/%3E%3C/g%3E%3Crect x='15' y='2' width='2' height='28' fill='%23f2911b'/%3E%3Crect x='2' y='15' width='28' height='2' fill='%23191d1c'/%3E%3C/svg%3E"
+    />
+
+    <!--
+      Fonts are self-hosted (see src/design-system/fonts.css). Only the two faces
+      the opening actually needs before it can proceed are preloaded: the mono
+      signal line at beat 1, and the display weight the wordmark is measured from
+      at beat 2. Preloading all six would spend bandwidth on faces that are not
+      on screen for another second.
+    -->
+    <link
+      rel="preload"
+      href="/fonts/rajdhani-700.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/plex-mono-400.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+
+    <!-- The sheet is bone before a single byte of JS runs. No white flash. -->
+    <style>
+      html { background: #e9e2d0; }
+      html[data-material='ink'],
+      html[data-material='blueprint'] { background: #16191a; }
+      body { margin: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="lab-root"></div>
+    <noscript>
+      <div style="font: 500 16px/1.5 system-ui; padding: 8vmin; color: #16191a">
+        <p>HI ANZY — EXPERIENCE LAB</p>
+        <p>This experience requires JavaScript.</p>
+      </div>
+    </noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

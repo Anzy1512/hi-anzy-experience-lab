@@ -1,0 +1,97 @@
+/*
+ * TYPOGRAPHY — three voices, kept strictly apart.
+ *
+ *   .t-display   Rajdhani. editorial mass. headlines, index titles, wordmark.
+ *   .t-body      IBM Plex Sans. reading. statements, descriptions.
+ *   .t-mono      IBM Plex Mono. THE INSTRUMENT'S VOICE.
+ *
+ * Rule enforced by review, not by the compiler: a mono string must be a real
+ * value the system is reporting. Labels that are not measurements are Plex Sans.
+ */
+
+.t-display {
+  font-family: var(--f-display);
+  font-weight: 700;
+  line-height: 0.86;
+  letter-spacing: var(--tr-display);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.t-colossal {
+  font-size: var(--t-colossal);
+  letter-spacing: var(--tr-colossal);
+  line-height: 0.8;
+}
+.t-display-xl {
+  font-size: var(--t-display-xl);
+}
+.t-display-l {
+  font-size: var(--t-display-l);
+}
+.t-display-m {
+  font-size: var(--t-display-m);
+  line-height: 0.95;
+}
+.t-display-s {
+  font-size: var(--t-display-s);
+  line-height: 1.05;
+  font-weight: 600;
+}
+
+.t-body {
+  font-family: var(--f-body);
+  font-size: var(--t-body);
+  line-height: 1.55;
+  margin: 0;
+}
+.t-body-s {
+  font-family: var(--f-body);
+  font-size: var(--t-body-s);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.t-mono {
+  font-family: var(--f-mono);
+  font-size: var(--t-mono);
+  font-weight: 400;
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+}
+.t-mono-s {
+  font-size: var(--t-mono-s);
+}
+.t-mono-xs {
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-mono-wide);
+}
+
+.t-dim {
+  color: var(--figure-dim);
+}
+.t-faint {
+  color: var(--figure-faint);
+}
+.t-signal {
+  color: var(--signal);
+}
+
+/* A measured value: the number reads, the unit recedes. */
+.t-value {
+  font-family: var(--f-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+}
+
+/* Numerals used as index plates — huge, hairline-aligned. */
+.t-index {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  line-height: 0.8;
+}

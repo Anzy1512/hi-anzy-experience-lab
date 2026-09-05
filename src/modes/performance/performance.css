@@ -1,0 +1,155 @@
+/* ==========================================================================
+   PERFORMANCE — THE MACHINE, WATCHED
+
+   Measurement / self-observation. Blueprint material: bone on ink, hairlines,
+   tabular figures. A document of readings, not a hacker dashboard — no glows,
+   no fake graphs, no numbers that move for the sake of moving.
+   ========================================================================== */
+
+.pf {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  background: var(--ground-deep);
+  padding: calc(var(--trim) * 0.5 + 52px) var(--trim) calc(var(--trim) * 2);
+  opacity: 0;
+  transition: opacity var(--d-3) var(--e-glide);
+}
+.pf[data-armed='true'] {
+  opacity: 1;
+}
+
+.pf-head {
+  max-width: 66ch;
+  padding-bottom: var(--s-3);
+  border-bottom: var(--hair) solid var(--rule);
+}
+.pf-head__title {
+  margin: 0;
+  letter-spacing: var(--tr-mono-wide);
+  font-weight: 400;
+}
+.pf-head__note {
+  margin: var(--s-2) 0 0;
+  line-height: 1.6;
+}
+
+.pf-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  gap: var(--s-5) clamp(20px, 4vw, 64px);
+  margin-top: var(--s-4);
+  align-items: start;
+}
+
+.pf-group__title {
+  margin: 0 0 var(--s-2);
+  padding-bottom: 4px;
+  border-bottom: var(--hair) solid var(--rule-faint);
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--figure-dim);
+  font-weight: 400;
+}
+
+.pf-rows {
+  margin: 0;
+  display: grid;
+  gap: 1px;
+}
+.pf-rows > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: var(--s-2);
+  padding: 3px 0;
+  border-bottom: var(--hair) solid var(--rule-faint);
+}
+.pf-rows dt {
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: 0.1em;
+  color: var(--figure-faint);
+}
+.pf-rows dd {
+  margin: 0;
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: 0.08em;
+  color: var(--figure);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* An unmeasured value is visibly a different kind of statement from a measured
+   one. This is the whole ethic of the mode, expressed in one rule. */
+.pf-rows > div[data-measured='false'] dd {
+  color: var(--figure-faint);
+  font-style: italic;
+}
+
+.pf-group--sample {
+  grid-column: 1 / -1;
+  max-width: 72ch;
+}
+.pf-sample__note {
+  margin: 0 0 var(--s-2);
+  line-height: 1.6;
+}
+
+.pf-btn {
+  padding: 7px 13px;
+  margin-bottom: var(--s-3);
+  border: var(--hair) solid var(--rule);
+  color: var(--figure-dim);
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-mono-wide);
+  transition:
+    background-color var(--d-1) var(--e-snap),
+    border-color var(--d-1) var(--e-snap),
+    color var(--d-1) var(--e-snap);
+}
+.pf-btn--signal {
+  border-color: var(--signal);
+  color: var(--signal);
+}
+.pf-btn--signal:hover:not(:disabled),
+.pf-btn--signal:focus-visible:not(:disabled) {
+  background: var(--signal);
+  color: var(--c-ink);
+}
+.pf-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.pf-caveat {
+  margin-top: var(--s-2);
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule-faint);
+  color: var(--signal-hot);
+  letter-spacing: 0.1em;
+  line-height: 1.7;
+}
+
+@media (max-width: 900px) {
+  .pf-body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s-4);
+  }
+  .pf-rows > div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pf-rows dd {
+    text-align: left;
+  }
+  .pf-btn {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf {
+    transition-duration: 1ms;
+  }
+}

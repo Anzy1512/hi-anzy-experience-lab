@@ -1,0 +1,142 @@
+/* ==========================================================================
+   DREAM — WHEN THE SYSTEM STOPS EXPLAINING ITSELF
+   Generative / surreal. One thesis: contours that remember words.
+   ========================================================================== */
+
+.dm {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--ground-deep);
+}
+
+.dm-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 1600ms var(--e-glide);
+}
+.dm[data-armed='true'] .dm-canvas {
+  opacity: 1;
+}
+
+.dm-head {
+  position: absolute;
+  left: var(--trim);
+  top: calc(var(--trim) * 0.5 + 44px);
+  z-index: var(--z-xray-ui);
+}
+.dm-head__title {
+  margin: 0;
+  letter-spacing: var(--tr-mono-wide);
+  font-weight: 400;
+}
+
+/* The word is set in the same face the field is remembering, but ghosted —
+   the contours are the real rendering of it. */
+.dm-word {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--trim) * 0.5 + 92px);
+  transform: translateX(-50%);
+  z-index: var(--z-xray-ui);
+  color: var(--figure-faint);
+  letter-spacing: var(--tr-mono-wide);
+  pointer-events: none;
+}
+
+.dm-strip {
+  position: absolute;
+  left: var(--trim);
+  right: var(--trim);
+  bottom: calc(var(--trim) * 0.5);
+  z-index: var(--z-xray-ui);
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(12px, 2vw, 30px);
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule);
+}
+
+.dm-btn {
+  padding: 6px 11px;
+  border: var(--hair) solid var(--rule);
+  color: var(--figure-dim);
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-mono-wide);
+  white-space: nowrap;
+  flex: 0 0 auto;
+  transition:
+    background-color var(--d-1) var(--e-snap),
+    border-color var(--d-1) var(--e-snap),
+    color var(--d-1) var(--e-snap);
+}
+.dm-btn:hover,
+.dm-btn:focus-visible {
+  border-color: var(--signal);
+  color: var(--signal);
+}
+
+.dm-read {
+  margin: 0;
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px clamp(10px, 1.8vw, 26px);
+}
+.dm-read > div {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: 0.1em;
+}
+.dm-read dt {
+  color: var(--figure-faint);
+}
+.dm-read dd {
+  margin: 0;
+  color: var(--figure-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.dm-hint {
+  position: absolute;
+  right: var(--trim);
+  top: calc(var(--trim) * 0.5 + 44px);
+  z-index: var(--z-xray-ui);
+  letter-spacing: var(--tr-mono-wide);
+}
+
+@media (max-width: 900px) {
+  .dm-hint {
+    display: none;
+  }
+  .dm-word {
+    bottom: calc(var(--trim) * 0.5 + 132px);
+    font-size: 1.1rem;
+  }
+  .dm-strip {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--s-2);
+  }
+  .dm-read {
+    margin-left: 0;
+    gap: 2px var(--s-3);
+  }
+  .dm-btn {
+    padding: 9px 11px;
+    text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dm-canvas {
+    transition-duration: 200ms;
+  }
+}

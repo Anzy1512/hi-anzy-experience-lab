@@ -1,0 +1,413 @@
+/* ==========================================================================
+   MEMORY — WALK THROUGH RECONSTRUCTED IDEAS
+
+   Information as residue. The screen is mostly empty ground with a corridor of
+   reconstructing type down the middle, an archive card at the edge, and a
+   position rail. Nothing here is a card wall, a carousel or a gallery.
+   ========================================================================== */
+
+.mem {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--ground-deep);
+  touch-action: none;
+  cursor: grab;
+}
+.mem:active {
+  cursor: grabbing;
+}
+
+.mem-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+/* A vignette so the corridor recedes into unrecovered dark rather than a wall. */
+.mem::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 78% 62% at 50% 48%,
+    transparent 0%,
+    transparent 46%,
+    var(--ground-deep) 96%
+  );
+  opacity: 0.85;
+}
+
+/* ==========================================================================
+   HEAD
+   ========================================================================== */
+.mem-head {
+  position: absolute;
+  left: var(--trim);
+  top: calc(var(--trim) * 0.5 + 44px);
+  z-index: var(--z-xray-ui);
+  opacity: 0;
+  transition: opacity var(--d-4) var(--e-glide);
+}
+.mem[data-armed='true'] .mem-head {
+  opacity: 1;
+}
+.mem-head__title {
+  margin: 0;
+  letter-spacing: var(--tr-mono-wide);
+  font-weight: 400;
+}
+
+/* ==========================================================================
+   THE ARCHIVE CARD — editorial, docked, never floating over the specimen
+   ========================================================================== */
+.mem-card {
+  position: absolute;
+  left: var(--trim);
+  bottom: calc(var(--trim) * 0.5 + 46px);
+  width: min(38ch, 40vw);
+  z-index: var(--z-xray-ui);
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule);
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity var(--d-3) var(--e-glide),
+    transform var(--d-3) var(--e-glide),
+    border-top-color var(--d-3) var(--e-glide);
+}
+.mem[data-armed='true'] .mem-card {
+  opacity: 1;
+  transform: none;
+}
+/* The card sharpens with the memory: a low-confidence record is dimmer and its
+   rule is fainter, so the DOM reconstructs alongside the points. */
+.mem-card[data-conf='low'] {
+  opacity: 0.5;
+  border-top-color: var(--rule-faint);
+}
+.mem[data-armed='true'] .mem-card[data-conf='low'] {
+  opacity: 0.55;
+}
+
+.mem-card__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  letter-spacing: var(--tr-mono-wide);
+}
+.mem-card__index {
+  color: var(--figure);
+}
+.mem-card__phase {
+  margin-left: auto;
+}
+.mem-hold {
+  justify-self: start;
+  margin-top: 0.2em;
+  padding: 4px 9px;
+  border: var(--hair) solid var(--rule);
+  color: var(--figure-dim);
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-mono-wide);
+  transition:
+    background-color var(--d-1) var(--e-snap),
+    border-color var(--d-1) var(--e-snap),
+    color var(--d-1) var(--e-snap);
+}
+.mem-hold:hover,
+.mem-hold:focus-visible {
+  border-color: var(--figure-dim);
+  color: var(--figure);
+}
+.mem-hold[aria-pressed='true'] {
+  background: var(--signal);
+  border-color: var(--signal);
+  color: var(--c-ink);
+}
+
+.mem-card__title {
+  margin: 0.16em 0 0.3em;
+  letter-spacing: var(--tr-display);
+  line-height: 0.98;
+}
+.mem-card__line {
+  margin: 0 0 0.5em;
+  color: var(--figure-dim);
+  line-height: 1.5;
+  max-width: 40ch;
+}
+
+.mem-card__meter {
+  height: 2px;
+  background: var(--rule-faint);
+  margin-top: var(--s-2);
+  overflow: hidden;
+}
+.mem-card__meter-fill {
+  display: block;
+  height: 100%;
+  background: var(--figure-dim);
+  transform-origin: left center;
+  transition: transform var(--d-3) var(--e-glide);
+}
+.mem-card__integrity {
+  margin-top: 5px;
+  letter-spacing: var(--tr-mono-wide);
+  font-variant-numeric: tabular-nums;
+}
+.mem-card__sep {
+  padding: 0 0.6em;
+  opacity: 0.5;
+}
+
+/* Unrecovered fields. Struck through with a rule rather than written out — a
+   record that lost its names does not get to invent them. */
+.mem-card__lost {
+  list-style: none;
+  margin: var(--s-2) 0 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+.mem-card__lost li {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  color: var(--figure-faint);
+  letter-spacing: 0.1em;
+  text-decoration: line-through;
+  text-decoration-color: var(--rule);
+}
+.mem-card__rule {
+  width: 14px;
+  height: var(--hair);
+  background: var(--rule);
+  flex: 0 0 auto;
+}
+
+/* ==========================================================================
+   POSITION RAIL — where you are in the corridor
+   ========================================================================== */
+.mem-rail {
+  position: absolute;
+  right: var(--trim);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: var(--z-xray-ui);
+  display: grid;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity var(--d-4) var(--e-glide);
+}
+.mem[data-armed='true'] .mem-rail {
+  opacity: 1;
+}
+.mem-rail__stop {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s-2);
+  padding: 3px 0;
+  color: var(--figure-faint);
+  letter-spacing: var(--tr-mono-wide);
+  transition: color var(--d-1) var(--e-snap);
+}
+.mem-rail__stop:hover,
+.mem-rail__stop:focus-visible {
+  color: var(--figure-dim);
+}
+/* The global focus rule is a full-bleed measure line, which on a 34px tick in
+   the middle of the screen printed as two lines across the whole viewport.
+   The rail gets a contained ring instead. */
+.mem-rail__stop:focus-visible {
+  outline: var(--hair) solid var(--signal);
+  outline-offset: 3px;
+}
+.mem-rail__stop[data-on='true'] {
+  color: var(--figure);
+}
+.mem-rail__n {
+  opacity: 0;
+  transition: opacity var(--d-1) var(--e-snap);
+}
+.mem-rail__stop:hover .mem-rail__n,
+.mem-rail__stop[data-on='true'] .mem-rail__n {
+  opacity: 1;
+}
+.mem-rail__tick {
+  width: 18px;
+  height: var(--hair);
+  background: currentColor;
+  transition:
+    width var(--d-2) var(--e-snap),
+    background-color var(--d-2) var(--e-snap);
+}
+.mem-rail__stop[data-on='true'] .mem-rail__tick {
+  width: 34px;
+  background: var(--signal);
+}
+
+/* ==========================================================================
+   HINT
+   ========================================================================== */
+.mem-hint {
+  position: absolute;
+  right: var(--trim);
+  bottom: calc(var(--trim) * 0.5);
+  z-index: var(--z-xray-ui);
+  letter-spacing: var(--tr-mono-wide);
+  opacity: 0;
+  transition: opacity var(--d-5) var(--e-glide);
+}
+.mem[data-armed='true'] .mem-hint {
+  opacity: 1;
+}
+
+/* ==========================================================================
+   NO WEBGL — the archive as what it is: a document, complete
+   ========================================================================== */
+.mem-doc {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  padding: calc(var(--trim) * 2.6) var(--trim) calc(var(--trim) * 3);
+  cursor: auto;
+}
+.mem-doc__note {
+  max-width: 64ch;
+  padding: var(--s-2);
+  border-left: 2px solid var(--signal-hot);
+  color: var(--figure-dim);
+  line-height: 1.6;
+  letter-spacing: 0.08em;
+}
+.mem-doc__list {
+  list-style: none;
+  margin: var(--s-5) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-4);
+  max-width: 62ch;
+}
+.mem-doc__list li {
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule);
+}
+.mem-doc__head {
+  display: flex;
+  gap: var(--s-3);
+  letter-spacing: var(--tr-mono-wide);
+  margin-bottom: 0.3em;
+}
+.mem-doc__list h3 {
+  margin: 0 0 0.3em;
+  letter-spacing: var(--tr-display);
+}
+.mem-doc__list p {
+  margin: 0 0 0.4em;
+  line-height: 1.55;
+}
+.mem-doc__lost {
+  margin-top: 0.5em;
+  letter-spacing: 0.1em;
+  text-decoration: line-through;
+  text-decoration-color: var(--rule);
+}
+
+/* ==========================================================================
+   MOBILE — a vertical archive, not a desktop camera on a phone
+   ========================================================================== */
+@media (max-width: 900px) {
+  .mem-card {
+    left: var(--trim);
+    right: var(--trim);
+    width: auto;
+    bottom: calc(var(--trim) * 0.5 + 34px);
+  }
+  .mem-card__line {
+    max-width: none;
+  }
+  /* Two lines is a caption; five is an essay nobody reads on a phone. */
+  .mem-card__line:nth-child(n + 3) {
+    display: none;
+  }
+  .mem-card__lost {
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    gap: var(--s-2);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .mem-card__lost::-webkit-scrollbar {
+    display: none;
+  }
+  .mem-card__rule {
+    display: none;
+  }
+
+  .mem-rail {
+    top: auto;
+    bottom: calc(var(--trim) * 0.5);
+    right: var(--trim);
+    left: var(--trim);
+    transform: none;
+    grid-auto-flow: column;
+    justify-content: space-between;
+  }
+  .mem-rail__stop {
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 2px;
+  }
+  .mem-rail__n {
+    font-size: 0.5rem;
+  }
+  .mem-rail__tick {
+    width: 100%;
+    min-width: 10px;
+  }
+  .mem-rail__stop[data-on='true'] .mem-rail__tick {
+    width: 100%;
+    height: 2px;
+  }
+
+  /* The hint sat on top of the card at the bottom of a phone. It belongs with
+     the title, above the field, where nothing else is competing for the line. */
+  .mem-hint {
+    left: var(--trim);
+    right: var(--trim);
+    top: calc(var(--trim) * 0.5 + 66px);
+    bottom: auto;
+  }
+}
+
+/* ==========================================================================
+   REDUCED MOTION — the concept is preserved: records still reconstruct, they
+   just cut between states instead of travelling.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .mem-card,
+  .mem-rail__tick,
+  .mem-card__meter-fill {
+    transition-duration: 1ms;
+  }
+  .mem-head,
+  .mem-hint,
+  .mem-rail {
+    transition-duration: 120ms;
+  }
+}
+
+/* ==========================================================================
+   TOUCH TARGET FLOOR — closure audit
+   Measured at 390x844: these controls came in under 28px on one axis, which is
+   below a usable target. Padding only; no layout or visual redesign.
+   ========================================================================== */
+@media (max-width: 900px), (pointer: coarse) {
+  .mem-hold {
+    min-height: 32px;
+    padding: 8px 12px;
+  }
+}

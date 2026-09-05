@@ -1,0 +1,203 @@
+/* ==========================================================================
+   CHAOS — DO NOT PRESS
+
+   Failure / physics / reconstruction. The system taken apart in front of you
+   and put back exactly. Nothing here is real damage: the fragments are a copy
+   this mode owns, and the architecture underneath never moves.
+   ========================================================================== */
+
+.ch {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--ground-deep);
+}
+
+.ch-field {
+  position: absolute;
+  inset: calc(var(--trim) * 2.6) var(--trim) calc(var(--trim) * 1.6);
+  pointer-events: none;
+}
+
+.ch-frag {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  color: var(--figure-dim);
+  letter-spacing: var(--tr-display);
+  line-height: 1;
+  will-change: transform;
+  transition: color var(--d-3) var(--e-glide);
+}
+.ch-frag[data-lead='true'] {
+  color: var(--figure);
+}
+
+/* The escalation is legible in colour as well as motion: as the system fails,
+   the type loses the last of its contrast — then gets all of it back. */
+.ch[data-stage='7'] .ch-frag,
+.ch[data-stage='8'] .ch-frag {
+  color: var(--figure-faint);
+}
+.ch[data-stage='9'] .ch-frag {
+  color: var(--figure);
+}
+.ch[data-stage='9'] .ch-frag[data-lead='true'] {
+  color: var(--signal);
+}
+
+/* ==========================================================================
+   HEAD
+   ========================================================================== */
+.ch-head {
+  position: absolute;
+  left: var(--trim);
+  top: calc(var(--trim) * 0.5 + 44px);
+  z-index: var(--z-xray-ui);
+  max-width: 46ch;
+}
+.ch-head__title {
+  margin: 0;
+  letter-spacing: var(--tr-mono-wide);
+  font-weight: 400;
+}
+.ch-head__note {
+  margin: 0.4em 0 0;
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   THE GATE — a warning that is also the button
+   ========================================================================== */
+.ch-gate {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-xray-ui);
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--s-4);
+  padding: var(--trim);
+  background: color-mix(in srgb, var(--ground-deep) 88%, transparent);
+}
+.ch-gate__note {
+  max-width: 56ch;
+  text-align: center;
+  line-height: 1.7;
+  letter-spacing: 0.06em;
+}
+
+.ch-press {
+  padding: 1.1rem 2.6rem;
+  border: 2px solid var(--signal-hot);
+  color: var(--signal-hot);
+  font-family: var(--f-display);
+  font-size: clamp(1.4rem, 4vw, 2.6rem);
+  letter-spacing: 0.04em;
+  transition:
+    background-color var(--d-2) var(--e-snap),
+    color var(--d-2) var(--e-snap),
+    transform var(--d-1) var(--e-snap);
+}
+.ch-press:hover,
+.ch-press:focus-visible {
+  background: var(--signal-hot);
+  color: var(--c-bone);
+  transform: translateY(-2px);
+}
+.ch-press:active {
+  transform: translateY(1px);
+}
+
+/* ==========================================================================
+   THE END — the reconstruction has to be better than the destruction
+   ========================================================================== */
+.ch-end {
+  position: absolute;
+  left: var(--trim);
+  right: var(--trim);
+  bottom: calc(var(--trim) * 1.4);
+  z-index: var(--z-xray-ui);
+  display: grid;
+  gap: var(--s-3);
+  justify-items: start;
+}
+.ch-end__line {
+  margin: 0;
+  color: var(--figure);
+  letter-spacing: var(--tr-display);
+  line-height: 1.02;
+  max-width: 22ch;
+}
+
+.ch-btn {
+  padding: 7px 13px;
+  border: var(--hair) solid var(--rule);
+  color: var(--figure-dim);
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-mono-wide);
+  transition:
+    border-color var(--d-1) var(--e-snap),
+    color var(--d-1) var(--e-snap);
+}
+.ch-btn:hover,
+.ch-btn:focus-visible {
+  border-color: var(--signal);
+  color: var(--signal);
+}
+
+/* ==========================================================================
+   PROGRESS + THE PROMISE
+   ========================================================================== */
+.ch-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--rule-faint);
+  z-index: var(--z-xray-ui);
+}
+.ch-progress__fill {
+  position: absolute;
+  inset: 0;
+  background: var(--signal-hot);
+  transform-origin: left center;
+}
+
+.ch-esc {
+  position: absolute;
+  right: var(--trim);
+  bottom: calc(var(--trim) * 0.5);
+  letter-spacing: var(--tr-mono-wide);
+  z-index: var(--z-xray-ui);
+}
+
+@media (max-width: 900px) {
+  .ch-field {
+    inset: calc(var(--trim) * 3.4) var(--trim) calc(var(--trim) * 2);
+  }
+  .ch-head {
+    max-width: none;
+    right: var(--trim);
+  }
+  .ch-end__line {
+    max-width: none;
+    font-size: 1.2rem;
+  }
+  .ch-esc {
+    left: var(--trim);
+    text-align: center;
+  }
+}
+
+/* Reduced motion: the escalation still happens and every stage is still
+   announced, but the fragments hold their places rather than being thrown.
+   The concept — the system taken apart and put back — survives intact. */
+@media (prefers-reduced-motion: reduce) {
+  .ch-frag {
+    transition-duration: 1ms;
+  }
+}

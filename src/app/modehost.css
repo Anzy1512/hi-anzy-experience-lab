@@ -1,0 +1,107 @@
+/* The frame a reality is entered through. Chrome stays minimal and constant so
+   the way out is always in the same place, in every mode, forever. */
+
+.modehost {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-content);
+  overflow: hidden;
+}
+
+.modehost__chrome {
+  position: fixed;
+  top: calc(var(--trim) * 0.5 - 0.35em);
+  left: var(--trim);
+  right: var(--trim);
+  z-index: var(--z-chrome);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+  pointer-events: none;
+}
+.modehost__chrome > * {
+  pointer-events: auto;
+}
+
+.modehost__id {
+  letter-spacing: var(--tr-mono-wide);
+}
+
+.modehost__exit {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 0.5rem 0.8rem;
+  border: var(--hair) solid var(--rule);
+  color: var(--figure);
+  letter-spacing: var(--tr-mono-wide);
+  transition:
+    background-color var(--d-2) var(--e-snap),
+    border-color var(--d-2) var(--e-snap),
+    color var(--d-2) var(--e-snap);
+}
+.modehost__exit:hover,
+.modehost__exit:focus-visible {
+  background: var(--signal-hot);
+  border-color: var(--signal-hot);
+  color: var(--c-bone);
+}
+.modehost__esc {
+  padding-left: var(--s-2);
+  border-left: var(--hair) solid currentColor;
+  opacity: 0.55;
+}
+
+/* ---- loading: a measured rule, never a spinner -------------------------- */
+.modehost__loading {
+  position: absolute;
+  left: var(--trim);
+  bottom: calc(var(--trim) * 2);
+  right: var(--trim);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.modehost__loading-rule {
+  height: var(--hair);
+  background: var(--rule);
+  position: relative;
+  overflow: hidden;
+}
+.modehost__loading-rule::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--signal);
+  transform-origin: left center;
+  animation: modehost-measure 1.1s var(--e-mechanical) infinite;
+}
+@keyframes modehost-measure {
+  0% {
+    transform: scaleX(0);
+  }
+  60% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modehost__loading-rule::after {
+    animation: none;
+    transform: scaleX(0.35);
+  }
+}
+
+@media (max-width: 620px) {
+  .modehost__exit {
+    padding: 0.55rem 0.7rem;
+  }
+  .modehost__esc {
+    display: none;
+  }
+}

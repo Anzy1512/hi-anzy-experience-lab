@@ -1,0 +1,253 @@
+/* ==========================================================================
+   MATTER ENGINE — CONTROL DIGITAL MATTER
+   Material / generative. The one mode where the surface is the substance.
+   ========================================================================== */
+
+.mx {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  touch-action: none;
+  /* Deeper than the other ink modes: matter needs somewhere to be seen against. */
+  background: #0b0e0e;
+}
+
+.mx-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+/* ==========================================================================
+   THE BAND — title, current state, and an honest readout
+   ========================================================================== */
+.mx-band {
+  position: fixed;
+  left: var(--trim);
+  right: var(--trim);
+  bottom: calc(var(--trim) * 0.5 + 96px);
+  z-index: var(--z-xray-ui);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: end;
+  column-gap: clamp(16px, 2.4vw, 44px);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity var(--d-4) var(--e-glide),
+    transform var(--d-4) var(--e-glide);
+}
+.mx[data-armed='true'] .mx-band {
+  opacity: 1;
+  transform: none;
+}
+
+.mx-title {
+  letter-spacing: -0.01em;
+}
+.mx-tag {
+  margin-top: 0.3em;
+  letter-spacing: var(--tr-mono-wide);
+}
+.mx-now {
+  letter-spacing: var(--tr-mono-wide);
+}
+.mx-note {
+  margin-top: 0.3em;
+  max-width: 44ch;
+}
+
+.mx-readout {
+  margin: 0;
+  display: grid;
+  gap: 1px;
+  text-align: right;
+}
+.mx-readout > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--s-2);
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: 0.1em;
+  line-height: 1.7;
+}
+.mx-readout dt {
+  color: var(--figure-faint);
+}
+.mx-readout dd {
+  margin: 0;
+  color: var(--figure-dim);
+  font-variant-numeric: tabular-nums;
+  min-width: 9ch;
+}
+
+/* ==========================================================================
+   THE STRIP — an instrument, not a shader panel
+   ========================================================================== */
+.mx-strip {
+  position: fixed;
+  left: var(--trim);
+  right: var(--trim);
+  bottom: calc(var(--trim) * 0.5);
+  z-index: var(--z-xray-ui);
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(12px, 2vw, 34px);
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule);
+  opacity: 0;
+  transition: opacity var(--d-4) var(--e-glide);
+}
+.mx[data-armed='true'] .mx-strip {
+  opacity: 1;
+}
+.mx-strip[data-disabled='true'] {
+  pointer-events: none;
+}
+
+.mx-strip__group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mx-strip__label {
+  letter-spacing: var(--tr-mono-wide);
+}
+.mx-strip__row {
+  display: flex;
+  gap: 2px;
+}
+
+.mx-btn {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 4px 8px;
+  border: var(--hair) solid var(--rule);
+  color: var(--figure-dim);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  transition:
+    background-color var(--d-1) var(--e-snap),
+    border-color var(--d-1) var(--e-snap),
+    color var(--d-1) var(--e-snap);
+}
+.mx-btn:hover,
+.mx-btn:focus-visible {
+  border-color: var(--figure-dim);
+  color: var(--figure);
+}
+.mx-btn[data-on='true'] {
+  background: var(--signal);
+  border-color: var(--signal);
+  color: var(--c-ink);
+}
+.mx-btn__key {
+  font-size: 0.5625rem;
+}
+
+.mx-hint {
+  margin-left: auto;
+  letter-spacing: var(--tr-mono-wide);
+  padding-bottom: 4px;
+}
+
+/* ==========================================================================
+   FALLBACK — the states still exist without a GPU
+   ========================================================================== */
+.mx-fallback {
+  position: absolute;
+  inset: 0;
+  padding: calc(var(--trim) * 2.4) var(--trim) 190px;
+  overflow-y: auto;
+}
+.mx-fallback__note {
+  max-width: 62ch;
+  padding: var(--s-2);
+  border-left: 2px solid var(--signal-hot);
+  color: var(--figure-dim);
+  line-height: 1.6;
+}
+.mx-fallback__list {
+  list-style: none;
+  margin: var(--s-4) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-2);
+}
+.mx-fallback__list li {
+  display: grid;
+  grid-template-columns: 4ch auto;
+  gap: 2px var(--s-2);
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule);
+  opacity: 0.62;
+}
+.mx-fallback__list li[data-on='true'] {
+  opacity: 1;
+  border-top-color: var(--signal);
+}
+.mx-fallback__list li > span:last-child {
+  grid-column: 2;
+}
+
+/* ==========================================================================
+   RESPONSIVE — a touch instrument, not a shrunken desktop
+   ========================================================================== */
+@media (max-width: 900px) {
+  .mx-band {
+    grid-template-columns: 1fr;
+    row-gap: var(--s-1);
+    bottom: calc(var(--trim) * 0.4 + 120px);
+  }
+  .mx-band__head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-2);
+  }
+  .mx-title {
+    font-size: 1.15rem;
+  }
+  .mx-tag,
+  .mx-readout {
+    display: none;
+  }
+  .mx-note {
+    max-width: none;
+  }
+
+  .mx-strip {
+    flex-wrap: wrap;
+    gap: var(--s-2);
+    bottom: calc(var(--trim) * 0.4);
+  }
+  .mx-strip__group:first-child {
+    width: 100%;
+  }
+  .mx-strip__group:first-child .mx-strip__row {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .mx-strip__group:first-child .mx-strip__row::-webkit-scrollbar {
+    display: none;
+  }
+  .mx-btn {
+    padding: 8px 10px;
+    flex: 0 0 auto;
+  }
+  .mx-btn__key {
+    display: none;
+  }
+  .mx-hint {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mx-band,
+  .mx-strip {
+    transition-duration: 120ms;
+  }
+}

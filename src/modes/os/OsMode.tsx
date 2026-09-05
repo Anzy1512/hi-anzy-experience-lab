@@ -1,0 +1,420 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ModeViewProps } from '../../experience/types';
+import { useExperience } from '../../experience/context';
+import {
+  useCapability,
+  useCoarsePointer,
+  useLatest,
+  useMediaQuery,
+  useReducedMotion,
+} from '../../core/hooks';
+import { setPointerIntent } from '../../core/pointer';
+import { spatialQuality } from '../../spatial/quality';
+import { APPS, BOOT_LINES, OS_COPY, type AppId } from '../../content/os';
+import { execute, type OsLine } from './commands';
+import { Sheet } from './Sheet';
+import { CapabilityBody, ServiceBody, TerminalBody } from './AppBody';
+import './os.css';
+
+/**
+ * ANZY.OS — RUN HI ANZY.
+ *
+ * The operating metaphor is a print workshop's job system, not a computer
+ * desktop: an ink desk, paper sheets laid on it, capabilities as resident
+ * processes, and a job ticket along the bottom of the bench where instructions
+ * are written. There is no dock, no menu bar, no traffic lights, no wallpaper,
+ * no start menu, no file manager, no window chrome pretending to be glass and
+ * no retro-terminal green.
+ *
+ * The shell is fictional by construction. It maps a fixed table of words onto
+ * this mode's own state and can reach nothing else — no evaluation, no
+ * filesystem, no environment, no network, no storage. See `commands.ts`.
+ *
+ * The one thing it can do beyond itself is start another reality, which is the
+ * point of building it last: this is the only mode that can operate the Lab.
+ */
+
+const WIDTH: Record<AppId, number> = {
+  terminal: 540,
+  system: 470,
+  strategy: 430,
+  design: 430,
+  technology: 430,
+  network: 430,
+  method: 470,
+};
+
+const PLATE: Record<AppId, string> = {
+  strategy: 'P.01',
+  design: 'P.02',
+  technology: 'P.03',
+  network: 'P.04',
+  method: 'P.05',
+  system: 'P.06',
+  terminal: 'P.07',
+};
+
+/** Rail width and bench gutter, shared with os.css. */
+const RAIL = 316;
+const GUTTER = 26;
+
+interface Pos {
+  x: number;
+  y: number;
+}
+
+let lineId = 0;
+
+export default function OsMode({ onReady, scope }: ModeViewProps) {
+  const capability = useCapability();
+  const reduced = useReducedMotion();
+  const coarse = useCoarsePointer();
+  const stacked = useMediaQuery('(max-width: 900px)');
+  const quality = useMemo(() => spatialQuality(capability), [capability]);
+  const { enterMode } = useExperience();
+
+  const [bootShown, setBootShown] = useState(0);
+  const [armed, setArmed] = useState(false);
+  const [open, setOpen] = useState<AppId[]>([]);
+  const [pos, setPos] = useState<Record<string, Pos>>({});
+  const [lines, setLines] = useState<OsLine[]>([]);
+  const [input, setInput] = useState('');
+  const [clock, setClock] = useState('--:--:--');
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  const termRef = useRef<HTMLDivElement>(null);
+  const historyRef = useRef<string[]>([]);
+  const histIndex = useRef(-1);
+  const cascade = useRef(0);
+
+  const draggable = !coarse && !stacked;
+
+  /* ---- boot: authored, brief, and never blocking ------------------------- */
+  useEffect(() => {
+    setPointerIntent('default');
+    if (reduced) {
+      const t = window.setTimeout(() => {
+        setArmed(true);
+        onReady();
+      }, 140);
+      return () => window.clearTimeout(t);
+    }
+    const timers: number[] = [];
+    BOOT_LINES.forEach((_, i) => {
+      timers.push(window.setTimeout(() => setBootShown(i + 1), 90 + i * 105));
+    });
+    timers.push(
+      window.setTimeout(() => {
+        setArmed(true);
+        onReady();
+      }, 160 + BOOT_LINES.length * 105),
+    );
+    return () => timers.forEach((t) => window.clearTimeout(t));
+  }, [onReady, reduced]);
+
+  /* ---- the clock is real, which is why it is allowed to be mono ---------- */
+  useEffect(() => {
+    const tick = () =>
+      setClock(
+        new Date().toLocaleTimeString('en-GB', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        }),
+      );
+    tick();
+    const id = window.setInterval(tick, 1000);
+    scope.add(() => window.clearInterval(id));
+    return () => window.clearInterval(id);
+  }, [scope]);
+
+  /* ---- sheets ------------------------------------------------------------ */
+  const focusSheet = useCallback((id: AppId) => {
+    setOpen((o) => (o[o.length - 1] === id ? o : [...o.filter((x) => x !== id), id]));
+  }, []);
+
+  /**
+   * Placement is a bench layout, not a window cascade.
+   *
+   * A new sheet takes the first free column on the bench; only when the bench
+   * is full does it start overlapping. Positions persist after a sheet is
+   * closed, so reopening returns it to the slot it had — the desk remembers
+   * where you put things, which a pile of cascading windows never does.
+   */
+  const openSheet = useCallback(
+    (id: AppId) => {
+      setPos((p) => {
+        if (p[id]) return p;
+        const w = WIDTH[id];
+        // Desk-relative. `.os-desk` is the grid cell that begins after the
+        // rail, so the rail must not be counted again here — doing so pushed
+        // every sheet one rail-width to the right, off the end of the bench.
+        const w0 = capability.viewport.w - RAIL;
+        const left = 44;
+        const right = w0 - 40;
+        const top = 112;
+        const placed = Object.entries(p) as [AppId, Pos][];
+
+        // Shelf packing along one row: the next free slot starts where the
+        // sheets already on the bench end — not one incoming width along, which
+        // is what pushed the second sheet off the bench and onto the first.
+        //
+        // There is deliberately no second row. Sheets are tall and their height
+        // is content-driven, so a row-two slot chosen from x alone lands on top
+        // of a tall row-one sheet while claiming to sit beside it.
+        const row = placed.filter(([, t]) => Math.abs(t.y - top) < 48);
+        const xs = [left, ...row.map(([tid, t]) => t.x + WIDTH[tid] + GUTTER)].sort((a, b) => a - b);
+        for (const x of xs) {
+          if (x + w > right) continue;
+          const clash = row.some(([tid, t]) => x < t.x + WIDTH[tid] + 8 && t.x < x + w + 8);
+          if (!clash) return { ...p, [id]: { x, y: top } };
+        }
+
+        // Bench full: the sheet goes on the pile, offset far enough that it
+        // reads as placed on top rather than as a botched alignment.
+        const n = cascade.current++;
+        const maxX = Math.max(left, right - w);
+        return {
+          ...p,
+          [id]: { x: Math.min(left + 44 + (n % 5) * 40, maxX), y: top + 62 + (n % 5) * 40 },
+        };
+      });
+      focusSheet(id);
+    },
+    [capability.viewport.w, focusSheet],
+  );
+
+  const closeSheet = useCallback((id: AppId) => {
+    setOpen((o) => o.filter((x) => x !== id));
+  }, []);
+
+  /** A dragged sheet stays on the bench: never over the rail, never off the
+      bottom, and never over the mode host's chrome. */
+  const moveSheet = useCallback(
+    (id: AppId, x: number, y: number) => {
+      const deskW = capability.viewport.w - RAIL;
+      setPos((p) => ({
+        ...p,
+        [id]: {
+          x: Math.min(Math.max(0, x), Math.max(0, deskW - 140)),
+          y: Math.min(Math.max(52, y), Math.max(52, capability.viewport.h - 190)),
+        },
+      }));
+    },
+    [capability.viewport.w, capability.viewport.h],
+  );
+
+  /* ---- the shell --------------------------------------------------------- */
+  const print = useCallback((texts: string[], kind: OsLine['kind'] = 'out') => {
+    if (texts.length === 0) return;
+    setLines((l) => [...l, ...texts.map((text) => ({ id: lineId++, kind, text }))].slice(-220));
+  }, []);
+
+  const submit = useCallback(
+    (raw: string) => {
+      const text = raw.trim();
+      setInput('');
+      if (!text) return;
+      historyRef.current = [...historyRef.current.slice(-40), text];
+      histIndex.current = -1;
+      openSheet('terminal');
+      print([text], 'in');
+      const out = execute(text, {
+        open: openSheet,
+        close: closeSheet,
+        openIds: open,
+        clear: () => setLines([]),
+        run: (realityId) => enterMode(realityId),
+        profile: quality.profile,
+        webgl: quality.webgl,
+      });
+      print(out);
+    },
+    [open, openSheet, closeSheet, print, enterMode, quality.profile, quality.webgl],
+  );
+
+  const onKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        submit(input);
+        return;
+      }
+      const h = historyRef.current;
+      if (!h.length) return;
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        histIndex.current =
+          histIndex.current < 0 ? h.length - 1 : Math.max(0, histIndex.current - 1);
+        setInput(h[histIndex.current]);
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (histIndex.current < 0) return;
+        histIndex.current += 1;
+        if (histIndex.current >= h.length) {
+          histIndex.current = -1;
+          setInput('');
+        } else {
+          setInput(h[histIndex.current]);
+        }
+      }
+    },
+    [input, submit],
+  );
+
+  const submitRef = useLatest(submit);
+
+  /* ---- first sheets: a bench with work already on it ---------------------
+     The shell runs `help` for you once, so the terminal opens holding the
+     command table rather than an empty sheet of paper telling you to type. */
+  const seeded = useRef(false);
+  useEffect(() => {
+    if (!armed || seeded.current) return;
+    seeded.current = true;
+    openSheet('system');
+    submitRef.current('help');
+    if (!coarse) inputRef.current?.focus({ preventScroll: true });
+  }, [armed, openSheet, coarse, submitRef]);
+
+  /* ---- keep the terminal at its newest line ------------------------------ */
+  useEffect(() => {
+    const el = termRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [lines]);
+
+  const topId = open[open.length - 1];
+  /* Reduced motion gets the whole boot block at once. Derived, not a second
+     state write racing the arm timer inside the same effect. */
+  const shown = reduced ? BOOT_LINES.length : bootShown;
+
+  return (
+    <div
+      className="os"
+      data-armed={armed ? 'true' : 'false'}
+      data-stacked={stacked ? 'true' : 'false'}
+      data-open={open.length > 0 ? 'true' : 'false'}
+    >
+      {/* ---- process rail ---------------------------------------------------
+           There is no second system bar: the mode host already prints the
+           reality's number and name at the top of the sheet, and repeating it
+           would be chrome about chrome. The rail carries the state instead. */}
+      <nav className="os-rail" aria-label="Resident processes">
+        <div className="os-rail__head">
+          <p className="t-display t-display-s os-rail__wordmark">{OS_COPY.tagline}</p>
+          <p className="t-mono t-mono-xs t-faint os-rail__state">
+            <span>SHEETS {String(open.length).padStart(2, '0')}</span>
+            <span className="os-rail__clock">{clock}</span>
+          </p>
+        </div>
+        <p className="t-mono t-mono-xs t-faint os-rail__label">RESIDENT PROCESSES</p>
+        <ul className="os-rail__list">
+          {APPS.map((a, i) => (
+            <li key={a.id}>
+              <button
+                type="button"
+                className="os-proc"
+                data-on={open.includes(a.id) ? 'true' : 'false'}
+                onClick={() => openSheet(a.id)}
+                onPointerEnter={() => setPointerIntent('discover')}
+                onPointerLeave={() => setPointerIntent('default')}
+              >
+                <span className="t-mono t-mono-xs os-proc__n">{String(i + 1).padStart(2, '0')}</span>
+                <span className="t-mono t-mono-s os-proc__name">{a.name}</span>
+                <span className="t-body-s t-dim os-proc__line">{a.line}</span>
+                <span className="os-proc__dot" aria-hidden="true" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      {/* ---- the desk ------------------------------------------------------- */}
+      <div className="os-desk">
+        {open.map((id, i) => {
+          const app = APPS.find((a) => a.id === id);
+          if (!app) return null;
+          return (
+            <Sheet
+              key={id}
+              plate={PLATE[id]}
+              title={app.name}
+              subtitle={id === 'terminal' ? 'OUTPUT' : undefined}
+              x={pos[id]?.x ?? 340}
+              y={pos[id]?.y ?? 120}
+              w={WIDTH[id]}
+              maxH={Math.max(200, capability.viewport.h - (pos[id]?.y ?? 120) - 126)}
+              z={10 + i}
+              top={id === topId}
+              draggable={draggable}
+              onFocus={() => focusSheet(id)}
+              onClose={() => closeSheet(id)}
+              onMove={(x, y) => moveSheet(id, x, y)}
+            >
+              {id === 'terminal' ? (
+                <div
+                  className="os-term__scroll"
+                  ref={termRef}
+                  onClick={() => inputRef.current?.focus()}
+                >
+                  <TerminalBody lines={lines} />
+                </div>
+              ) : id === 'system' ? (
+                <CapabilityBody
+                  profile={quality.profile}
+                  webgl={quality.webgl}
+                  viewport={capability.viewport}
+                  sheets={open.length}
+                />
+              ) : (
+                <ServiceBody id={id} />
+              )}
+            </Sheet>
+          );
+        })}
+      </div>
+
+      {/* ---- the job ticket -------------------------------------------------- */}
+      <form
+        className="os-cmd"
+        onSubmit={(e) => {
+          e.preventDefault();
+          submit(input);
+        }}
+      >
+        <label className="t-mono t-mono-s os-cmd__prompt" htmlFor="os-input">
+          {OS_COPY.prompt}
+          <span className="t-signal"> {'›'}</span>
+        </label>
+        <input
+          id="os-input"
+          ref={inputRef}
+          className="t-mono t-mono-s os-cmd__input"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={onKeyDown}
+          placeholder="type help"
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck={false}
+          aria-label="Command"
+        />
+        <span className="t-mono t-mono-xs t-faint os-cmd__hint">
+          {coarse ? OS_COPY.hintTouch : OS_COPY.hintPointer}
+        </span>
+      </form>
+
+      {/* ---- boot ------------------------------------------------------------ */}
+      {!armed && (
+        <div className="os-boot" role="status" aria-live="polite">
+          <ol className="os-boot__list">
+            {BOOT_LINES.slice(0, shown).map((l) => (
+              <li key={l} className="t-mono t-mono-s">
+                {l}
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+    </div>
+  );
+}

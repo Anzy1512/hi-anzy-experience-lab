@@ -1,0 +1,565 @@
+/* ==========================================================================
+   ANZY.OS — RUN HI ANZY
+
+   An ink desk with paper sheets on it. The desk is the bench you work at; the
+   sheets are the work. Nothing here borrows a real operating system's chrome:
+   no dock, no menu bar, no traffic lights, no wallpaper, no glass.
+   ========================================================================== */
+
+.os {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--ground-deep);
+  display: grid;
+  grid-template-columns: 316px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+
+/* The bench surface. A drafting grid at the edge of visibility — it exists to
+   say "measured surface", and must never be the first thing you notice. */
+.os::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(to right, var(--rule-faint) 0 1px, transparent 1px 96px),
+    repeating-linear-gradient(to bottom, var(--rule-faint) 0 1px, transparent 1px 96px);
+}
+
+/* ==========================================================================
+   THE RAIL — resident processes
+   ========================================================================== */
+.os-rail {
+  position: relative;
+  z-index: 2;
+  border-right: var(--hair) solid var(--rule);
+  padding: calc(var(--trim) * 0.5 + 44px) 0 118px var(--trim);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule) transparent;
+  opacity: 0;
+  transition: opacity var(--d-3) var(--e-glide);
+}
+.os[data-armed='true'] .os-rail {
+  opacity: 1;
+}
+
+.os-rail__head {
+  padding-right: var(--s-3);
+  padding-bottom: var(--s-3);
+}
+.os-rail__wordmark {
+  letter-spacing: var(--tr-display);
+  line-height: 1;
+}
+.os-rail__state {
+  margin-top: 0.55em;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-2);
+  letter-spacing: var(--tr-mono-wide);
+}
+.os-rail__clock {
+  font-variant-numeric: tabular-nums;
+  color: var(--figure-dim);
+}
+
+.os-rail__label {
+  padding: var(--s-2) var(--s-3) var(--s-1) 0;
+  border-top: var(--hair) solid var(--rule);
+  letter-spacing: var(--tr-mono-wide);
+}
+
+.os-rail__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.os-proc {
+  display: grid;
+  grid-template-columns: 3ch minmax(0, 1fr);
+  column-gap: var(--s-2);
+  row-gap: 2px;
+  width: 100%;
+  text-align: left;
+  padding: var(--s-2) var(--s-3) var(--s-2) 0;
+  border-top: var(--hair) solid var(--rule-faint);
+  position: relative;
+  transition: background-color var(--d-1) var(--e-snap);
+}
+.os-rail__list li:first-child .os-proc {
+  border-top: 0;
+}
+.os-proc:hover,
+.os-proc:focus-visible {
+  background: var(--rule-faint);
+}
+.os-proc__n {
+  color: var(--figure-faint);
+  padding-top: 0.2em;
+}
+.os-proc__name {
+  color: var(--figure-dim);
+  letter-spacing: 0.06em;
+  transition: color var(--d-1) var(--e-snap);
+}
+.os-proc:hover .os-proc__name,
+.os-proc[data-on='true'] .os-proc__name {
+  color: var(--figure);
+}
+.os-proc__line {
+  grid-column: 2;
+  line-height: 1.4;
+}
+
+/* Open is marked by a drawn rule, not a colour wash. */
+.os-proc__dot {
+  position: absolute;
+  left: -14px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  background: var(--signal);
+  transform: scaleY(0);
+  transform-origin: top center;
+  transition: transform var(--d-2) var(--e-snap);
+}
+.os-proc[data-on='true'] .os-proc__dot {
+  transform: scaleY(1);
+}
+
+/* ==========================================================================
+   THE DESK
+   ========================================================================== */
+.os-desk {
+  position: relative;
+  z-index: 1;
+}
+
+/* ==========================================================================
+   A SHEET — paper, laid on the bench.
+
+   The paper material is re-declared locally: the same semantic tokens the
+   launcher uses, scoped to this element, so everything inside styles itself.
+   ========================================================================== */
+.os-sheet {
+  --ground: var(--c-bone);
+  --ground-deep: var(--c-bone-deep);
+  --figure: var(--c-ink);
+  --figure-dim: #5d605a;
+  --figure-faint: rgba(25, 29, 28, 0.34);
+  --rule: rgba(25, 29, 28, 0.22);
+  --rule-faint: rgba(25, 29, 28, 0.1);
+
+  position: absolute;
+  background: var(--ground);
+  color: var(--figure);
+  border: var(--hair) solid rgba(25, 29, 28, 0.5);
+  display: flex;
+  flex-direction: column;
+  /* Paper on a bench sits above the bench. One soft contact shadow, not a
+     floating card. */
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.38);
+  opacity: 0.9;
+  transition: opacity var(--d-2) var(--e-snap);
+}
+.os-sheet[data-top='true'] {
+  opacity: 1;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.46);
+}
+
+.os-sheet__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-2) var(--s-2) var(--s-3);
+  border-bottom: var(--hair) solid var(--rule-faint);
+  background: var(--ground);
+  flex: 0 0 auto;
+  touch-action: none;
+}
+.os-sheet[data-top='true'] .os-sheet__head {
+  border-bottom-color: var(--rule);
+}
+.os-sheet__head[data-grab='true'] {
+  cursor: grab;
+}
+.os-sheet__head[data-grab='true']:active {
+  cursor: grabbing;
+}
+.os-sheet__plate {
+  color: var(--figure-faint);
+  letter-spacing: var(--tr-mono-wide);
+}
+.os-sheet__title {
+  margin: 0;
+  letter-spacing: 0.08em;
+  color: var(--figure);
+  font-weight: 500;
+}
+.os-sheet__sub {
+  letter-spacing: var(--tr-mono-wide);
+}
+.os-sheet__close {
+  margin-left: auto;
+  padding: 3px 7px;
+  border: var(--hair) solid var(--rule);
+  color: var(--figure-dim);
+  letter-spacing: var(--tr-mono-wide);
+  transition:
+    background-color var(--d-1) var(--e-snap),
+    border-color var(--d-1) var(--e-snap),
+    color var(--d-1) var(--e-snap);
+}
+.os-sheet__close:hover,
+.os-sheet__close:focus-visible {
+  background: var(--signal-hot);
+  border-color: var(--signal-hot);
+  color: var(--c-bone);
+}
+
+.os-sheet__body {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule) transparent;
+  min-height: 0;
+}
+
+/* ==========================================================================
+   APPLICATION CONTENT
+   ========================================================================== */
+.os-app {
+  padding: var(--s-3);
+}
+.os-app__note {
+  letter-spacing: var(--tr-mono-wide);
+  padding-bottom: var(--s-2);
+  border-bottom: var(--hair) solid var(--rule-faint);
+  margin-bottom: var(--s-2);
+}
+.os-app__h {
+  margin: var(--s-4) 0 var(--s-1);
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule);
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--figure-dim);
+  font-weight: 400;
+}
+.os-app__foot {
+  margin-top: var(--s-2);
+  line-height: 1.55;
+}
+
+.os-kv {
+  margin: 0;
+  display: grid;
+  gap: 1px;
+}
+.os-kv__row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-3);
+  line-height: 1.9;
+}
+.os-kv dt {
+  color: var(--figure-faint);
+  letter-spacing: var(--tr-mono-wide);
+}
+.os-kv dd {
+  margin: 0;
+  color: var(--figure);
+  font-variant-numeric: tabular-nums;
+}
+
+.os-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.os-list li {
+  display: grid;
+  grid-template-columns: 3ch minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: var(--s-2);
+  padding: 4px 0;
+  border-top: var(--hair) solid var(--rule-faint);
+  opacity: 0.55;
+}
+.os-list li[data-on='true'] {
+  opacity: 1;
+}
+.os-list__n {
+  color: var(--figure-faint);
+}
+.os-list__name {
+  letter-spacing: 0.06em;
+}
+.os-list__status {
+  color: var(--figure-dim);
+  letter-spacing: var(--tr-mono-wide);
+}
+.os-list li[data-on='true'] .os-list__status {
+  color: var(--signal-hot);
+}
+
+.os-groups {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.os-groups li {
+  display: grid;
+  grid-template-columns: 3ch minmax(0, 1fr);
+  column-gap: var(--s-2);
+  row-gap: 3px;
+  padding: var(--s-2) 0;
+  border-top: var(--hair) solid var(--rule-faint);
+}
+.os-groups li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.os-groups__n {
+  color: var(--figure-faint);
+  padding-top: 0.15em;
+}
+.os-groups__k {
+  letter-spacing: var(--tr-mono-wide);
+}
+.os-groups__v {
+  grid-column: 2;
+  line-height: 1.5;
+  color: var(--figure-dim);
+}
+
+/* ==========================================================================
+   TERMINAL — output only. The input is the job ticket at the bottom.
+   ========================================================================== */
+.os-term__scroll {
+  padding: var(--s-3);
+  min-height: 88px;
+  max-height: 360px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule) transparent;
+  cursor: text;
+}
+.os-term__line {
+  font-size: 0.6875rem;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  color: var(--figure-dim);
+  letter-spacing: 0.02em;
+}
+.os-term__line[data-kind='in'] {
+  color: var(--figure);
+  margin-top: 0.5em;
+}
+.os-term__line[data-kind='in']:first-child {
+  margin-top: 0;
+}
+.os-term__caret {
+  color: var(--signal-hot);
+}
+
+/* ==========================================================================
+   THE JOB TICKET — one input, always in the same place
+   ========================================================================== */
+.os-cmd {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-3) var(--trim);
+  border-top: var(--hair) solid var(--rule);
+  background: var(--ground);
+  opacity: 0;
+  transition: opacity var(--d-3) var(--e-glide);
+}
+.os[data-armed='true'] .os-cmd {
+  opacity: 1;
+}
+.os-cmd__prompt {
+  color: var(--figure-dim);
+  letter-spacing: 0.08em;
+  flex: 0 0 auto;
+  cursor: text;
+}
+.os-cmd__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: none;
+  border: 0;
+  color: var(--figure);
+  caret-color: var(--signal);
+  letter-spacing: 0.04em;
+  padding: 2px 0;
+}
+.os-cmd__input::placeholder {
+  color: var(--figure-faint);
+}
+.os-cmd__input:focus,
+.os-cmd__input:focus-visible {
+  outline: none;
+}
+/* The focus ring belongs to the whole ticket, not the bare input. */
+.os-cmd:focus-within {
+  border-top-color: var(--signal);
+}
+.os-cmd__hint {
+  flex: 0 0 auto;
+  letter-spacing: var(--tr-mono-wide);
+}
+
+/* ==========================================================================
+   BOOT
+   ========================================================================== */
+.os-boot {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  background: var(--ground-deep);
+  display: flex;
+  align-items: flex-end;
+  padding: var(--trim) var(--trim) calc(var(--trim) * 2);
+}
+.os-boot__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 3px;
+}
+.os-boot__list li {
+  color: var(--figure-dim);
+  letter-spacing: 0.1em;
+}
+.os-boot__list li:first-child {
+  color: var(--figure);
+  letter-spacing: var(--tr-mono-wide);
+}
+.os-boot__list li:last-child {
+  color: var(--signal);
+}
+
+/* ==========================================================================
+   STACKED — a phone gets an app stack, never tiny draggable windows
+   ========================================================================== */
+@media (max-width: 900px) {
+  .os {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .os-rail {
+    border-right: 0;
+    padding: calc(var(--trim) * 0.5 + 40px) var(--trim) 108px var(--trim);
+  }
+  .os-rail__head {
+    padding-right: 0;
+  }
+  /* Full-width rail puts the clock under the sheet's registration mark, which
+     prints straight through the digits. Keep the state line to the left. */
+  .os-rail__state {
+    justify-content: flex-start;
+    gap: var(--s-4);
+  }
+  .os-rail__label,
+  .os-proc {
+    padding-right: 0;
+  }
+  .os-proc {
+    padding-top: var(--s-3);
+    padding-bottom: var(--s-3);
+  }
+
+  .os-desk {
+    position: static;
+  }
+
+  /* One sheet at a time, filling the screen, with its own way back. */
+  /* The panel starts BELOW the mode host's chrome. Covering the whole screen
+     put bone-on-ink chrome over bone paper and made EXIT invisible — the way
+     out has to stay visible and legible in every mode, on every screen. */
+  .os-sheet {
+    position: fixed;
+    inset: 0;
+    left: 0 !important;
+    top: calc(var(--trim) * 0.5 + 38px) !important;
+    width: auto !important;
+    /* The per-sheet bench height is an inline style, so only !important can
+       release it here. Without this the panel stops partway down the screen
+       and the rail shows through the gap. */
+    max-height: none !important;
+    border: 0;
+    box-shadow: none;
+    opacity: 1;
+    z-index: 4 !important;
+    padding-bottom: 72px;
+  }
+  .os-sheet[data-top='false'] {
+    display: none;
+  }
+  /* An app stack, not floating windows: opening a process replaces the list
+     rather than hovering above it. Closing the sheet brings the list back. */
+  .os[data-open='true'] .os-rail {
+    display: none;
+  }
+  .os-sheet__head {
+    padding: var(--s-3) var(--trim) var(--s-2);
+    border-bottom-color: var(--rule);
+  }
+  .os-sheet__close {
+    padding: 8px 10px;
+  }
+  .os-sheet__body {
+    flex: 1 1 auto;
+  }
+  .os-app,
+  .os-term__scroll {
+    padding: var(--s-3) var(--trim);
+  }
+  .os-term__scroll {
+    max-height: none;
+  }
+
+  .os-cmd {
+    position: fixed;
+    z-index: 5;
+    padding: var(--s-2) var(--trim);
+    background: var(--c-ink);
+  }
+  .os-cmd__hint {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   REDUCED MOTION — the layers, materials and hierarchy all stay
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .os-rail,
+  .os-cmd,
+  .os-sheet,
+  .os-proc__dot {
+    transition-duration: 1ms;
+  }
+}
+
+/* ==========================================================================
+   TOUCH TARGET FLOOR — closure audit
+   Measured at 390x844: these controls came in under 28px on one axis, which is
+   below a usable target. Padding only; no layout or visual redesign.
+   ========================================================================== */
+@media (max-width: 900px), (pointer: coarse) {
+  .os-cmd__input {
+    min-height: 30px;
+    padding: 7px 0;
+  }
+}

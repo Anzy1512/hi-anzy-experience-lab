@@ -1,0 +1,305 @@
+/* ==========================================================================
+   PORTAL — BRING HI ANZY INTO YOUR WORLD
+
+   Aperture / spatial threshold. A rectangle of paper with a hole cut in it and
+   depth on the other side. Trim marks at the corners, not a glowing ring.
+   ========================================================================== */
+
+.pt {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--ground-deep);
+  perspective: 1400px;
+  perspective-origin: 50% 50%;
+}
+
+.pt-stage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transform-style: preserve-3d;
+}
+
+/* The opening. Its aspect is a sheet's, not a circle's. */
+.pt-aperture {
+  --tx: 0;
+  --ty: 0;
+  position: relative;
+  width: min(58vw, 46vh * 0.72, 520px);
+  aspect-ratio: 0.72;
+  transform-style: preserve-3d;
+  transform: rotateY(calc(var(--tx) * -7deg)) rotateX(calc(var(--ty) * 5deg));
+  opacity: 0;
+  transition: opacity var(--d-5) var(--e-glide);
+}
+.pt[data-armed='true'] .pt-aperture {
+  opacity: 1;
+}
+
+/* The cut edge — a hairline, and a second bone rule inset like a plate mark. */
+.pt-aperture::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: var(--hair) solid var(--figure-dim);
+  pointer-events: none;
+  z-index: 3;
+}
+.pt-aperture::after {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border: var(--hair) solid var(--rule-faint);
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* ==========================================================================
+   DEPTH — the Lab's own rules receding through the opening
+   ========================================================================== */
+.pt-depth {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  background: radial-gradient(ellipse 90% 70% at 50% 46%, #121615 0%, #070908 78%);
+}
+
+.pt-layer {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 108%;
+  height: 108%;
+  border: var(--hair) solid var(--figure);
+  /* Each plane sits further back and is shifted by the look direction, so the
+     stack shears as you move — parallax from geometry, not a filter. */
+  transform: translate(-50%, -50%)
+    translateX(calc(var(--tx) * var(--k) * -34px))
+    translateY(calc(var(--ty) * var(--k) * -22px))
+    scale(calc(1 - var(--k) * 0.62));
+  opacity: calc(0.32 - var(--k) * 0.24);
+}
+
+/* The horizon: the one place the territory shows its own line. */
+.pt-horizon {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  top: 54%;
+  height: var(--hair);
+  background: var(--signal);
+  opacity: 0.55;
+  transform: translateY(calc(var(--ty) * -14px));
+}
+
+/* ==========================================================================
+   TRIM MARKS — the sheet's own corner language
+   ========================================================================== */
+.pt-trim {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  z-index: 4;
+  pointer-events: none;
+}
+.pt-trim::before,
+.pt-trim::after {
+  content: '';
+  position: absolute;
+  background: var(--figure-dim);
+}
+.pt-trim::before {
+  left: 0;
+  right: 0;
+  height: var(--hair);
+}
+.pt-trim::after {
+  top: 0;
+  bottom: 0;
+  width: var(--hair);
+}
+.pt-trim--tl {
+  left: -22px;
+  top: -22px;
+}
+.pt-trim--tl::before {
+  bottom: 0;
+}
+.pt-trim--tl::after {
+  right: 0;
+}
+.pt-trim--tr {
+  right: -22px;
+  top: -22px;
+}
+.pt-trim--tr::before {
+  bottom: 0;
+}
+.pt-trim--tr::after {
+  left: 0;
+}
+.pt-trim--bl {
+  left: -22px;
+  bottom: -22px;
+}
+.pt-trim--bl::before {
+  top: 0;
+}
+.pt-trim--bl::after {
+  right: 0;
+}
+.pt-trim--br {
+  right: -22px;
+  bottom: -22px;
+}
+.pt-trim--br::before {
+  top: 0;
+}
+.pt-trim--br::after {
+  left: 0;
+}
+
+/* ==========================================================================
+   CHROME
+   ========================================================================== */
+.pt-head {
+  position: absolute;
+  left: var(--trim);
+  top: calc(var(--trim) * 0.5 + 44px);
+  z-index: var(--z-xray-ui);
+}
+.pt-head__title {
+  margin: 0;
+  letter-spacing: var(--tr-mono-wide);
+  font-weight: 400;
+}
+
+.pt-strip {
+  position: absolute;
+  left: var(--trim);
+  right: var(--trim);
+  bottom: calc(var(--trim) * 0.5);
+  z-index: var(--z-xray-ui);
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(12px, 2vw, 32px);
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule);
+}
+
+.pt-read {
+  margin: 0;
+  display: grid;
+  gap: 1px;
+}
+.pt-read > div {
+  display: flex;
+  gap: var(--s-2);
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: 0.1em;
+  line-height: 1.7;
+}
+.pt-read dt {
+  color: var(--figure-faint);
+  min-width: 9ch;
+}
+.pt-read dd {
+  margin: 0;
+  color: var(--figure-dim);
+}
+
+.pt-actions {
+  margin-left: auto;
+  display: flex;
+  gap: var(--s-1);
+}
+
+.pt-btn {
+  padding: 6px 11px;
+  border: var(--hair) solid var(--rule);
+  color: var(--figure-dim);
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-mono-wide);
+  white-space: nowrap;
+  transition:
+    background-color var(--d-1) var(--e-snap),
+    border-color var(--d-1) var(--e-snap),
+    color var(--d-1) var(--e-snap);
+}
+.pt-btn:hover,
+.pt-btn:focus-visible {
+  border-color: var(--figure-dim);
+  color: var(--figure);
+}
+.pt-btn--signal {
+  border-color: var(--signal);
+  color: var(--signal);
+}
+.pt-btn--signal:hover,
+.pt-btn--signal:focus-visible {
+  background: var(--signal);
+  color: var(--c-ink);
+}
+
+.pt-session {
+  position: absolute;
+  left: var(--trim);
+  bottom: calc(var(--trim) * 0.5 + 96px);
+  z-index: var(--z-xray-ui);
+  color: var(--signal-hot);
+  letter-spacing: var(--tr-mono-wide);
+  max-width: 60ch;
+}
+
+.pt-hint {
+  position: absolute;
+  right: var(--trim);
+  top: calc(var(--trim) * 0.5 + 44px);
+  z-index: var(--z-xray-ui);
+  letter-spacing: var(--tr-mono-wide);
+}
+
+/* ==========================================================================
+   MOBILE — the aperture is the mode, so it gets the room
+   ========================================================================== */
+@media (max-width: 900px) {
+  .pt-aperture {
+    width: min(74vw, 40vh * 0.72, 340px);
+  }
+  .pt-hint {
+    display: none;
+  }
+  .pt-strip {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--s-2);
+  }
+  .pt-actions {
+    margin-left: 0;
+    flex-wrap: wrap;
+  }
+  .pt-btn {
+    padding: 9px 11px;
+    flex: 1 1 auto;
+    text-align: center;
+  }
+  .pt-session {
+    right: var(--trim);
+    bottom: auto;
+    top: calc(var(--trim) * 0.5 + 66px);
+  }
+}
+
+/* Reduced motion keeps the aperture, the depth and the horizon — it removes
+   only the shearing parallax. A still portal is still a portal. */
+@media (prefers-reduced-motion: reduce) {
+  .pt-aperture {
+    transition-duration: 200ms;
+    transform: none;
+  }
+}

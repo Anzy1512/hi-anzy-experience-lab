@@ -1,0 +1,811 @@
+/* ==========================================================================
+   X-RAY — SEE BENEATH THE INTERFACE
+   ========================================================================== */
+
+.xr {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/*
+ * Scrim under the instrument band and control strip.
+ *
+ * The specimen is a scrollable subject and the instrument is fixed chrome over
+ * it, so at some scroll position they will always meet. A gradient to the
+ * ground makes that meeting deliberate — the sheet passing under the faceplate
+ * — instead of two things colliding.
+ */
+.xr::after {
+  content: '';
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 260px;
+  z-index: calc(var(--z-xray-ui) - 1);
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(16, 20, 19, 0) 0%,
+    rgba(16, 20, 19, 0.72) 34%,
+    rgba(16, 20, 19, 0.95) 62%,
+    rgba(16, 20, 19, 0.98) 100%
+  );
+  opacity: 0;
+  transition: opacity var(--d-4) var(--e-glide);
+}
+.xr[data-active='true']::after {
+  opacity: 1;
+}
+
+/* ---- the subject -------------------------------------------------------- */
+/* The specimen arrives as paper and then drains. Because the semantic tokens
+   are redeclared locally, every colour in the composition transitions at once —
+   the sheet losing its stock rather than a filter being switched on. */
+.xr-surface {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  --ground: var(--c-bone);
+  --figure: var(--c-ink);
+  --figure-dim: #5d605a;
+  --figure-faint: rgba(25, 29, 28, 0.34);
+  --rule: rgba(25, 29, 28, 0.22);
+
+  background: var(--ground);
+  color: var(--figure);
+}
+.xr-surface[data-drained='true'] {
+  --ground: rgba(16, 20, 19, 0);
+  --figure: #e4ddca;
+  --figure-dim: #7d8079;
+  --figure-faint: rgba(228, 221, 202, 0.26);
+  --rule: rgba(228, 221, 202, 0.17);
+}
+.xr-surface,
+.xr-surface * {
+  transition:
+    background-color 900ms var(--e-cinematic),
+    color 900ms var(--e-cinematic),
+    border-color 900ms var(--e-cinematic),
+    filter 1100ms var(--e-cinematic);
+}
+
+/* ---- specimen composition : a real 12-column sheet ---------------------- */
+.spec {
+  min-height: 100%;
+  padding: calc(var(--trim) * 2.3) var(--trim) calc(var(--trim) * 5.6);
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: auto auto 1fr auto;
+  column-gap: clamp(10px, 1.5vw, 26px);
+  row-gap: clamp(10px, 1.5vh, 22px);
+  align-content: start;
+}
+
+.spec__head {
+  grid-column: 1 / 8;
+  grid-row: 1;
+}
+.spec__kicker {
+  letter-spacing: var(--tr-mono-wide);
+}
+.spec__title {
+  font-size: clamp(2.25rem, 6.4vw, 5.4rem);
+  margin-top: 0.16em;
+}
+.spec__subtitle {
+  margin-top: 0.55em;
+  max-width: 40ch;
+  color: var(--figure-dim);
+}
+
+.spec__figure {
+  grid-column: 9 / 13;
+  grid-row: 1 / 4;
+  position: relative;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.spec__plate {
+  width: 100%;
+  flex: 1;
+  min-height: 190px;
+  object-fit: cover;
+  background: #0b0e0e;
+}
+.spec__plate-frame {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: calc(100% - 2.6em);
+  border: var(--hair) solid var(--rule);
+  pointer-events: none;
+}
+.spec__caption {
+  margin-top: 0.75em;
+  line-height: 1.5;
+}
+
+.spec__standfirst {
+  grid-column: 1 / 7;
+  grid-row: 2;
+  font-size: clamp(1rem, 1.15vw, 1.3rem);
+  line-height: 1.45;
+  max-width: 46ch;
+}
+
+.spec__cols {
+  grid-column: 1 / 8;
+  grid-row: 3;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: clamp(16px, 2vw, 40px);
+  row-gap: clamp(14px, 2vh, 28px);
+  align-content: start;
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule);
+}
+.spec__col-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6em;
+}
+.spec__col-num {
+  letter-spacing: var(--tr-mono);
+}
+.spec__col-body {
+  margin-top: 0.5em;
+  color: var(--figure-dim);
+  max-width: 42ch;
+}
+
+.spec__colophon {
+  grid-column: 1 / 13;
+  grid-row: 4;
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule);
+  line-height: 1.6;
+}
+
+/* ==========================================================================
+   DIAGNOSTIC OVERLAYS
+   ========================================================================== */
+.xr-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-xray-field);
+  pointer-events: none;
+}
+
+.xr-layers {
+  position: fixed;
+  inset: 0;
+}
+
+/* each layer group arrives on its own beat */
+.xr-layers > g {
+  animation: xr-layer-in 420ms var(--e-mechanical) both;
+}
+@keyframes xr-layer-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---- GRID --------------------------------------------------------------- */
+.xr-grid__bounds {
+  fill: none;
+  stroke: var(--rule);
+  stroke-dasharray: 3 5;
+}
+.xr-grid__col {
+  stroke: var(--rule-faint);
+  stroke-width: 1;
+}
+.xr-grid__col--major {
+  stroke: var(--rule);
+}
+.xr-grid__base {
+  stroke: rgba(228, 221, 202, 0.045);
+  stroke-width: 1;
+}
+
+/* ---- BOX ---------------------------------------------------------------- */
+.xr-box__rect {
+  fill: none;
+  stroke: rgba(228, 221, 202, 0.15);
+  stroke-width: 1;
+}
+.xr-box__rect--region {
+  stroke: rgba(228, 221, 202, 0.26);
+  stroke-dasharray: 2 4;
+}
+.xr-box__rect--display {
+  stroke: rgba(228, 221, 202, 0.3);
+}
+.xr-box__rect--image {
+  stroke: rgba(228, 221, 202, 0.34);
+  stroke-dasharray: 6 3;
+}
+.xr-box__rect--control {
+  stroke: rgba(238, 67, 34, 0.5);
+}
+
+/* ---- STRUCTURE ---------------------------------------------------------- */
+.xr-struct__tick {
+  fill: none;
+  stroke: var(--figure);
+  stroke-width: 1.2;
+  opacity: 0.42;
+}
+
+/* ---- TYPE --------------------------------------------------------------- */
+.xr-type__base {
+  stroke: rgba(228, 221, 202, 0.17);
+  stroke-width: 1;
+}
+
+/* ---- SPACE -------------------------------------------------------------- */
+.xr-space__witness {
+  stroke: var(--figure-faint);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+.xr-space__dim {
+  stroke: var(--signal);
+  stroke-width: 1;
+}
+
+/* ---- acquired object ---------------------------------------------------- */
+.xr-acq__rect {
+  fill: rgba(242, 145, 27, 0.05);
+  stroke: rgba(242, 145, 27, 0.45);
+  stroke-width: 1;
+}
+.xr-acq__bracket {
+  fill: none;
+  stroke: var(--signal);
+  stroke-width: 1.6;
+}
+.xr-acq__leader {
+  fill: none;
+  stroke: var(--signal);
+  stroke-width: 1;
+  opacity: 0.5;
+  stroke-dasharray: 3 3;
+}
+.xr-acq__leader-dot {
+  fill: var(--signal);
+}
+
+/* ---- MOTION ------------------------------------------------------------- */
+.xr-motion__trail {
+  fill: none;
+  stroke: var(--signal);
+  stroke-width: 1;
+  opacity: 0.42;
+  stroke-linejoin: round;
+}
+
+/* ---- notation ----------------------------------------------------------- */
+.xr-note {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  fill: var(--figure-dim);
+  text-transform: uppercase;
+}
+.xr-note--struct {
+  fill: var(--figure-dim);
+  opacity: 0.9;
+}
+.xr-note--type {
+  fill: var(--figure-dim);
+}
+.xr-note--dim {
+  fill: var(--signal);
+}
+.xr-note--motion {
+  fill: var(--signal);
+  opacity: 0.75;
+}
+
+/* ==========================================================================
+   THE INSTRUMENT BAND
+   Title | live readout | acquired record. One faceplate along the foot of the
+   sheet, so nothing floats over the thing being inspected.
+   ========================================================================== */
+.xr-band {
+  position: fixed;
+  left: var(--trim);
+  right: var(--trim);
+  bottom: calc(var(--trim) * 0.5 + 96px);
+  z-index: var(--z-xray-ui);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 300px;
+  align-items: end;
+  column-gap: clamp(16px, 2.4vw, 44px);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity var(--d-4) var(--e-glide),
+    transform var(--d-4) var(--e-glide);
+}
+.xr[data-active='true'] .xr-band {
+  opacity: 1;
+  transform: none;
+}
+
+.xr-band__title {
+  align-self: end;
+}
+.xr-title__text {
+  letter-spacing: -0.01em;
+}
+.xr-title__tag {
+  margin-top: 0.3em;
+  letter-spacing: var(--tr-mono-wide);
+}
+
+.xr-band__inspector {
+  min-height: 112px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+.xr-hint {
+  letter-spacing: var(--tr-mono-wide);
+  text-align: right;
+  padding-bottom: var(--s-2);
+}
+
+/* ---- readout : horizontal, low, unobtrusive ---------------------------- */
+.xr-readout {
+  margin: 0 0 var(--s-2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px clamp(10px, 1.5vw, 24px);
+  align-content: flex-end;
+}
+.xr-readout > div {
+  display: flex;
+  gap: 6px;
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: 0.1em;
+  line-height: 1.7;
+}
+.xr-readout dt {
+  color: var(--figure-faint);
+}
+.xr-readout dd {
+  margin: 0;
+  color: var(--figure-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- the acquired record ------------------------------------------------ */
+.xr-callout {
+  width: 100%;
+  padding: var(--s-2);
+  background: rgba(10, 13, 13, 0.92);
+  border: var(--hair) solid var(--rule);
+  border-left: 2px solid var(--signal);
+  animation: xr-callout-in 180ms var(--e-snap) both;
+}
+@keyframes xr-callout-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.xr-callout[data-held='true'] {
+  border-left-color: var(--signal-hot);
+}
+.xr-callout__id {
+  letter-spacing: var(--tr-mono-wide);
+}
+.xr-callout__name {
+  margin-top: 0.2em;
+  color: var(--figure);
+  letter-spacing: var(--tr-mono);
+}
+.xr-callout__fields {
+  display: grid;
+  /* Three across keeps the record short enough to sit in the band without
+     reaching up into the specimen's figure. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px 10px;
+  margin: var(--s-2) 0 0;
+}
+.xr-callout__fields > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  line-height: 1.7;
+}
+.xr-callout__wide {
+  grid-column: 1 / -1;
+}
+.xr-callout__fields dt {
+  color: var(--figure-faint);
+  letter-spacing: 0.1em;
+}
+.xr-callout__fields dd {
+  margin: 0;
+  color: var(--figure);
+  font-variant-numeric: tabular-nums;
+}
+.xr-callout__hold {
+  margin-top: var(--s-2);
+  padding-top: var(--s-1);
+  border-top: var(--hair) solid var(--rule);
+  color: var(--figure-faint);
+}
+
+/* ==========================================================================
+   CONTROL STRIP — a printer's control strip, not a settings panel
+   ========================================================================== */
+.xr-strip {
+  position: fixed;
+  left: var(--trim);
+  right: var(--trim);
+  bottom: calc(var(--trim) * 0.5);
+  z-index: var(--z-xray-ui);
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(10px, 1.6vw, 26px);
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule);
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity var(--d-4) var(--e-glide),
+    transform var(--d-4) var(--e-glide);
+}
+.xr[data-active='true'] .xr-strip {
+  opacity: 1;
+  transform: none;
+}
+.xr-strip[data-disabled='true'] {
+  pointer-events: none;
+}
+
+/* registration target + density steps */
+.xr-strip__reg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+.xr-strip__target svg {
+  fill: none;
+  stroke: var(--figure-dim);
+  stroke-width: 1;
+  transition: stroke var(--d-2) var(--e-snap);
+}
+.xr-strip__target:hover svg,
+.xr-strip__target:focus-visible svg {
+  stroke: var(--signal);
+}
+.xr-strip[data-self='true'] .xr-strip__target svg {
+  stroke: var(--signal-hot);
+}
+.xr-strip__steps {
+  display: flex;
+  gap: 2px;
+}
+.xr-strip__steps i {
+  width: 7px;
+  height: 14px;
+  background: var(--figure);
+  display: block;
+}
+
+/* layer patches */
+.xr-strip__patches {
+  display: flex;
+  gap: clamp(4px, 0.7vw, 12px);
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+.xr-patch {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 2px 5px;
+  padding: 3px 5px 4px;
+  border: var(--hair) solid transparent;
+  transition: border-color var(--d-1) var(--e-snap);
+}
+.xr-patch:hover,
+.xr-patch:focus-visible {
+  border-color: var(--rule);
+}
+.xr-patch__swatch {
+  grid-row: 1;
+  grid-column: 1;
+  width: 13px;
+  height: 13px;
+  border: var(--hair) solid var(--figure-dim);
+  background: transparent;
+  transition:
+    background-color var(--d-1) var(--e-snap),
+    border-color var(--d-1) var(--e-snap);
+}
+.xr-patch[data-on='true'] .xr-patch__swatch {
+  background: var(--signal);
+  border-color: var(--signal);
+}
+.xr-patch__key {
+  grid-row: 1;
+  grid-column: 2;
+  color: var(--figure-faint);
+}
+.xr-patch__label {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  color: var(--figure-dim);
+  letter-spacing: 0.08em;
+  transition: color var(--d-1) var(--e-snap);
+}
+.xr-patch[data-on='true'] .xr-patch__label {
+  color: var(--figure);
+}
+
+/* plate processing + presets */
+.xr-strip__plate,
+.xr-strip__presets {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: none;
+}
+.xr-strip__group-label {
+  letter-spacing: var(--tr-mono-wide);
+}
+.xr-strip__processes,
+.xr-strip__preset-row {
+  display: flex;
+  gap: 2px;
+}
+.xr-proc {
+  padding: 3px 6px;
+  border: var(--hair) solid var(--rule);
+  color: var(--figure-dim);
+  letter-spacing: 0.06em;
+  transition:
+    background-color var(--d-1) var(--e-snap),
+    color var(--d-1) var(--e-snap),
+    border-color var(--d-1) var(--e-snap);
+}
+.xr-proc:hover,
+.xr-proc:focus-visible {
+  border-color: var(--figure-dim);
+  color: var(--figure);
+}
+.xr-proc[data-on='true'] {
+  background: var(--figure);
+  border-color: var(--figure);
+  color: var(--ground-deep);
+}
+
+.xr-strip__self {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  color: var(--signal-hot);
+  letter-spacing: var(--tr-mono-wide);
+  animation: xr-callout-in 240ms var(--e-snap) both;
+}
+
+/* ---- depth field -------------------------------------------------------- */
+.xr-depth-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-xray-field) - 1);
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   RESPONSIVE — mobile is a different instrument, not a smaller one
+   ========================================================================== */
+@media (max-width: 900px) {
+  .spec {
+    grid-template-columns: 1fr;
+    /* Bottom padding is the height of the fixed instrument: record + strip. */
+    padding: calc(var(--trim) * 2.6) var(--trim) 212px;
+    row-gap: var(--s-4);
+  }
+  .spec__head,
+  .spec__figure,
+  .spec__standfirst,
+  .spec__cols,
+  .spec__colophon {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .spec__cols {
+    grid-template-columns: 1fr;
+  }
+  .spec__plate {
+    min-height: 180px;
+    max-height: 30vh;
+  }
+
+  /* The grid readout is a desktop diagnostic; on a phone it lands on the
+     specimen's own kicker and there is nowhere else for it to go. */
+  .xr-grid .xr-note {
+    display: none;
+  }
+
+  .xr::after {
+    height: 320px;
+  }
+
+  /*
+   * The mobile instrument is a record, not a dashboard.
+   *
+   * The title is dropped — the mode chrome already says X-RAY — and the live
+   * readout goes with it, because DPR and frame timing are desktop concerns.
+   * What remains is the thing the visitor actually tapped for: the measurements.
+   */
+  .xr-band {
+    grid-template-columns: 1fr;
+    bottom: calc(var(--trim) * 0.4 + 84px);
+    row-gap: 0;
+  }
+  .xr-readout,
+  .xr-band__title {
+    display: none;
+  }
+  .xr-band__inspector {
+    min-height: 0;
+  }
+  .xr-hint {
+    text-align: left;
+    padding-bottom: var(--s-1);
+  }
+  .xr-callout {
+    padding: var(--s-1) var(--s-2) var(--s-2);
+  }
+  .xr-callout__fields {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .xr-callout__hold {
+    display: none;
+  }
+
+  /* One compact faceplate: a scrolling row of patches, presets beside them. */
+  .xr-strip {
+    bottom: calc(var(--trim) * 0.4);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      'reg  plate'
+      'patch patch';
+    align-items: center;
+    gap: var(--s-1) var(--s-2);
+    padding-top: var(--s-1);
+    max-height: none;
+    overflow: visible;
+  }
+  .xr-strip__reg {
+    grid-area: reg;
+  }
+  .xr-strip__plate {
+    grid-area: plate;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--s-2);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .xr-strip__plate::-webkit-scrollbar {
+    display: none;
+  }
+  .xr-strip__presets {
+    display: none;
+  }
+  .xr-strip__patches {
+    grid-area: patch;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .xr-strip__patches::-webkit-scrollbar {
+    display: none;
+  }
+  .xr-patch {
+    padding: 3px 2px;
+    flex: 0 0 auto;
+    /* comfortable tap target without inflating the faceplate */
+    min-width: 38px;
+    justify-items: center;
+  }
+  .xr-patch__key {
+    display: none;
+  }
+  .xr-patch__swatch {
+    width: 15px;
+    height: 15px;
+  }
+  .xr-patch__label {
+    font-size: 0.5rem;
+    letter-spacing: 0.04em;
+  }
+  .xr-strip__self {
+    bottom: calc(100% + 2px);
+    font-size: 0.5rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .spec__cols {
+    row-gap: var(--s-3);
+  }
+  .spec__title {
+    font-size: clamp(1.9rem, 10vw, 2.6rem);
+  }
+}
+
+/* ==========================================================================
+   REDUCED MOTION — the instrument still works, it just stops moving
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .xr-layers > g,
+  .xr-callout,
+  .xr-strip__self {
+    animation: none;
+  }
+  .xr-surface,
+  .xr-surface * {
+    transition-duration: 200ms;
+  }
+  .xr-strip {
+    transition-duration: 120ms;
+  }
+  .xr-motion__trail {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   TOUCH TARGET FLOOR — closure audit
+   Measured at 390x844: these controls came in under 28px on one axis, which is
+   below a usable target. Padding only; no layout or visual redesign.
+   ========================================================================== */
+@media (max-width: 900px), (pointer: coarse) {
+  .xr-strip__target {
+    min-width: 30px;
+    min-height: 30px;
+  }
+  .xr-proc {
+    min-height: 30px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+}

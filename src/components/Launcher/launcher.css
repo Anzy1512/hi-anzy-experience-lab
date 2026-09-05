@@ -1,0 +1,304 @@
+/* THE OPENING SHEET
+   Composition: air on top, mass low. The wordmark spans trim to trim, the two
+   smaller voices sit under it, and the statement and the entry control hold the
+   bottom corners. Nothing is centred — this is a page, not a hero. */
+
+.launcher {
+  position: fixed;
+  inset: 0;
+  padding: calc(var(--trim) * 1.9) var(--trim) var(--trim);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+  grid-template-areas:
+    'head'
+    'air'
+    'mark'
+    'label'
+    'foot';
+  row-gap: var(--s-3);
+  z-index: var(--z-content);
+}
+
+/* ---- beat 1 : SIGNAL ---------------------------------------------------- */
+.launcher__head {
+  grid-area: head;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.launcher__signal {
+  flex: none;
+  opacity: 0;
+  letter-spacing: 0.6em;
+  transition:
+    opacity var(--d-4) var(--e-glide),
+    letter-spacing var(--d-5) var(--e-glide);
+}
+[data-beat='0'] .launcher__signal {
+  opacity: 0;
+}
+.launcher[data-beat]:not([data-beat='0']) .launcher__signal {
+  opacity: 1;
+  letter-spacing: var(--tr-mono-wide);
+}
+.launcher__signal {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9em;
+}
+.launcher__signal-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--signal);
+  flex: none;
+}
+.launcher__signal-state {
+  color: var(--figure);
+}
+
+/* the rule draws rather than fades */
+.launcher__head-rule {
+  flex: 1;
+  height: var(--hair);
+  background: var(--rule);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--d-6) var(--e-glide);
+}
+.launcher[data-beat]:not([data-beat='0']) .launcher__head-rule {
+  transform: scaleX(1);
+}
+
+/* ---- beat 2 : REGISTER -------------------------------------------------- */
+.launcher__mark {
+  grid-area: mark;
+  min-width: 0;
+  min-height: 0;
+}
+
+.wordmark {
+  width: 100%;
+  height: auto;
+  /* Safety valve for short viewports: the wordmark scales down and stays left
+     aligned rather than pushing the statement and the entry control off-sheet. */
+  max-height: 38vh;
+  display: block;
+  overflow: visible;
+  opacity: 0;
+  transition: opacity var(--d-2) linear;
+}
+.wordmark[data-measured='true'] {
+  opacity: 1;
+}
+
+/* Colour plates behave like ink on stock. Multiply only makes sense on the
+   paper material; on ink we switch to screen so the plates stay visible. */
+.wordmark__plate--orange,
+.wordmark__plate--red {
+  mix-blend-mode: multiply;
+}
+[data-material='ink'] .wordmark__plate--orange,
+[data-material='ink'] .wordmark__plate--red {
+  mix-blend-mode: screen;
+}
+
+/* ---- beat 3 : LABEL ----------------------------------------------------- */
+.launcher__label {
+  grid-area: label;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  column-gap: var(--s-3);
+  padding-top: var(--s-4);
+}
+
+.launcher__label-rule {
+  grid-column: 1 / -1;
+  position: relative;
+  height: var(--hair);
+  background: var(--rule);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--d-5) var(--e-mechanical);
+  margin-bottom: var(--s-2);
+}
+/* twelve column ticks: the sheet declaring its grid before X-Ray ever does */
+.launcher__label-rule::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--rule) 0 1px,
+    transparent 1px calc(100% / 12)
+  );
+  opacity: 0;
+  transition: opacity var(--d-4) var(--e-glide) 0.3s;
+}
+.launcher[data-beat='3'] .launcher__label-rule,
+.launcher[data-beat='4'] .launcher__label-rule,
+.launcher[data-beat='5'] .launcher__label-rule {
+  transform: scaleX(1);
+}
+.launcher[data-beat='3'] .launcher__label-rule::after,
+.launcher[data-beat='4'] .launcher__label-rule::after,
+.launcher[data-beat='5'] .launcher__label-rule::after {
+  opacity: 1;
+}
+
+.launcher__label-text {
+  grid-column: 1;
+  color: var(--figure);
+  letter-spacing: var(--tr-mono-wide);
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path var(--d-5) var(--e-mechanical) 0.12s;
+}
+.launcher__label-meta {
+  grid-column: 2;
+  opacity: 0;
+  transition: opacity var(--d-4) var(--e-glide) 0.5s;
+  text-align: right;
+}
+.launcher[data-beat='3'] .launcher__label-text,
+.launcher[data-beat='4'] .launcher__label-text,
+.launcher[data-beat='5'] .launcher__label-text {
+  clip-path: inset(0 0 0 0);
+}
+.launcher[data-beat='3'] .launcher__label-meta,
+.launcher[data-beat='4'] .launcher__label-meta,
+.launcher[data-beat='5'] .launcher__label-meta {
+  opacity: 1;
+}
+
+/* ---- beats 4 & 5 : STATEMENT + ENTRY ------------------------------------ */
+.launcher__foot {
+  grid-area: foot;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s-5);
+  padding-top: var(--s-5);
+}
+
+.launcher__statement {
+  max-width: 34ch;
+}
+.launcher__statement-line {
+  font-weight: 500;
+  font-size: clamp(1.05rem, 1.5vw, 1.45rem);
+  line-height: 1.22;
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path var(--d-4) var(--e-weight) calc(var(--i) * 110ms);
+}
+.launcher[data-beat='4'] .launcher__statement-line,
+.launcher[data-beat='5'] .launcher__statement-line {
+  clip-path: inset(0 0 0 0);
+}
+
+.launcher__enter {
+  position: relative;
+  flex: none;
+  padding: 0.9rem 1.7rem;
+  border: var(--hair) solid var(--figure);
+  color: var(--figure);
+  background: transparent;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition:
+    opacity var(--d-3) var(--e-snap),
+    transform var(--d-3) var(--e-snap),
+    background-color var(--d-2) var(--e-snap),
+    color var(--d-2) var(--e-snap),
+    border-color var(--d-2) var(--e-snap);
+}
+.launcher[data-beat='5'] .launcher__enter:not(:disabled) {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+.launcher__enter-text {
+  letter-spacing: var(--tr-mono-wide);
+}
+
+/* crop marks growing out of the control, so it reads as part of the sheet */
+.launcher__enter::before,
+.launcher__enter::after {
+  content: '';
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border: var(--hair) solid var(--figure);
+  opacity: 0.45;
+  transition: opacity var(--d-2) var(--e-snap);
+}
+.launcher__enter::before {
+  top: -5px;
+  left: -5px;
+  border-right: 0;
+  border-bottom: 0;
+}
+.launcher__enter::after {
+  bottom: -5px;
+  right: -5px;
+  border-left: 0;
+  border-top: 0;
+}
+
+/* Hover fills; focus uses the global outline. Filling on focus too would mean
+   the control never shows its resting state, because it takes focus on beat 5. */
+.launcher__enter:hover {
+  background: var(--signal);
+  border-color: var(--signal);
+  color: var(--c-ink);
+}
+.launcher__enter:hover::before,
+.launcher__enter:hover::after {
+  opacity: 0;
+}
+.launcher__enter:active {
+  transform: translateY(1px);
+}
+
+/* ---- leaving : the sheet turns over ------------------------------------- */
+.launcher[data-leaving='true'] .launcher__head,
+.launcher[data-leaving='true'] .launcher__label,
+.launcher[data-leaving='true'] .launcher__foot {
+  opacity: 0;
+  transition: opacity var(--d-3) var(--e-snap);
+}
+
+/* ---- responsive: a different composition, not a smaller one ------------- */
+@media (max-width: 860px) {
+  .launcher {
+    padding: calc(var(--trim) * 2.4) var(--trim) calc(var(--trim) * 1.4);
+    row-gap: var(--s-2);
+  }
+  .launcher__foot {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--s-4);
+    padding-top: var(--s-5);
+  }
+  .launcher__enter {
+    width: 100%;
+    padding: 1.05rem 1.2rem;
+    text-align: center;
+  }
+  .launcher__label-meta {
+    display: none;
+  }
+  .launcher__statement {
+    max-width: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .launcher__signal {
+    font-size: 0.5625rem;
+  }
+}

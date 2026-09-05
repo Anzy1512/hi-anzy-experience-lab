@@ -1,0 +1,438 @@
+/* ==========================================================================
+   AGENCY SIMULATOR — GIVE HI ANZY A PROBLEM
+   The one mode that returns to paper. A strategist's table, not a dark screen.
+   ========================================================================== */
+
+.sim {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+
+  /* Local material override: this mode is worked on, so it is paper again.
+     Declared here rather than as a fourth html material because it is the same
+     paper the launcher uses — a return, not a new state. */
+  --ground: var(--c-bone);
+  --figure: var(--c-ink);
+  --figure-dim: #5d605a;
+  --figure-faint: rgba(25, 29, 28, 0.34);
+  --rule: rgba(25, 29, 28, 0.22);
+  --rule-faint: rgba(25, 29, 28, 0.1);
+  --screen-dot: rgba(25, 29, 28, 0.09);
+
+  background: var(--ground);
+  color: var(--figure);
+  background-image: radial-gradient(circle at 1px 1px, var(--screen-dot) 1px, transparent 0);
+  background-size: 4px 4px;
+}
+
+/* ==========================================================================
+   THE TABLE — fragments of the brief, before and after sorting
+   ========================================================================== */
+.sim-table {
+  position: absolute;
+  inset: 0;
+  right: 420px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sim-table__rule {
+  position: absolute;
+  background: var(--rule-faint);
+}
+.sim-table__rule--h {
+  left: 4%;
+  right: 4%;
+  top: 50%;
+  height: var(--hair);
+}
+.sim-table__rule--v {
+  top: 6%;
+  bottom: 6%;
+  left: 50%;
+  width: var(--hair);
+}
+
+/* A fragment is a slip of the brief. Ink on paper, slightly out of square. */
+/*
+ * A fragment is a slip of the brief. Ink on paper, slightly out of square.
+ *
+ * It is VISIBLE THE MOMENT IT EXISTS — no entrance tween. React writes the
+ * target position and the transition below carries it there, so a stalled frame
+ * budget costs the movement, never the content.
+ */
+.sim-frag {
+  position: absolute;
+  padding: 3px 7px 4px;
+  font-family: var(--f-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--figure);
+  background: var(--c-bone);
+  border: var(--hair) solid var(--rule);
+  transform-origin: center;
+  will-change: transform, left, top;
+  transition:
+    left 820ms var(--e-mechanical),
+    top 820ms var(--e-mechanical),
+    transform 820ms var(--e-mechanical);
+}
+
+/* Sorted fragments align to their column and stop being loose paper. */
+.sim-table[data-sorted='true'] .sim-frag {
+  border-color: var(--figure-faint);
+}
+
+/* Column headings appear only once the table has sorted itself. */
+.sim-table__cols {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  padding: 7% 4% 0;
+}
+.sim-col {
+  flex: 1 1 0;
+  text-align: center;
+  color: var(--figure-dim);
+  letter-spacing: var(--tr-mono);
+  border-top: 2px solid var(--rule);
+  padding-top: 6px;
+  animation: sim-col-in 420ms var(--e-mechanical) both;
+}
+.sim-col[data-band='lead'] {
+  color: var(--figure);
+  border-top-color: var(--signal);
+}
+@keyframes sim-col-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   THE PANEL — the conversation
+   ========================================================================== */
+.sim-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 420px;
+  display: flex;
+  flex-direction: column;
+  padding: calc(var(--trim) * 1.9) var(--trim) var(--trim);
+  border-left: var(--hair) solid var(--rule);
+  background: linear-gradient(to right, rgba(233, 226, 208, 0.86), var(--c-bone) 18%);
+  overflow-y: auto;
+}
+
+.sim-panel__stage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 10px;
+  letter-spacing: var(--tr-mono-wide);
+}
+.sim-panel__stage span {
+  color: var(--figure-faint);
+  transition: color var(--d-2) var(--e-snap);
+}
+.sim-panel__stage span[data-on='true'] {
+  color: var(--figure);
+}
+
+/* ---- brief ---------------------------------------------------------------- */
+.sim-brief {
+  margin-top: var(--s-6);
+}
+.sim-brief__title {
+  font-size: clamp(1.9rem, 3.4vw, 2.9rem);
+}
+.sim-brief__intro {
+  margin-top: var(--s-3);
+  max-width: 40ch;
+  color: var(--figure-dim);
+}
+.sim-begin {
+  margin-top: var(--s-5);
+  padding: 0.9rem 1.5rem;
+  border: var(--hair) solid var(--figure);
+  letter-spacing: var(--tr-mono-wide);
+  transition:
+    background-color var(--d-2) var(--e-snap),
+    color var(--d-2) var(--e-snap);
+}
+.sim-begin:hover,
+.sim-begin:focus-visible {
+  background: var(--signal);
+  border-color: var(--signal);
+  color: var(--c-ink);
+}
+
+/* ---- asking --------------------------------------------------------------- */
+.sim-ask {
+  margin-top: var(--s-5);
+}
+.sim-ask__meta {
+  letter-spacing: var(--tr-mono-wide);
+}
+.sim-ask__prompt {
+  margin-top: var(--s-2);
+  font-size: clamp(1.35rem, 2.4vw, 1.95rem);
+}
+.sim-ask__note {
+  margin-top: var(--s-2);
+  max-width: 36ch;
+}
+
+.sim-options {
+  list-style: none;
+  margin: var(--s-4) 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+}
+.sim-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 0.66rem 0.5rem;
+  text-align: left;
+  border-top: var(--hair) solid var(--rule);
+  transition: background-color var(--d-1) var(--e-snap);
+}
+.sim-options li:last-child .sim-option {
+  border-bottom: var(--hair) solid var(--rule);
+}
+.sim-option__mark {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border: var(--hair) solid var(--figure-dim);
+  transition:
+    background-color var(--d-1) var(--e-snap),
+    border-color var(--d-1) var(--e-snap);
+}
+.sim-option__label {
+  letter-spacing: var(--tr-mono);
+}
+.sim-option:hover,
+.sim-option:focus-visible {
+  background: rgba(25, 29, 28, 0.05);
+}
+.sim-option:hover .sim-option__mark,
+.sim-option:focus-visible .sim-option__mark {
+  background: var(--signal);
+  border-color: var(--signal);
+}
+
+/* ==========================================================================
+   THE SYSTEM MAP
+   ========================================================================== */
+.sim-map {
+  margin-top: var(--s-4);
+}
+.sim-map__title {
+  font-size: clamp(1.5rem, 2.6vw, 2.1rem);
+}
+.sim-map__block {
+  margin-top: var(--s-4);
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule);
+}
+.sim-map__label {
+  letter-spacing: var(--tr-mono-wide);
+  padding-bottom: var(--s-2);
+}
+.sim-map__block--open .sim-map__label {
+  color: var(--signal-hot);
+}
+
+.sim-bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 5px;
+}
+.sim-bars li {
+  display: grid;
+  grid-template-columns: 8.5ch 1fr 7ch;
+  align-items: center;
+  gap: var(--s-2);
+}
+.sim-bars__track {
+  height: 6px;
+  background: var(--rule-faint);
+  border: var(--hair) solid var(--rule);
+}
+.sim-bars__fill {
+  display: block;
+  height: 100%;
+  background: var(--figure);
+}
+.sim-bars__note {
+  text-align: right;
+}
+
+.sim-clusters {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-2);
+}
+.sim-cluster__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  margin: 0;
+}
+.sim-cluster__band {
+  color: var(--figure-faint);
+  letter-spacing: var(--tr-mono);
+  white-space: nowrap;
+}
+.sim-cluster[data-band='lead'] .sim-cluster__band {
+  color: var(--signal);
+}
+.sim-cluster__line {
+  margin-top: 0.25em;
+}
+.sim-cluster[data-band='watch'] {
+  opacity: 0.62;
+}
+
+.sim-deps,
+.sim-open {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.sim-open li {
+  color: var(--figure-dim);
+  padding-left: 0.9em;
+  position: relative;
+}
+.sim-open li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 5px;
+  height: 5px;
+  background: var(--signal-hot);
+}
+
+.sim-seq {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 3px;
+}
+.sim-seq li {
+  display: flex;
+  gap: var(--s-2);
+}
+
+.sim-map__disclaimer {
+  margin-top: var(--s-4);
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule);
+  line-height: 1.6;
+}
+
+/* ---- actions -------------------------------------------------------------- */
+.sim-panel__foot {
+  margin-top: auto;
+  padding-top: var(--s-4);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-1);
+}
+.sim-act {
+  padding: 5px 9px;
+  border: var(--hair) solid var(--rule);
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  color: var(--figure-dim);
+  transition:
+    border-color var(--d-1) var(--e-snap),
+    color var(--d-1) var(--e-snap);
+}
+.sim-act:hover,
+.sim-act:focus-visible {
+  border-color: var(--figure);
+  color: var(--figure);
+}
+.sim-act--signal {
+  border-color: var(--signal);
+  color: var(--figure);
+}
+.sim-act--signal:hover,
+.sim-act--signal:focus-visible {
+  background: var(--signal);
+  color: var(--c-ink);
+}
+.sim-panel__hint {
+  width: 100%;
+  letter-spacing: var(--tr-mono-wide);
+}
+
+/* ==========================================================================
+   RESPONSIVE — one decision plane at a time, the table above it
+   ========================================================================== */
+@media (max-width: 900px) {
+  .sim-table {
+    right: 0;
+    bottom: 58%;
+    border-bottom: var(--hair) solid var(--rule);
+  }
+  .sim-table__rule--h {
+    top: 60%;
+  }
+  .sim-panel {
+    top: 42%;
+    left: 0;
+    width: auto;
+    border-left: 0;
+    border-top: var(--hair) solid var(--rule);
+    background: var(--c-bone);
+    padding: var(--s-3) var(--trim) calc(var(--trim) * 1.2);
+  }
+  .sim-brief,
+  .sim-ask {
+    margin-top: var(--s-3);
+  }
+  .sim-option {
+    padding: 0.85rem 0.5rem;
+  }
+  .sim-frag {
+    font-size: 0.625rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sim-col {
+    animation: none;
+  }
+  /* The sort still happens — it simply happens at once. The concept survives. */
+  .sim-frag {
+    transition-duration: 1ms;
+    transition-delay: 0ms !important;
+  }
+}

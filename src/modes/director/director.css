@@ -1,0 +1,485 @@
+/* ==========================================================================
+   DIRECTOR — WATCH HI ANZY BECOME A SYSTEM
+
+   Cinematic / typographic. The frame is black, the type is the actor, and the
+   chrome gets out of the way. Nothing in this file is a CSS `animation`: every
+   composition is progress-driven from one clock, so PAUSE actually stops the
+   film instead of freezing a picture while timelines run on underneath.
+   ========================================================================== */
+
+.dr {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--c-void);
+  display: grid;
+  place-items: center;
+}
+
+.dr-frame {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: calc(var(--trim) * 2.4) var(--trim) calc(var(--trim) * 2.8);
+}
+
+.dr-shot {
+  width: 100%;
+  max-width: 1180px;
+  display: grid;
+  place-items: center;
+  gap: var(--s-4);
+}
+
+.dr-caption {
+  letter-spacing: var(--tr-mono-wide);
+  text-align: center;
+}
+
+/* ==========================================================================
+   SLATE
+   ========================================================================== */
+.dr-slate__line {
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--figure-dim);
+}
+
+/* ==========================================================================
+   WORDMARK — three plates pulling into register
+   ========================================================================== */
+.dr-wordmark {
+  gap: var(--s-5);
+}
+.dr-wordmark__stack {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.dr-wordmark__plate {
+  grid-area: 1 / 1;
+  font-size: clamp(3rem, 13vw, 11rem);
+  line-height: 0.86;
+  letter-spacing: var(--tr-colossal);
+  white-space: nowrap;
+}
+/* Misregistration is vertical only — the logotype's own device. */
+.dr-wordmark__plate--a {
+  color: var(--signal);
+  mix-blend-mode: screen;
+}
+.dr-wordmark__plate--b {
+  color: var(--signal-hot);
+  mix-blend-mode: screen;
+}
+.dr-wordmark__plate--k {
+  color: var(--c-bone);
+}
+.dr-wordmark__reg {
+  letter-spacing: var(--tr-mono-wide);
+}
+
+/* ==========================================================================
+   STATEMENT — revealed by a rising mask, never a fade-up
+   ========================================================================== */
+.dr-statement {
+  gap: 0;
+  justify-items: start;
+  width: min(100%, 1100px);
+}
+.dr-statement__mask {
+  display: block;
+  overflow: hidden;
+  width: 100%;
+}
+.dr-statement__line {
+  display: block;
+  font-size: clamp(1.75rem, 6.2vw, 5.2rem);
+  line-height: 1.02;
+  letter-spacing: var(--tr-display);
+  color: var(--c-bone);
+  will-change: transform;
+}
+
+/* ==========================================================================
+   SCATTER — four capabilities that never met
+   ========================================================================== */
+.dr-scatter__field {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 46vh;
+  width: 100%;
+}
+.dr-scatter__frag {
+  grid-area: 1 / 1;
+  color: var(--c-bone);
+  letter-spacing: var(--tr-display);
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   GRID — rules drawing themselves
+   ========================================================================== */
+.dr-grid__field {
+  position: relative;
+  width: 100%;
+  height: 44vh;
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+}
+.dr-grid__rule {
+  width: var(--hair);
+  background: var(--c-bone);
+  transform-origin: top center;
+}
+.dr-grid__measure {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: var(--hair);
+  background: var(--signal);
+  transform-origin: left center;
+}
+
+/* ==========================================================================
+   STAGES — one at a time, with air between them
+   ========================================================================== */
+.dr-stages__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-1);
+  width: min(100%, 780px);
+}
+.dr-stages__item {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  padding: var(--s-1) 0;
+  border-top: var(--hair) solid var(--rule-faint);
+  opacity: 0.16;
+  transition: opacity 260ms var(--e-snap);
+}
+.dr-stages__item[data-on='true'] {
+  opacity: 0.42;
+}
+.dr-stages__item[data-now='true'] {
+  opacity: 1;
+  border-top-color: var(--signal);
+}
+.dr-stages__n {
+  color: var(--figure-faint);
+  letter-spacing: var(--tr-mono-wide);
+}
+.dr-stages__name {
+  color: var(--c-bone);
+  letter-spacing: var(--tr-display);
+}
+
+/* ==========================================================================
+   PLATE — contour rings resolving
+   ========================================================================== */
+.dr-plate__field {
+  position: relative;
+  width: 100%;
+  height: 48vh;
+}
+.dr-plate__ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border: var(--hair) solid var(--c-bone);
+  border-radius: 50%;
+}
+
+/* ==========================================================================
+   ROSTER — the index, ticking past. Real statuses.
+   ========================================================================== */
+.dr-roster__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: min(100%, 860px);
+  display: grid;
+  gap: 1px;
+}
+.dr-roster__list li {
+  display: grid;
+  grid-template-columns: 3ch minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: var(--s-3);
+  padding: 3px 0;
+  border-top: var(--hair) solid var(--rule-faint);
+  opacity: 0.4;
+}
+.dr-roster__list li[data-on='true'] {
+  opacity: 1;
+}
+.dr-roster__n {
+  color: var(--figure-faint);
+}
+.dr-roster__name {
+  color: var(--c-bone);
+  letter-spacing: var(--tr-display);
+}
+.dr-roster__status {
+  color: var(--figure-dim);
+  letter-spacing: var(--tr-mono-wide);
+}
+.dr-roster__list li[data-on='true'] .dr-roster__status {
+  color: var(--signal);
+}
+
+/* ==========================================================================
+   MARK — silence, and one registration target
+   ========================================================================== */
+.dr-mark__target {
+  position: relative;
+  display: block;
+  width: 78px;
+  height: 78px;
+}
+.dr-mark__h,
+.dr-mark__v {
+  position: absolute;
+  background: var(--c-bone);
+}
+.dr-mark__h {
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: var(--hair);
+}
+.dr-mark__v {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: var(--hair);
+}
+.dr-mark__o {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px;
+  border: var(--hair) solid var(--signal);
+  border-radius: 50%;
+}
+
+/* ==========================================================================
+   END CARD
+   ========================================================================== */
+.dr-end {
+  gap: var(--s-1);
+  justify-items: center;
+  text-align: center;
+}
+.dr-end__title {
+  margin: 0;
+  color: var(--c-bone);
+  letter-spacing: var(--tr-colossal);
+}
+.dr-end__sub {
+  letter-spacing: var(--tr-mono-wide);
+}
+.dr-end__line {
+  margin-top: var(--s-3);
+  max-width: 44ch;
+}
+
+/* ==========================================================================
+   CHROME — act slug, transport, progress
+   ========================================================================== */
+.dr-act {
+  position: absolute;
+  left: var(--trim);
+  top: calc(var(--trim) * 0.5 + 44px);
+  letter-spacing: var(--tr-mono-wide);
+  z-index: var(--z-xray-ui);
+}
+
+.dr-transport {
+  position: absolute;
+  left: var(--trim);
+  bottom: calc(var(--trim) * 0.5 + 18px);
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  z-index: var(--z-xray-ui);
+}
+.dr-time {
+  letter-spacing: var(--tr-mono-wide);
+  font-variant-numeric: tabular-nums;
+  padding-left: var(--s-2);
+}
+
+.dr-btn {
+  padding: 6px 11px;
+  border: var(--hair) solid var(--rule);
+  color: var(--figure-dim);
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-mono-wide);
+  white-space: nowrap;
+  transition:
+    background-color var(--d-1) var(--e-snap),
+    border-color var(--d-1) var(--e-snap),
+    color var(--d-1) var(--e-snap);
+}
+.dr-btn:hover,
+.dr-btn:focus-visible {
+  border-color: var(--figure-dim);
+  color: var(--c-bone);
+}
+.dr-btn--signal {
+  border-color: var(--signal);
+  color: var(--signal);
+}
+.dr-btn--signal:hover,
+.dr-btn--signal:focus-visible {
+  background: var(--signal);
+  border-color: var(--signal);
+  color: var(--c-ink);
+}
+
+/* The progress bar is an edit strip: cues marked where the shots change. */
+.dr-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: rgba(233, 226, 208, 0.1);
+  z-index: var(--z-xray-ui);
+}
+.dr-progress__fill {
+  position: absolute;
+  inset: 0;
+  background: var(--signal);
+  transform-origin: left center;
+}
+.dr-progress__cue {
+  position: absolute;
+  top: -3px;
+  width: var(--hair);
+  height: 8px;
+  background: rgba(233, 226, 208, 0.35);
+}
+
+.dr-sound {
+  position: absolute;
+  right: var(--trim);
+  bottom: calc(var(--trim) * 0.5 + 22px);
+  letter-spacing: var(--tr-mono-wide);
+  z-index: var(--z-xray-ui);
+}
+
+/* ==========================================================================
+   OFFER + OUTRO
+   ========================================================================== */
+.dr-offer,
+.dr-outro {
+  width: min(100%, 720px);
+  padding: 0 var(--trim);
+  display: grid;
+  gap: var(--s-2);
+  justify-items: start;
+}
+.dr-outro {
+  justify-items: center;
+  text-align: center;
+}
+.dr-offer__eyebrow {
+  letter-spacing: var(--tr-mono-wide);
+}
+.dr-offer__title,
+.dr-outro__title {
+  margin: 0;
+  color: var(--c-bone);
+  letter-spacing: var(--tr-display);
+  line-height: 1;
+}
+.dr-offer__runtime {
+  letter-spacing: var(--tr-mono-wide);
+}
+.dr-offer__note,
+.dr-outro__line {
+  max-width: 48ch;
+  line-height: 1.55;
+  margin-top: var(--s-2);
+}
+.dr-offer__actions,
+.dr-outro__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+}
+
+/* ==========================================================================
+   MOBILE — a portrait cinema, not a shrunken widescreen one
+   ========================================================================== */
+@media (max-width: 900px) {
+  .dr-frame {
+    padding: calc(var(--trim) * 3.4) var(--trim) calc(var(--trim) * 3.4);
+  }
+  .dr-statement {
+    justify-items: start;
+  }
+  .dr-statement__line {
+    font-size: clamp(1.6rem, 9vw, 3rem);
+  }
+  .dr-wordmark__plate {
+    font-size: clamp(2.4rem, 17vw, 5rem);
+  }
+  .dr-scatter__field {
+    min-height: 38vh;
+  }
+  /* Fragments drift on the short axis too, or they simply leave the screen. */
+  .dr-scatter__frag {
+    font-size: 1.1rem;
+  }
+  .dr-grid__field,
+  .dr-plate__field {
+    height: 34vh;
+  }
+  .dr-roster__list li {
+    grid-template-columns: 3ch minmax(0, 1fr);
+  }
+  .dr-roster__status {
+    grid-column: 2;
+    font-size: 0.5rem;
+  }
+  .dr-transport {
+    left: var(--trim);
+    right: var(--trim);
+    bottom: calc(var(--trim) * 0.5 + 14px);
+  }
+  .dr-time {
+    margin-left: auto;
+  }
+  .dr-sound {
+    left: var(--trim);
+    right: var(--trim);
+    bottom: calc(var(--trim) * 0.5 + 48px);
+  }
+  .dr-act {
+    top: calc(var(--trim) * 0.5 + 40px);
+  }
+}
+
+/* ==========================================================================
+   REDUCED MOTION — the film becomes a sequence of editorial tableaux.
+   Every shot still arrives, in order, on the clock; it simply arrives composed
+   rather than travelling. The structure of the film is untouched.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .dr-stages__item {
+    transition-duration: 1ms;
+  }
+}

@@ -1,0 +1,485 @@
+/* ==========================================================================
+   REALITY COMPILER — TURN THE INTERFACE INTO A WORLD
+   ========================================================================== */
+
+.rc {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  /* perspective is set inline from PERSPECTIVE so CSS and WebGL agree exactly.
+     The origin must be the dead centre of the viewport, because that is where
+     the Three camera looks from. Any other value silently shears the DOM layer
+     away from the WebGL layer as depth increases. */
+  perspective-origin: 50% 50%;
+  touch-action: none;
+}
+
+/* The shared world transform. Written imperatively each frame and mirrored by
+   the Three group, so both spaces stay identical. */
+.rc-world {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* Every ancestor between the perspective and a transformed cell must preserve
+   3D, or translateZ collapses to a flat scale. */
+.rc-world,
+.rc-doc-wrap,
+.rc-doc,
+.rc-doc__head,
+.rc-doc__stages,
+.rc-doc__band,
+.rc-doc__figure {
+  transform-style: preserve-3d;
+}
+
+.rc-doc-wrap {
+  position: absolute;
+  inset: 0;
+  /*
+   * NO `overflow: hidden` here, ever.
+   *
+   * Any overflow value other than `visible` forces `transform-style: flat` on
+   * the element — it is a grouping property. With it set, every cell's
+   * translateZ collapsed into a flat scale: the scaffolding receded correctly
+   * while the text it was supposed to be wrapped around stayed pinned to the
+   * page. Clipping belongs on `.rc`, which sits outside the 3D context.
+   */
+  --measure: 0;
+  --separate: 0;
+}
+
+/* ==========================================================================
+   THE DOCUMENT — must be a good page even if compilation never ran
+   ========================================================================== */
+.rc-doc {
+  height: 100%;
+  padding: calc(var(--trim) * 2.4) var(--trim) calc(var(--trim) * 5.4);
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: auto auto 1fr auto;
+  column-gap: clamp(10px, 1.5vw, 26px);
+  row-gap: clamp(8px, 1.4vh, 20px);
+  align-content: start;
+  margin: 0;
+}
+
+/* Cells carry their own depth; a transform is written on each one per frame. */
+[data-cell] {
+  position: relative;
+  will-change: transform;
+}
+
+/* MEASURE: the sheet declares its boxes before anything moves. */
+[data-cell]::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border: 1px dashed rgba(228, 221, 202, 0.34);
+  opacity: var(--measure, 0);
+  pointer-events: none;
+}
+[data-cell]::after {
+  content: attr(data-cell);
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  transform: translateY(-100%);
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--signal);
+  opacity: calc(var(--measure, 0) * 0.85);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.rc-doc__head {
+  grid-column: 1 / 8;
+  grid-row: 1;
+}
+.rc-doc__plate {
+  letter-spacing: var(--tr-mono-wide);
+}
+.rc-doc__title {
+  font-size: clamp(2.6rem, 8vw, 6.5rem);
+  margin-top: 0.1em;
+}
+
+.rc-doc__standfirst {
+  grid-column: 1 / 7;
+  grid-row: 2;
+  font-size: clamp(1rem, 1.15vw, 1.28rem);
+  line-height: 1.45;
+  max-width: 44ch;
+  margin: 0;
+  padding-top: var(--s-2);
+}
+
+.rc-doc__figure {
+  grid-column: 9 / 13;
+  grid-row: 1 / 3;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.rc-doc__plate-img {
+  width: 100%;
+  flex: 1;
+  min-height: 150px;
+  max-height: 30vh;
+  background: #0b0e0e;
+}
+.rc-doc__caption {
+  margin-top: 0.7em;
+  line-height: 1.5;
+}
+
+/* ---- the six stages : the list that turns out to be a corridor ---------- */
+.rc-doc__stages {
+  grid-column: 1 / 13;
+  grid-row: 3;
+  list-style: none;
+  margin: var(--s-3) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: clamp(8px, 1.2vw, 22px);
+  align-content: start;
+}
+.rc-doc__stage {
+  position: relative;
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule);
+}
+.rc-doc__stage-n {
+  letter-spacing: var(--tr-mono);
+}
+.rc-doc__stage-name {
+  font-size: clamp(0.95rem, 1.75vw, 1.6rem);
+  margin-top: 0.15em;
+}
+.rc-doc__stage-line {
+  margin-top: 0.45em;
+  max-width: 22ch;
+}
+/* A rule that grows as the planes separate — the page's own hint that these
+   six things are a sequence, not a set. */
+.rc-doc__stage-rule {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  background: var(--signal);
+  transform: scaleX(var(--separate, 0));
+  transform-origin: left center;
+  opacity: 0.75;
+}
+
+.rc-doc__band {
+  grid-column: 1 / 13;
+  grid-row: 4;
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule);
+}
+.rc-doc__caps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1) var(--s-4);
+  color: var(--figure-dim);
+}
+
+.rc-doc__colophon {
+  grid-column: 1 / 13;
+  grid-row: 5;
+  padding-top: var(--s-2);
+  line-height: 1.6;
+}
+
+/* ==========================================================================
+   WEBGL LAYER — structure only; the DOM keeps the content
+   ========================================================================== */
+.rc-canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.rc-fallback {
+  position: absolute;
+  left: var(--trim);
+  right: var(--trim);
+  top: calc(var(--trim) * 1.5);
+  z-index: var(--z-xray-ui);
+  max-width: 62ch;
+  padding: var(--s-2);
+  border-left: 2px solid var(--signal-hot);
+  background: rgba(10, 13, 13, 0.9);
+  color: var(--figure-dim);
+  line-height: 1.6;
+}
+
+/* ==========================================================================
+   THE STAGE RAIL
+   ========================================================================== */
+.rc-rail {
+  position: fixed;
+  left: var(--trim);
+  right: var(--trim);
+  bottom: calc(var(--trim) * 0.5);
+  z-index: var(--z-xray-ui);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 300px;
+  align-items: end;
+  column-gap: clamp(16px, 2.4vw, 44px);
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule);
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity var(--d-4) var(--e-glide),
+    transform var(--d-4) var(--e-glide);
+}
+.rc[data-armed='true'] .rc-rail {
+  opacity: 1;
+  transform: none;
+}
+
+/* Scrim, so the compiled structure passes under the instrument rather than
+   colliding with it — the same device X-Ray uses. */
+.rc::after {
+  content: '';
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 230px;
+  z-index: calc(var(--z-xray-ui) - 1);
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(22, 25, 26, 0) 0%,
+    rgba(22, 25, 26, 0.72) 38%,
+    rgba(22, 25, 26, 0.95) 70%,
+    rgba(22, 25, 26, 0.98) 100%
+  );
+  opacity: 0;
+  transition: opacity var(--d-4) var(--e-glide);
+}
+.rc[data-armed='true']::after {
+  opacity: 1;
+}
+
+.rc-rail__title {
+  letter-spacing: -0.01em;
+}
+.rc-rail__tag {
+  margin-top: 0.3em;
+  letter-spacing: var(--tr-mono-wide);
+}
+
+.rc-rail__list {
+  list-style: none;
+  margin: 0 0 var(--s-2);
+  padding: 0;
+  display: flex;
+  gap: clamp(2px, 0.5vw, 8px);
+}
+.rc-rail__list > li {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.rc-stop {
+  width: 100%;
+  display: grid;
+  gap: 4px;
+  padding: 4px 2px;
+  text-align: left;
+  transition: opacity var(--d-2) var(--e-snap);
+  opacity: 0.5;
+}
+.rc-stop[data-on='true'] {
+  opacity: 1;
+}
+.rc-stop__tick {
+  height: 3px;
+  background: var(--figure-dim);
+  transition: background-color var(--d-2) var(--e-snap);
+}
+.rc-stop[data-on='true'] .rc-stop__tick {
+  background: var(--figure);
+}
+.rc-stop[data-current='true'] .rc-stop__tick {
+  background: var(--signal);
+}
+.rc-stop__label {
+  color: var(--figure-dim);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rc-stop[data-current='true'] .rc-stop__label {
+  color: var(--figure);
+}
+.rc-stop:hover .rc-stop__label,
+.rc-stop:focus-visible .rc-stop__label {
+  color: var(--figure);
+}
+
+.rc-rail__readout {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-end;
+  text-align: right;
+}
+.rc-rail__now {
+  letter-spacing: var(--tr-mono-wide);
+}
+.rc-rail__note {
+  max-width: 32ch;
+}
+.rc-rail__hint {
+  letter-spacing: var(--tr-mono-wide);
+  padding-top: 2px;
+}
+.rc-rail__actions {
+  display: flex;
+  gap: var(--s-1);
+  padding-top: var(--s-1);
+}
+.rc-act {
+  padding: 5px 9px;
+  border: var(--hair) solid var(--rule);
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  color: var(--figure-dim);
+  white-space: nowrap;
+  transition:
+    background-color var(--d-1) var(--e-snap),
+    border-color var(--d-1) var(--e-snap),
+    color var(--d-1) var(--e-snap);
+}
+.rc-act:hover,
+.rc-act:focus-visible {
+  border-color: var(--figure-dim);
+  color: var(--figure);
+}
+.rc-act--signal {
+  border-color: var(--signal);
+  color: var(--signal);
+}
+.rc-act--signal:hover,
+.rc-act--signal:focus-visible {
+  background: var(--signal);
+  border-color: var(--signal);
+  color: var(--c-ink);
+}
+
+/* ==========================================================================
+   RESPONSIVE — a different compilation model, not a smaller camera
+   ========================================================================== */
+@media (max-width: 900px) {
+  .rc {
+    perspective-origin: 50% 40%;
+  }
+  .rc-doc {
+    padding: calc(var(--trim) * 2.6) var(--trim) 260px;
+    grid-template-columns: 1fr;
+    row-gap: var(--s-3);
+  }
+  .rc-doc__head,
+  .rc-doc__standfirst,
+  .rc-doc__figure,
+  .rc-doc__stages,
+  .rc-doc__band,
+  .rc-doc__colophon {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  /* No reordering: DOM order already puts the figure after the standfirst.
+     Sending it last dropped it underneath the fixed rail. */
+  .rc-doc__plate-img {
+    min-height: 120px;
+    max-height: 18vh;
+  }
+  /* Two columns of three: the corridor still reads, and the type stays large
+     enough to be worth moving into depth. */
+  .rc-doc__stages {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .rc-doc__colophon {
+    display: none;
+  }
+  [data-cell]::after {
+    display: none;
+  }
+
+  .rc-rail {
+    grid-template-columns: 1fr;
+    row-gap: var(--s-2);
+    bottom: calc(var(--trim) * 0.4);
+  }
+  .rc-rail__head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-2);
+  }
+  .rc-rail__title {
+    font-size: 1.15rem;
+  }
+  .rc-rail__tag {
+    display: none;
+  }
+  .rc-rail__readout {
+    align-items: flex-start;
+    text-align: left;
+  }
+  .rc-rail__note {
+    max-width: none;
+  }
+  .rc-stop__label {
+    font-size: 0.5rem;
+  }
+  .rc-act {
+    padding: 8px 10px;
+  }
+}
+
+/* ==========================================================================
+   REDUCED MOTION — discrete states, full concept
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .rc-world {
+    transition: none;
+  }
+  .rc-rail,
+  .rc::after {
+    transition-duration: 120ms;
+  }
+}
+
+/* ==========================================================================
+   TOUCH TARGET FLOOR — closure audit
+   Measured at 390x844: these controls came in under 28px on one axis, which is
+   below a usable target. Padding only; no layout or visual redesign.
+   ========================================================================== */
+@media (max-width: 900px), (pointer: coarse) {
+  .rc-stop {
+    min-height: 32px;
+    padding-top: 7px;
+    padding-bottom: 7px;
+  }
+}

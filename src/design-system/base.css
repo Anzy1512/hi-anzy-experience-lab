@@ -1,0 +1,136 @@
+/* EXPERIENCE LAB — reset + material ground + shared primitives */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: auto;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  background: var(--ground);
+  color: var(--figure);
+  font-family: var(--f-body);
+  font-size: var(--t-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+
+  /* the print screen. this is the deck's dot texture, not decorative noise. */
+  background-image: radial-gradient(circle at 1px 1px, var(--screen-dot) 1px, transparent 0);
+  background-size: 4px 4px;
+
+  transition:
+    background-color var(--d-5) var(--e-weight),
+    color var(--d-4) var(--e-weight);
+}
+
+/* While a mode owns the viewport the sheet must not scroll behind it. */
+body[data-scroll-locked='true'] {
+  overflow: hidden;
+  touch-action: none;
+}
+
+/* Custom pointer is active: hide the native one only on fine pointers. */
+@media (pointer: fine) {
+  body[data-pointer='instrument'],
+  body[data-pointer='instrument'] * {
+    cursor: none;
+  }
+}
+
+img,
+svg,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+::selection {
+  background: var(--signal);
+  color: var(--c-ink);
+}
+
+/* ---- focus: visible, square, unmistakably part of the instrument -------- */
+:focus {
+  outline: none;
+}
+:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 3px;
+}
+
+/* ---- utilities ---------------------------------------------------------- */
+.u-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip link — first tab stop, becomes visible on focus. */
+.u-skip {
+  position: fixed;
+  top: var(--s-2);
+  left: var(--s-2);
+  z-index: var(--z-chrome);
+  padding: var(--s-2) var(--s-3);
+  background: var(--figure);
+  color: var(--ground);
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-s);
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  text-decoration: none;
+  transform: translateY(-200%);
+}
+.u-skip:focus-visible {
+  transform: translateY(0);
+}
+
+.u-stack {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ======================================================================== */
+/* REDUCED MOTION                                                            */
+/*                                                                           */
+/* We remove transforms and shorten time. We do NOT remove the design:       */
+/* materials still change, layers still reveal, hierarchy is untouched.      */
+/* ======================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 120ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  body {
+    transition-duration: 200ms !important;
+  }
+}

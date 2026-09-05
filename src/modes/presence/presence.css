@@ -1,0 +1,163 @@
+/* ==========================================================================
+   PRESENCE — YOU ARE THE CONTROLLER
+   Human / responsive. The field reads the visitor rather than the mouse.
+   ========================================================================== */
+
+.pr {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #0d1110;
+  touch-action: none;
+}
+
+.pr-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.pr-fallback {
+  position: absolute;
+  left: var(--trim);
+  right: var(--trim);
+  top: calc(var(--trim) * 1.7);
+  max-width: 62ch;
+  padding: var(--s-2);
+  border-left: 2px solid var(--signal-hot);
+  color: var(--figure-dim);
+  line-height: 1.6;
+}
+
+.pr-band {
+  position: fixed;
+  left: var(--trim);
+  right: var(--trim);
+  bottom: calc(var(--trim) * 0.5);
+  z-index: var(--z-xray-ui);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: end;
+  column-gap: clamp(16px, 2.4vw, 44px);
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule);
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity var(--d-4) var(--e-glide),
+    transform var(--d-4) var(--e-glide);
+}
+.pr[data-armed='true'] .pr-band { opacity: 1; transform: none; }
+
+.pr-title { letter-spacing: -0.01em; }
+.pr-tag { margin-top: 0.3em; letter-spacing: var(--tr-mono-wide); }
+
+.pr-read { display: grid; gap: 5px; }
+.pr-source { letter-spacing: var(--tr-mono-wide); }
+
+/* The meter is the instrument reading the room. */
+.pr-meter {
+  height: 6px;
+  border: var(--hair) solid var(--rule);
+  overflow: hidden;
+}
+.pr-meter__fill {
+  display: block;
+  height: 100%;
+  background: var(--signal);
+  transform-origin: left center;
+  transition: transform 140ms linear;
+}
+.pr-energy { letter-spacing: var(--tr-mono-wide); }
+
+.pr-controls { display: flex; gap: var(--s-1); }
+
+.pr-btn {
+  padding: 6px 11px;
+  border: var(--hair) solid var(--rule);
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  color: var(--figure-dim);
+  white-space: nowrap;
+  transition:
+    background-color var(--d-1) var(--e-snap),
+    border-color var(--d-1) var(--e-snap),
+    color var(--d-1) var(--e-snap);
+}
+.pr-btn:hover, .pr-btn:focus-visible { border-color: var(--figure); color: var(--figure); }
+.pr-btn--signal { border-color: var(--signal); color: var(--signal); }
+.pr-btn--signal:hover, .pr-btn--signal:focus-visible {
+  background: var(--signal); border-color: var(--signal); color: var(--c-ink);
+}
+
+.pr-hint {
+  position: fixed;
+  left: var(--trim);
+  top: calc(var(--trim) * 1.7);
+  letter-spacing: var(--tr-mono-wide);
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   CONSENT — shown only when asked for, never on entry
+   ========================================================================== */
+.pr-consent {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-chrome);
+  display: grid;
+  place-items: center;
+  padding: var(--trim);
+  background: rgba(8, 11, 11, 0.82);
+}
+.pr-consent__sheet {
+  max-width: 56ch;
+  padding: var(--s-4);
+  background: var(--c-bone);
+  color: var(--c-ink);
+  border-left: 3px solid var(--signal);
+}
+.pr-consent__title { margin-top: var(--s-1); font-size: clamp(1.3rem, 2.2vw, 1.8rem); }
+.pr-consent__list {
+  list-style: none;
+  margin: var(--s-3) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-2);
+}
+.pr-consent__list li { position: relative; padding-left: 1.1em; }
+.pr-consent__list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 6px;
+  height: 6px;
+  background: var(--c-signal);
+}
+.pr-consent__actions { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-4); }
+.pr-consent__sheet .pr-btn { border-color: rgba(25, 29, 28, 0.3); color: #5d605a; }
+.pr-consent__sheet .pr-btn:hover { border-color: var(--c-ink); color: var(--c-ink); }
+.pr-consent__sheet .pr-btn--signal { border-color: var(--c-signal); color: var(--c-ink); }
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+@media (max-width: 900px) {
+  .pr-band {
+    grid-template-columns: 1fr;
+    row-gap: var(--s-2);
+    bottom: calc(var(--trim) * 0.4);
+  }
+  .pr-band header { display: flex; align-items: baseline; gap: var(--s-2); }
+  .pr-title { font-size: 1.15rem; }
+  .pr-tag { display: none; }
+  .pr-btn { padding: 9px 12px; }
+  .pr-hint { right: var(--trim); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pr-band { transition-duration: 120ms; }
+  .pr-meter__fill { transition-duration: 1ms; }
+}

@@ -1,0 +1,145 @@
+/*
+ * EXPERIENCE LAB — DESIGN TOKENS
+ *
+ * The product has three MATERIAL STATES, set as [data-material] on <html>:
+ *
+ *   paper      the launcher. warm bone stock, ink type. almost print.
+ *   ink        the lab index. the sheet turned over and backlit.
+ *   blueprint  x-ray. the sheet's construction, bone lines on ink. never cyan.
+ *
+ * Components consume the SEMANTIC tokens (--ground / --figure / --rule ...),
+ * never the raw palette. That is what makes a material change one line of code
+ * instead of a rewrite.
+ */
+
+:root {
+  /* ---- raw palette : inherited from the Hi Anzy printed deck ------------ */
+  --c-bone: #e9e2d0;
+  --c-bone-deep: #d8cfb7;
+  --c-bone-dim: #b7ae97;
+
+  --c-ink: #191d1c;
+  --c-ink-raised: #232927;
+  --c-void: #0e1111;
+
+  --c-signal: #f2911b; /* deck orange — SIGNAL ONLY */
+  --c-signal-hot: #ee4322; /* deck red-orange — second plate */
+
+  --c-grey: #8a8578;
+
+  /* ---- type families ---------------------------------------------------- */
+  --f-display: 'Rajdhani', 'Oswald', 'Arial Narrow', system-ui, sans-serif;
+  --f-body: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* ---- type scale : fluid, but with intent at both ends ----------------- */
+  --t-colossal: clamp(4.5rem, 19vw, 19rem);
+  --t-display-xl: clamp(3rem, 11vw, 10rem);
+  --t-display-l: clamp(2.25rem, 6.5vw, 5.5rem);
+  --t-display-m: clamp(1.5rem, 3.4vw, 2.75rem);
+  --t-display-s: clamp(1.125rem, 2vw, 1.5rem);
+
+  --t-body: clamp(0.95rem, 0.9rem + 0.25vw, 1.125rem);
+  --t-body-s: 0.875rem;
+
+  --t-mono: 0.75rem;
+  --t-mono-s: 0.6875rem;
+  --t-mono-xs: 0.625rem;
+
+  /* tracking: display tightens as it grows, mono opens up */
+  --tr-colossal: -0.045em;
+  --tr-display: -0.02em;
+  --tr-mono: 0.14em;
+  --tr-mono-wide: 0.24em;
+
+  /* ---- space : print-derived. the page has a trim margin. -------------- */
+  --s-0: 0.25rem;
+  --s-1: 0.5rem;
+  --s-2: 0.75rem;
+  --s-3: 1rem;
+  --s-4: 1.5rem;
+  --s-5: 2rem;
+  --s-6: 3rem;
+  --s-7: 4.5rem;
+  --s-8: 7rem;
+
+  --trim: clamp(1rem, 3.2vw, 3.25rem); /* sheet margin */
+  --columns: 12;
+
+  /* ---- rules : hairlines must stay hairlines on every DPR --------------- */
+  --hair: 1px;
+  --rule-w: 1px;
+
+  /* ---- motion : a small, named easing vocabulary ------------------------ */
+  --e-snap: cubic-bezier(0.2, 0.9, 0.1, 1);
+  --e-glide: cubic-bezier(0.25, 1, 0.3, 1);
+  --e-weight: cubic-bezier(0.62, 0.02, 0.2, 1);
+  --e-mechanical: cubic-bezier(0.9, 0, 0.1, 1);
+  --e-cinematic: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --d-1: 120ms;
+  --d-2: 240ms;
+  --d-3: 420ms;
+  --d-4: 700ms;
+  --d-5: 1200ms;
+  --d-6: 2000ms;
+
+  /* ---- layers ----------------------------------------------------------- */
+  --z-scene: 0;
+  --z-content: 10;
+  --z-marks: 20;
+  --z-xray-field: 60;
+  --z-xray-callout: 66;
+  --z-xray-ui: 70;
+  --z-chrome: 80;
+  --z-pointer: 100;
+}
+
+/* ======================================================================== */
+/* MATERIAL: PAPER — the launcher                                            */
+/* ======================================================================== */
+:root,
+[data-material='paper'] {
+  --ground: var(--c-bone);
+  --ground-deep: var(--c-bone-deep);
+  --figure: var(--c-ink);
+  --figure-dim: #5d605a;
+  --figure-faint: rgba(25, 29, 28, 0.34);
+  --rule: rgba(25, 29, 28, 0.22);
+  --rule-faint: rgba(25, 29, 28, 0.1);
+  --signal: var(--c-signal);
+  --signal-hot: var(--c-signal-hot);
+  --screen-dot: rgba(25, 29, 28, 0.09);
+}
+
+/* ======================================================================== */
+/* MATERIAL: INK — the lab index                                             */
+/* ======================================================================== */
+[data-material='ink'] {
+  --ground: var(--c-ink);
+  --ground-deep: var(--c-void);
+  --figure: var(--c-bone);
+  --figure-dim: #8f8b7e;
+  --figure-faint: rgba(233, 226, 208, 0.3);
+  --rule: rgba(233, 226, 208, 0.2);
+  --rule-faint: rgba(233, 226, 208, 0.08);
+  --signal: var(--c-signal);
+  --signal-hot: var(--c-signal-hot);
+  --screen-dot: rgba(233, 226, 208, 0.05);
+}
+
+/* ======================================================================== */
+/* MATERIAL: BLUEPRINT — x-ray. bone lines on ink. deliberately NOT cyan.    */
+/* ======================================================================== */
+[data-material='blueprint'] {
+  --ground: #101413;
+  --ground-deep: #0a0d0d;
+  --figure: #e4ddca;
+  --figure-dim: #7d8079;
+  --figure-faint: rgba(228, 221, 202, 0.26);
+  --rule: rgba(228, 221, 202, 0.17);
+  --rule-faint: rgba(228, 221, 202, 0.07);
+  --signal: var(--c-signal);
+  --signal-hot: var(--c-signal-hot);
+  --screen-dot: rgba(228, 221, 202, 0.04);
+}

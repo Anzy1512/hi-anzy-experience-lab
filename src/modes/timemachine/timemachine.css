@@ -1,0 +1,642 @@
+/* ==========================================================================
+   TIME MACHINE — THE SAME INFORMATION THROUGH DIFFERENT ERAS
+
+   Historical interface logic. Each era below reimplements navigation,
+   interaction and layout — the paint is downstream of that, not the point.
+   Everything inside .tm-screen is that era's own world and deliberately does
+   not inherit the Lab's tokens.
+   ========================================================================== */
+
+.tm {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--ground-deep);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  padding: calc(var(--trim) * 0.5 + 44px) var(--trim) calc(var(--trim) * 0.5);
+  gap: var(--s-2);
+}
+
+.tm-head__title {
+  margin: 0;
+  letter-spacing: var(--tr-mono-wide);
+  font-weight: 400;
+}
+
+/* The screen is a monitor. Each era is shown inside it, at its own scale. */
+.tm-screen {
+  position: relative;
+  overflow: auto;
+  border: var(--hair) solid var(--rule);
+  background: #fff;
+  color: #000;
+  opacity: 0;
+  transition: opacity var(--d-2) var(--e-snap);
+}
+.tm[data-armed='true'] .tm-screen {
+  opacity: 1;
+}
+
+/* ==========================================================================
+   SCRUBBER
+   ========================================================================== */
+.tm-scrub {
+  display: flex;
+  gap: 2px;
+  align-items: stretch;
+}
+.tm-scrub__stop {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  padding: 5px 0;
+  color: var(--figure-faint);
+  letter-spacing: var(--tr-mono-wide);
+  transition: color var(--d-1) var(--e-snap);
+}
+.tm-scrub__stop:hover,
+.tm-scrub__stop:focus-visible {
+  color: var(--figure-dim);
+}
+.tm-scrub__stop[data-on='true'] {
+  color: var(--signal);
+}
+.tm-scrub__tick {
+  width: 100%;
+  height: 2px;
+  background: var(--rule);
+}
+.tm-scrub__stop[data-on='true'] .tm-scrub__tick {
+  background: var(--signal);
+}
+
+/* ==========================================================================
+   NOTES — what actually changed
+   ========================================================================== */
+.tm-notes {
+  display: grid;
+  gap: var(--s-1);
+}
+.tm-notes__list {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2px var(--s-3);
+}
+.tm-notes__list > div {
+  display: grid;
+  gap: 1px;
+}
+.tm-notes dt {
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--figure-faint);
+}
+.tm-notes dd {
+  margin: 0;
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: var(--figure-dim);
+}
+.tm-notes__note {
+  margin: 0;
+  padding-top: var(--s-1);
+  border-top: var(--hair) solid var(--rule-faint);
+  line-height: 1.5;
+  max-width: 92ch;
+}
+.tm-notes__flag {
+  color: var(--signal-hot);
+  letter-spacing: var(--tr-mono-wide);
+}
+
+/* ==========================================================================
+   1995 — flow, system serif, a horizontal rule as the only ornament
+   ========================================================================== */
+.e95 {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 16px;
+  padding: 12px 16px;
+  background: #fff;
+  color: #000;
+  min-height: 100%;
+}
+.e95 h1 {
+  font-size: 2em;
+  margin: 0 0 6px;
+  font-weight: 700;
+}
+.e95 h2 {
+  font-size: 1.5em;
+  margin: 10px 0 6px;
+}
+.e95 hr {
+  border: 0;
+  border-top: 2px solid #808080;
+  margin: 8px 0;
+}
+.e95 p {
+  margin: 0 0 10px;
+  max-width: none;
+  line-height: 1.3;
+}
+.e95 ul {
+  margin: 0 0 10px 24px;
+  padding: 0;
+}
+.e95 li {
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+.e95 a {
+  color: #0000ee;
+  text-decoration: underline;
+}
+.e95 a:visited {
+  color: #551a8b;
+}
+.e95-small {
+  font-size: 0.8em;
+  color: #444;
+}
+
+/* ==========================================================================
+   2000 — fixed 760, a menu beside a pane, Verdana at 11px
+   ========================================================================== */
+.e00 {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 11px;
+  background: #cfcfcf;
+  min-height: 100%;
+  padding: 10px 0;
+  display: flex;
+  justify-content: center;
+}
+.e00-shell {
+  width: 760px;
+  max-width: 100%;
+  background: #fff;
+  border: 1px solid #808080;
+}
+.e00-banner {
+  background: #003366;
+  color: #fff;
+  padding: 12px 10px;
+  font-size: 18px;
+  letter-spacing: 2px;
+  font-weight: 700;
+}
+.e00-body {
+  display: flex;
+  align-items: stretch;
+}
+.e00-menu {
+  width: 150px;
+  flex: 0 0 150px;
+  background: #e8e8e8;
+  border-right: 1px solid #b0b0b0;
+  display: flex;
+  flex-direction: column;
+}
+.e00-menu button {
+  padding: 7px 9px;
+  text-align: left;
+  font-family: inherit;
+  font-size: 11px;
+  color: #003366;
+  border-bottom: 1px solid #d4d4d4;
+}
+/* The rollover: this era's whole contribution to interaction. */
+.e00-menu button:hover {
+  background: #003366;
+  color: #fff;
+}
+.e00-menu button[data-on='true'] {
+  background: #fff;
+  font-weight: 700;
+}
+.e00-pane {
+  padding: 12px 14px;
+  min-height: 260px;
+}
+.e00-pane h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: #003366;
+}
+.e00-pane p {
+  margin: 0 0 8px;
+  line-height: 1.5;
+}
+.e00-foot {
+  border-top: 1px solid #b0b0b0;
+  padding: 6px 10px;
+  color: #666;
+  font-size: 10px;
+}
+
+/* ==========================================================================
+   2007 — 960 grid, gradients, rounded panels, tabs and a modal
+   ========================================================================== */
+.e07 {
+  font-family: Helvetica, Arial, sans-serif;
+  background: linear-gradient(#eef2f5, #ced9e2);
+  min-height: 100%;
+  padding: 16px;
+  position: relative;
+}
+.e07-shell {
+  max-width: 960px;
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid #b9c6d2;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
+  overflow: hidden;
+}
+.e07-head {
+  background: linear-gradient(#5b8db8, #3d6f9a);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.e07-logo {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+.e07-tabs {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+.e07-tabs button {
+  padding: 6px 14px;
+  border-radius: 5px 5px 0 0;
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font-size: 12px;
+}
+.e07-tabs button[data-on='true'] {
+  background: #fff;
+  color: #3d6f9a;
+  font-weight: 700;
+}
+.e07-panel {
+  padding: 18px 20px;
+  min-height: 220px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-content: flex-start;
+}
+.e07-panel h2 {
+  width: 100%;
+  margin: 0 0 8px;
+  font-size: 20px;
+  color: #24455f;
+}
+.e07-panel p {
+  width: 100%;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #445;
+}
+.e07-item {
+  padding: 8px 14px;
+  border: 1px solid #b9c6d2;
+  border-radius: 14px;
+  background: linear-gradient(#fff, #eaf0f5);
+  font-size: 12px;
+  color: #24455f;
+}
+.e07-item:hover {
+  background: linear-gradient(#fff, #d7e4ee);
+}
+.e07-modal {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: grid;
+  place-items: center;
+}
+.e07-modal__box {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  max-width: 420px;
+  font-size: 13px;
+  line-height: 1.6;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+.e07-modal__box button {
+  margin-top: 12px;
+  padding: 5px 12px;
+  border: 1px solid #b9c6d2;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+/* ==========================================================================
+   2015 — flat, responsive, scroll as navigation
+   ========================================================================== */
+.e15 {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background: #fafafa;
+  min-height: 100%;
+  color: #222;
+}
+.e15-bar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  font-weight: 300;
+  letter-spacing: 2px;
+  z-index: 2;
+}
+.e15-bar button {
+  font-size: 20px;
+  line-height: 1;
+  padding: 4px 8px;
+}
+.e15-menu {
+  display: grid;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+}
+.e15-menu span {
+  padding: 12px 18px;
+  border-top: 1px solid #f2f2f2;
+  font-size: 14px;
+  font-weight: 300;
+}
+.e15-hero {
+  padding: 60px 18px;
+  text-align: center;
+}
+.e15-hero h2 {
+  margin: 0 0 14px;
+  font-size: clamp(26px, 5vw, 46px);
+  font-weight: 200;
+  letter-spacing: -0.5px;
+}
+.e15-hero p {
+  margin: 0 auto;
+  max-width: 44ch;
+  font-size: 15px;
+  font-weight: 300;
+  line-height: 1.7;
+  color: #666;
+}
+.e15-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  padding: 0 18px 24px;
+}
+.e15-cards article {
+  background: #fff;
+  border-radius: 3px;
+  padding: 20px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+.e15-cards h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  letter-spacing: 2px;
+  font-weight: 500;
+}
+.e15-cards p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.6;
+  color: #666;
+}
+
+/* ==========================================================================
+   2020 — sections with a tracking index, editorial asymmetry
+   ========================================================================== */
+.e20 {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  background: #111;
+  color: #eee;
+  min-height: 100%;
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+}
+.e20-index {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #2a2a2a;
+  padding: 20px 0;
+}
+.e20-index button {
+  text-align: left;
+  padding: 8px 16px;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #666;
+}
+.e20-index button[data-on='true'] {
+  color: #fff;
+  border-left: 2px solid #f2911b;
+}
+.e20-body {
+  padding: 44px clamp(20px, 6vw, 80px);
+}
+.e20-body h2 {
+  margin: 0 0 20px;
+  font-size: clamp(24px, 4vw, 44px);
+  font-weight: 300;
+  line-height: 1.1;
+  max-width: 18ch;
+}
+.e20-body p {
+  margin: 0 0 12px;
+  max-width: 56ch;
+  font-size: 14px;
+  line-height: 1.75;
+  color: #9a9a9a;
+}
+
+/* ==========================================================================
+   2026 — the Lab itself, using its own tokens
+   ========================================================================== */
+.e26 {
+  background: var(--c-ink);
+  color: var(--c-bone);
+  min-height: 100%;
+  padding: clamp(18px, 3vw, 36px);
+}
+.e26 h2 {
+  margin: 0.2em 0 0.8em;
+  letter-spacing: var(--tr-display);
+}
+.e26-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.e26-list li {
+  display: grid;
+  grid-template-columns: 3ch minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: var(--s-3);
+  padding: 4px 0;
+  border-top: var(--hair) solid rgba(233, 226, 208, 0.14);
+  opacity: 0.45;
+}
+.e26-list li[data-on='true'] {
+  opacity: 1;
+}
+.e26-list li[data-on='true'] span:last-child {
+  color: var(--signal);
+}
+.e26-list span:last-child {
+  letter-spacing: var(--tr-mono-wide);
+  color: rgba(233, 226, 208, 0.4);
+}
+
+/* ==========================================================================
+   2035 — no navigation. One line of intent; the view is the answer.
+   ========================================================================== */
+.e35 {
+  background: #f4f2ec;
+  color: #14100c;
+  min-height: 100%;
+  padding: clamp(24px, 5vw, 64px);
+  display: grid;
+  align-content: start;
+  gap: clamp(20px, 4vw, 48px);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+}
+.e35-intent {
+  display: grid;
+  gap: 8px;
+  max-width: 44ch;
+}
+.e35-intent label {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: #8a8378;
+}
+.e35-intent input {
+  border: 0;
+  border-bottom: 1px solid #14100c;
+  background: none;
+  padding: 6px 0;
+  font-family: inherit;
+  font-size: clamp(18px, 3vw, 28px);
+  color: #14100c;
+}
+.e35-intent input:focus {
+  outline: none;
+  border-bottom-color: #d1600f;
+}
+.e35-out ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+  max-width: 60ch;
+}
+.e35-out li {
+  display: grid;
+  gap: 2px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(20, 16, 12, 0.15);
+}
+.e35-out strong {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 3px;
+}
+.e35-out span {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #4a463f;
+}
+.e35-idle {
+  margin: 0;
+  max-width: 40ch;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #8a8378;
+}
+
+/* ==========================================================================
+   MOBILE
+   ========================================================================== */
+@media (max-width: 900px) {
+  .tm-notes__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .tm-scrub__stop span:last-child {
+    font-size: 0.5rem;
+  }
+  .e20 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .e20-index {
+    flex-direction: row;
+    overflow-x: auto;
+    border-right: 0;
+    border-bottom: 1px solid #2a2a2a;
+    padding: 0;
+  }
+  .e20-index button[data-on='true'] {
+    border-left: 0;
+    border-bottom: 2px solid #f2911b;
+  }
+  .e00-body {
+    flex-direction: column;
+  }
+  .e00-menu {
+    width: auto;
+    flex: 0 0 auto;
+    flex-direction: row;
+    border-right: 0;
+    border-bottom: 1px solid #b0b0b0;
+  }
+  .e07-head {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .e07-tabs {
+    margin-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tm-screen {
+    transition-duration: 1ms;
+  }
+}
+
+/* ==========================================================================
+   TOUCH TARGET FLOOR — closure audit
+   Measured at 390x844: these controls came in under 28px on one axis, which is
+   below a usable target. Padding only; no layout or visual redesign.
+   ========================================================================== */
+@media (max-width: 900px), (pointer: coarse) {
+  .tm-scrub__stop {
+    min-height: 34px;
+    padding: 8px 0;
+  }
+}

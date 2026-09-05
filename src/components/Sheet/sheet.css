@@ -1,0 +1,118 @@
+/* Sheet furniture: trim marks + the top notation band. Pure decoration in the
+   accessibility sense (aria-hidden), structural in the design sense. */
+
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-marks);
+  pointer-events: none;
+}
+
+/* ---- trim marks : two hairlines meeting, never a closed corner ---------- */
+.sheet__mark {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+}
+.sheet__mark::before,
+.sheet__mark::after {
+  content: '';
+  position: absolute;
+  background: var(--figure);
+  opacity: 0.5;
+  transition: background-color var(--d-5) var(--e-weight);
+}
+.sheet__mark::before {
+  width: 100%;
+  height: var(--hair);
+}
+.sheet__mark::after {
+  width: var(--hair);
+  height: 100%;
+}
+
+.sheet__mark--tl {
+  top: calc(var(--trim) * 0.5);
+  left: calc(var(--trim) * 0.5);
+}
+.sheet__mark--tl::before {
+  top: 0;
+  left: 0;
+}
+.sheet__mark--tl::after {
+  top: 0;
+  left: 0;
+}
+
+.sheet__mark--tr {
+  top: calc(var(--trim) * 0.5);
+  right: calc(var(--trim) * 0.5);
+}
+.sheet__mark--tr::before {
+  top: 0;
+  right: 0;
+}
+.sheet__mark--tr::after {
+  top: 0;
+  right: 0;
+}
+
+.sheet__mark--bl {
+  bottom: calc(var(--trim) * 0.5);
+  left: calc(var(--trim) * 0.5);
+}
+.sheet__mark--bl::before {
+  bottom: 0;
+  left: 0;
+}
+.sheet__mark--bl::after {
+  bottom: 0;
+  left: 0;
+}
+
+.sheet__mark--br {
+  bottom: calc(var(--trim) * 0.5);
+  right: calc(var(--trim) * 0.5);
+}
+.sheet__mark--br::before {
+  bottom: 0;
+  right: 0;
+}
+.sheet__mark--br::after {
+  bottom: 0;
+  right: 0;
+}
+
+/* ---- notation band ------------------------------------------------------ */
+.sheet__band {
+  position: absolute;
+  left: var(--trim);
+  right: var(--trim);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+.sheet__band--top {
+  top: calc(var(--trim) * 0.5 - 0.35em);
+}
+
+.sheet__id {
+  color: var(--figure);
+  opacity: 0.85;
+}
+
+.sheet__readout {
+  text-align: right;
+  white-space: nowrap;
+}
+
+@media (max-width: 620px) {
+  .sheet__mark {
+    width: 9px;
+    height: 9px;
+  }
+  .sheet__readout {
+    display: none;
+  }
+}

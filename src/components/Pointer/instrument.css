@@ -1,0 +1,151 @@
+/* The registration instrument.
+   Position is driven by --ptr-x / --ptr-y, written once per frame by the shared
+   RAF loop. This element never re-renders in React. */
+
+.inst {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: var(--z-pointer);
+  pointer-events: none;
+  transform: translate3d(var(--ptr-x, -100px), var(--ptr-y, -100px), 0);
+  opacity: 0;
+  transition: opacity var(--d-2) var(--e-snap);
+  will-change: transform;
+}
+
+/* Only exists once the user has actually moved a fine pointer. */
+[data-ptr-present='true'] .inst {
+  opacity: 1;
+}
+
+.inst__h,
+.inst__v {
+  position: absolute;
+  background: var(--figure);
+  opacity: 0.55;
+  transition:
+    width var(--d-3) var(--e-snap),
+    height var(--d-3) var(--e-snap),
+    background-color var(--d-2) var(--e-snap),
+    opacity var(--d-2) var(--e-snap);
+}
+
+.inst__h {
+  width: 21px;
+  height: var(--hair);
+  transform: translate(-50%, -50%);
+}
+.inst__v {
+  width: var(--hair);
+  height: 21px;
+  transform: translate(-50%, -50%);
+}
+
+/* The bracket: a square that opens only when there is something to acquire. */
+.inst__box {
+  position: absolute;
+  width: 0;
+  height: 0;
+  transform: translate(-50%, -50%);
+  border: var(--hair) solid var(--signal);
+  opacity: 0;
+  transition:
+    width var(--d-2) var(--e-snap),
+    height var(--d-2) var(--e-snap),
+    opacity var(--d-2) var(--e-snap);
+}
+
+.inst__label {
+  position: absolute;
+  left: 16px;
+  top: 9px;
+  white-space: nowrap;
+  color: var(--signal);
+  opacity: 0;
+  transition: opacity var(--d-2) var(--e-snap);
+}
+.inst__label::after {
+  content: attr(data-text);
+}
+
+/* ---- intent states, set as [data-ptr] on <html> ------------------------- */
+
+[data-ptr='discover'] .inst__h {
+  width: 34px;
+}
+[data-ptr='discover'] .inst__v {
+  height: 34px;
+}
+[data-ptr='discover'] .inst__h,
+[data-ptr='discover'] .inst__v {
+  opacity: 0.85;
+}
+
+[data-ptr='enter'] .inst__box {
+  width: 30px;
+  height: 30px;
+  opacity: 1;
+}
+[data-ptr='enter'] .inst__h,
+[data-ptr='enter'] .inst__v {
+  background: var(--signal);
+  opacity: 1;
+}
+[data-ptr='enter'] .inst__label {
+  opacity: 1;
+}
+[data-ptr='enter'] .inst__label::after {
+  content: 'ENTER';
+}
+
+/* SCAN: the instrument stops being a cursor and becomes a measuring cross that
+   spans the sheet. This is the moment X-Ray takes over the pointer. */
+[data-ptr='scan'] .inst__h {
+  width: 100vw;
+  opacity: 0.28;
+}
+[data-ptr='scan'] .inst__v {
+  height: 100vh;
+  opacity: 0.28;
+}
+[data-ptr='scan'] .inst__h,
+[data-ptr='scan'] .inst__v {
+  background: var(--signal);
+}
+[data-ptr='scan'] .inst__box {
+  width: 13px;
+  height: 13px;
+  opacity: 1;
+}
+
+[data-ptr='exit'] .inst__h,
+[data-ptr='exit'] .inst__v {
+  background: var(--signal-hot);
+  opacity: 1;
+}
+[data-ptr='exit'] .inst__label {
+  opacity: 1;
+  color: var(--signal-hot);
+}
+[data-ptr='exit'] .inst__label::after {
+  content: 'EXIT';
+}
+
+[data-ptr-down='true'] .inst__box {
+  transform: translate(-50%, -50%) scale(0.72);
+}
+
+/* Reduced motion: the instrument still exists and still reports state, it just
+   stops easing between sizes. The information is never removed. */
+.inst[data-reduced='true'] .inst__h,
+.inst[data-reduced='true'] .inst__v,
+.inst[data-reduced='true'] .inst__box {
+  transition-duration: 1ms;
+}
+
+@media (pointer: coarse) {
+  .inst {
+    display: none;
+  }
+}
