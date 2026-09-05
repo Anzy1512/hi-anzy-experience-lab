@@ -389,3 +389,41 @@
     gap: var(--s-1);
   }
 }
+
+/* ==========================================================================
+   THE CROSS-REFERENCE LATTICE
+
+   Placed as the section's own figure, not as a background for the page. It
+   occupies the column the reason text does not use, so the list keeps its
+   full measure and the drawing keeps its own space — the same relationship
+   the specimen plate has with its caption in X-Ray.
+
+   No border, no panel, no glow. It is line work on the sheet's own ground.
+   ========================================================================== */
+.index__lattice {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: clamp(180px, 22vw, 300px);
+  height: clamp(180px, 22vw, 300px);
+  pointer-events: none;
+  /* Behind the type, always. The list is the content; this is its figure. */
+  z-index: 0;
+}
+.index__graph {
+  position: relative;
+}
+.index__graph-label,
+.index__graph-list {
+  position: relative;
+  z-index: 1;
+}
+
+/* Below the two-column breakpoint the reason text takes the full measure and
+   there is no column for a figure to sit in. It is removed rather than shrunk:
+   a 120px lattice communicates nothing a 12-row list has not already said. */
+@media (max-width: 900px) {
+  .index__lattice {
+    display: none;
+  }
+}

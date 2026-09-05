@@ -1,4 +1,4 @@
-import { SERVICES } from '../../content/canonical';
+import { SERVICES, SYSTEM_LOOP } from '../../content/canonical';
 import { CLUSTERS, SIM_COPY } from '../../content/simulator';
 import { setPointerIntent } from '../../core/pointer';
 import type { SystemReading } from './model';
@@ -81,6 +81,42 @@ export function SystemMap({ reading, onDistrict }: Props) {
             </li>
           ))}
         </ul>
+      </div>
+
+      {/* ---- the loop -------------------------------------------------------
+           `components/SystemDiagnostic.js` on the commercial site draws five
+           parts of a business wired in a loop with one link that gives out, and
+           states the point in a sentence this mode has been making since Phase
+           3: nothing is broken on its own, the connection between two working
+           things is what failed. The nodes and the failing hop are the site's,
+           not the Lab's — SALES → OPS is where the source puts it.
+
+           It sits above the reading's own dependencies because it is the frame
+           they are read against, not a second opinion about this visitor. */}
+      <div className="sim-map__block">
+        <p className="t-mono t-mono-xs t-dim sim-map__label">THE LOOP</p>
+        <ul className="sim-loop">
+          {SYSTEM_LOOP.links.map(([from, to], i) => (
+            <li
+              className="t-mono t-mono-xs"
+              key={`${from}-${to}`}
+              data-failing={i === SYSTEM_LOOP.failingLink ? 'true' : 'false'}
+            >
+              <span>{from}</span>
+              <span className="sim-loop__arrow" aria-hidden="true">
+                {i === SYSTEM_LOOP.failingLink ? '⇢' : '→'}
+              </span>
+              <span>{to}</span>
+              {i === SYSTEM_LOOP.failingLink && (
+                <span className="t-signal sim-loop__note"> THE HOP THAT GIVES OUT</span>
+              )}
+            </li>
+          ))}
+        </ul>
+        <p className="t-body-s t-dim sim-map__note">
+          Nothing in that loop is broken on its own. What fails is the connection
+          between two things that are each working.
+        </p>
       </div>
 
       {/* ---- dependencies --------------------------------------------------- */}

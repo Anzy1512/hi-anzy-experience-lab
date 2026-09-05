@@ -33,6 +33,11 @@ export const CANONICAL_SOURCE = {
   repo: 'Anzy1512/hi-anzy-platform',
   file: 'frontend/src/data/content.js',
   mirroredFrom: 'branch main',
+  /* The commit these values were read at. `scripts/check-canonical-sync.mjs`
+     holds the same string and is what tells you when it has gone stale;
+     PERFORMANCE prints it so a visitor can see which version they are looking
+     at rather than taking "converged" on trust. */
+  commit: '6e36db1',
 } as const;
 
 /* -------------------------------------------------------------------------- */
@@ -354,3 +359,84 @@ export const NETWORK_DISCIPLINES: string[] = [
 export const INSIGHT_CATEGORIES: string[] = [
   'Strategy', 'Design', 'Technology', 'Culture', 'Operations',
 ];
+
+/* ==========================================================================
+   PHASE 6 — the structural content Phase 5.5 saw and did not take.
+
+   All of it is category shape, taxonomy and diagram: no client is named, no
+   result is claimed, no person appears. The exclusions Phase 5.5 recorded for
+   BRAND_REFS, CHARACTERS and the rest are untouched.
+   ========================================================================== */
+
+/*
+ * `ORBIT_CATEGORIES` WAS READ AND IS NOT MIRRORED HERE.
+ *
+ * Six categories — BUILT HERE, BUILT TOGETHER, MINDS IN THE MIX, FACES &
+ * VOICES, PLACES WITH POSSIBILITY, PARTNERS IN PROGRESS — each with a
+ * descriptor and the site's own tagline. It is good, truthful, non-client
+ * material and Living World's districts are its obvious destination.
+ *
+ * It is not here because nothing consumes it yet, and a mirrored export with no
+ * reader is the same dead weight as a translation primitive with no consumer:
+ * it makes coverage look larger than the work. Phase 5.5 deleted two graph
+ * helpers for exactly this reason. When Living World's territory is rebuilt on
+ * it, mirror it then — `frontend/src/data/content.js:632`.
+ *
+ * The manifest records it as read, with this as the reason.
+ */
+
+/**
+ * `NETWORK_SUBCATS` — sixteen disciplines and what each actually contains.
+ *
+ * The Lab already mirrored the twelve discipline *names*. This is the layer
+ * underneath them, and it is the difference between a district having a label
+ * and a district having contents.
+ */
+export const NETWORK_CAPABILITIES: Record<string, string[]> = {
+  Strategy: ['Diagnostics', 'Positioning', 'Roadmaps', 'Go-to-market', 'Pricing'],
+  Brand: ['Naming & story', 'Identity systems', 'Tone of voice', 'Repositioning', 'Founder brand'],
+  Design: ['UX/UI', 'Packaging', 'Motion design', 'Design systems'],
+  Technology: ['Web dev', 'Shopify / Woo', 'CRM integration', 'Backend & hosting', 'Analytics setup'],
+  AI: ['AI systems', 'Assistants & agents', 'Readiness audits'],
+  Automation: ['Workflows', 'n8n / Zapier', 'Internal tools', 'Drip systems'],
+  Performance: ['Paid social', 'Google & YouTube', 'Funnel design', 'CRO', 'Growth loops'],
+  Media: ['Print & digital', 'Broadcast', 'Entertainment', 'Intl. press', 'Vertical desks'],
+  Creators: ['Singers', 'Comedians', 'Sketch artists', 'Podcasters', 'Vloggers', 'Voice artists'],
+  Production: ['Video & TVC', 'Photography', 'Motion graphics', 'Sound design', 'Post production'],
+  Events: ['Festivals', 'Campus circuit', 'Launches', 'Co-branded stages'],
+  Venues: ['Hotels', 'Clubs', 'Stadiums', 'Institutions'],
+  Experiences: ['Pop-up tours', 'Stage design', 'Booth branding', 'Merchandise'],
+  PR: ['Media placement', 'ORM', 'Crisis comms', 'Sentiment'],
+  Security: ['Audits', 'Privacy readiness', 'Infra hardening'],
+  Operations: ['Fulfilment', 'Merch production', 'Event ops', 'Logistics'],
+};
+
+/**
+ * `components/SystemDiagnostic.js` — five parts of a business wired in a loop,
+ * with the hop that gives out.
+ *
+ * The component's own note is the argument, and it is the Agency Simulator's
+ * argument too: "Nothing here is broken on its own; the connection between two
+ * working things is what failed." The failing link is `sales → ops` in the
+ * source and it is not the Lab's to move.
+ */
+export const SYSTEM_LOOP = {
+  nodes: ['BRAND', 'PRODUCT', 'SALES', 'OPS', 'DATA'] as const,
+  links: [
+    ['BRAND', 'PRODUCT'],
+    ['PRODUCT', 'SALES'],
+    ['SALES', 'OPS'],
+    ['OPS', 'DATA'],
+    ['DATA', 'BRAND'],
+  ] as [string, string][],
+  /** The one that fails, by index into `links`. */
+  failingLink: 2,
+} as const;
+
+/*
+ * `CASE_SECTIONS` / CaseAnatomy's seven steps — SITUATION, GAP, INSIGHT,
+ * DECISION, BUILD, RESULT, WHAT HAPPENED NEXT — were read and are likewise not
+ * mirrored, for the same reason: no reality reads them today. The shape is
+ * recorded in `spatial/translation.ts` as ANATOMY_SPINE, which is the part the
+ * Lab actually uses, and the Agency Simulator's registers are built on it.
+ */

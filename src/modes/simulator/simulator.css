@@ -541,3 +541,37 @@
   margin-top: 0.35em;
   letter-spacing: var(--tr-mono-wide);
 }
+
+/* ==========================================================================
+   THE LOOP — the canonical business diagnostic, printed as a chain.
+
+   Drawn as type rather than as a diagram on purpose: the reading beside it is
+   text, and a five-node SVG here would be the only picture in a panel whose
+   whole argument is that it is a written reading, not an infographic.
+   ========================================================================== */
+.sim-loop {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+.sim-loop li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5ch;
+  color: var(--figure-dim);
+}
+.sim-loop__arrow {
+  color: var(--rule);
+}
+/* The failing hop is the only place the loop raises its voice. */
+.sim-loop li[data-failing='true'] {
+  color: var(--figure);
+}
+.sim-loop li[data-failing='true'] .sim-loop__arrow {
+  color: var(--signal-text);
+}
+.sim-loop__note {
+  letter-spacing: var(--tr-mono-wide);
+}

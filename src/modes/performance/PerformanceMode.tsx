@@ -6,6 +6,10 @@ import { setPointerIntent } from '../../core/pointer';
 import { detectWebGPU } from '../../core/capability';
 import { audio } from '../../audio/engine';
 import { MODES, onlineCount } from '../../content/lab';
+import { CANONICAL_SOURCE } from '../../content/canonical';
+import { coverage, exclusionsWithoutReason } from '../../content/canonicalManifest';
+import { ALL_PRIMITIVES, orphanPrimitives, unwiredPrimitives } from '../../spatial/translation';
+import { labOriginated, MATERIALS } from '../../design-system/materials';
 import './performance.css';
 
 /**
@@ -120,6 +124,10 @@ export default function PerformanceMode({ onReady, scope }: ModeViewProps) {
   }, [sampling, scope]);
 
   /* ---- everything the page can honestly say about itself ----------------- */
+  /* Derived once. Coverage walks a 116-entry table and does not change while
+     the mode is open, so it has no business being recomputed on every tick. */
+  const cover = useMemo(() => coverage(), []);
+
   const rows = useMemo(() => {
     void tick; // recomputed once a second
     const canvases = document.querySelectorAll('canvas').length;
@@ -161,8 +169,56 @@ export default function PerformanceMode({ onReady, scope }: ModeViewProps) {
       { group: 'MEDIA', k: 'AUDIO CONTEXT', v: (audio.context?.state ?? 'NONE').toUpperCase(), measured: true },
       { group: 'MEDIA', k: 'VIDEO ELEMENTS', v: String(videos), measured: true },
       { group: 'MEDIA', k: 'CAMERA', v: videos > 0 ? 'A STREAM IS ATTACHED' : 'NO STREAM', measured: true },
+
+      /*
+       * CONVERGENCE — the Lab measuring its own relationship to the website.
+       *
+       * `SystemDiagnostic` on the commercial site makes measurement the visual
+       * language rather than decorating a result, and this is the same move:
+       * every number below is derived by calling the thing it describes, so a
+       * manifest entry added tomorrow changes this readout without anybody
+       * editing it. There is no hardcoded total on this screen.
+       */
+      { group: 'CONVERGENCE', k: 'CANONICAL SOURCE', v: CANONICAL_SOURCE.commit, measured: true },
+      {
+        group: 'CONVERGENCE',
+        k: 'SURFACES ACCOUNTED',
+        v: `${cover.total} — ${cover.byType.route} ROUTES · ${cover.byType.export} EXPORTS · ${cover.byType.component} COMPONENTS · ${cover.byType.assetFamily + cover.byType.font} ASSET`,
+        measured: true,
+      },
+      { group: 'CONVERGENCE', k: 'NOT MAPPED', v: 'ZERO — NOT A VALUE THE TYPE HOLDS', measured: true },
+      {
+        group: 'CONVERGENCE',
+        k: 'EXCLUSIONS WITHOUT A REASON',
+        v: String(exclusionsWithoutReason().length),
+        measured: true,
+      },
+      {
+        group: 'CONVERGENCE',
+        k: 'TRANSLATION PRIMITIVES',
+        v: `${ALL_PRIMITIVES.length} — ${ALL_PRIMITIVES.length - unwiredPrimitives().length} BUILT, ${unwiredPrimitives().length} MAPPED ONLY, ${orphanPrimitives().length} ORPHANED`,
+        measured: true,
+      },
+      {
+        group: 'CONVERGENCE',
+        k: 'MATERIALS',
+        v: `${Object.keys(MATERIALS).length} — ${labOriginated().length} THE LAB'S OWN`,
+        measured: true,
+      },
+      {
+        group: 'CONVERGENCE',
+        k: 'HUMAN VOICE',
+        v: 'NEWSREADER — THE SITE’S OWN FILE',
+        measured: true,
+      },
+      {
+        group: 'CONVERGENCE',
+        k: 'DRIFT SINCE MIRROR',
+        v: 'UNKNOWN — CHECKED IN DEVELOPMENT, NOT AT RUNTIME',
+        measured: false,
+      },
     ];
-  }, [tick, capability, reduced, webgpu]);
+  }, [tick, capability, reduced, webgpu, cover]);
 
   const groups = useMemo(() => [...new Set(rows.map((r) => r.group))], [rows]);
 

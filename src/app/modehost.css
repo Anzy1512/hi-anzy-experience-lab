@@ -233,3 +233,25 @@
     max-width: none;
   }
 }
+
+/* X-Ray keeps a live inspector panel pinned to the lower right — it is the
+   readout for whatever the instrument is currently holding, so it cannot move
+   and it cannot be covered. The specimen plate's own lower-left quadrant is
+   composed empty space, which is where a note in the margin belongs anyway. */
+.modehost[data-mode='x-ray'] .modehost__onward {
+  bottom: calc(var(--trim) * 0.5 + 186px);
+  left: var(--trim);
+  right: auto;
+  align-items: flex-start;
+  max-width: 44ch;
+}
+.modehost[data-mode='x-ray'] .modehost__onward-btn {
+  justify-items: start;
+  text-align: left;
+  border-right: 0;
+  border-left: 2px solid color-mix(in srgb, var(--rule) 55%, transparent);
+}
+.modehost[data-mode='x-ray'] .modehost__onward-btn:hover,
+.modehost[data-mode='x-ray'] .modehost__onward-btn:focus-visible {
+  border-left-color: var(--signal);
+}

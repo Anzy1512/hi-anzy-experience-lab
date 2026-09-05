@@ -14,6 +14,32 @@ export default defineConfig({
   build: {
     target: 'es2022',
     /*
+     * No modulepreload polyfill.
+     *
+     * Phase 6 added a second dynamic-import site (the Reality Index's lattice,
+     * previously ModeHost was the only one). With two, Rollup hoisted Vite's
+     * shared `__vitePreload` helper into its own chunk and the entry HTML grew
+     * its first ever <link rel="modulepreload"> — 703 bytes gzip of runtime for
+     * browsers that cannot preload natively.
+     *
+     * The polyfill is dropped because a preload link is a hint. A browser that
+     * does not understand it ignores it and the dynamic import still loads the
+     * chunk — the only cost is that the fetch is not started early. Safari
+     * 16.2–16.6 is the real window here: it supports `:has()` and `color-mix()`,
+     * which this design system requires, but not modulepreload. Those visitors
+     * lose a head start and nothing else, which is worth 0.28 kB off every
+     * visitor's entry.
+     *
+     * It does NOT remove the link itself. Rollup splits the helper out as soon
+     * as two entry-reachable modules perform dynamic imports, and Vite preloads
+     * it; the Lab's actual invariant — that `three` is never preloaded and
+     * never eagerly loaded — is unaffected and still verified in the build
+     * check. One 1.34 kB runtime helper is not the regression that rule exists
+     * to prevent, and pretending the count is still zero would be worse than
+     * saying so.
+     */
+    modulePreload: { polyfill: false },
+    /*
      * No manualChunks.
      *
      * An earlier version forced three/@react-three into a named "graphics"

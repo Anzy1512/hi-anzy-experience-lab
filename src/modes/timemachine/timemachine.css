@@ -443,8 +443,11 @@
 /* ==========================================================================
    2020 — sections with a tracking index, editorial asymmetry
    ========================================================================== */
+/* Deliberately the platform's own neutral grotesque rather than a brand face:
+   2020's argument is that every site had converged on the same system stack,
+   and naming a specific face here would be dressing that up as a choice. */
 .e20 {
-  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
   background: #111;
   color: #eee;
   min-height: 100%;
@@ -536,7 +539,8 @@
   display: grid;
   align-content: start;
   gap: clamp(20px, 4vw, 48px);
-  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  /* As .e20 — a speculative era should not borrow today's brand serif. */
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 .e35-intent {
   display: grid;

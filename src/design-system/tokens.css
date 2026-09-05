@@ -13,23 +13,46 @@
  */
 
 :root {
-  /* ---- raw palette : inherited from the Hi Anzy printed deck ------------ */
-  --c-bone: #e9e2d0;
-  --c-bone-deep: #d8cfb7;
-  --c-bone-dim: #b7ae97;
+  /*
+   * ---- raw palette : the commercial site's own values --------------------
+   *
+   * These were read off the printed deck in Phase 1 and drifted. Phase 6 took
+   * them from `frontend/src/index.css` in Anzy1512/hi-anzy-platform @ 6e36db1,
+   * where they are declared as "hiAnzy raw tokens":
+   *
+   *     --paper #E0D8C1   --ink #232A2A   --orange #F19020
+   *     --signal #E54A25  --white-d #F7F5EE  --panel-dark #1D2424
+   *
+   * The orange was already right to within one step per channel (#f2911b vs
+   * #F19020), which is what two people reading the same brand independently
+   * looks like. Paper and ink had drifted further: the Lab's bone was lighter
+   * and cooler, its ink darker and greener. Both now match exactly.
+   *
+   * The names stay the Lab's own. `--c-bone` is what this product has called
+   * its stock since Phase 1 and renaming it to `--paper` would churn every
+   * file to no benefit; the mapping is recorded here instead.
+   */
+  --c-bone: #e0d8c1; /* canonical --paper */
+  --c-bone-deep: #d0c7ab; /* darkened from --paper; no canonical equivalent */
+  --c-bone-dim: #b0a68b;
+  --c-bone-lit: #f7f5ee; /* canonical --white-d — the lifted stock */
 
-  --c-ink: #191d1c;
-  --c-ink-raised: #232927;
+  --c-ink: #232a2a; /* canonical --ink */
+  --c-ink-raised: #1d2424; /* canonical --panel-dark */
   --c-void: #0e1111;
 
-  --c-signal: #f2911b; /* deck orange — SIGNAL ONLY */
-  --c-signal-hot: #ee4322; /* deck red-orange — second plate */
+  --c-signal: #f19020; /* canonical --orange — SIGNAL ONLY */
+  --c-signal-hot: #e54a25; /* canonical --signal, the second plate */
 
   --c-grey: #8a8578;
 
   /* ---- type families ---------------------------------------------------- */
-  --f-display: 'Rajdhani', 'Oswald', 'Arial Narrow', system-ui, sans-serif;
-  --f-body: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  /* Rajdhani = System Voice, Newsreader = Human Voice. That pairing is not a
+     Lab decision — it is declared "locked" at the top of the commercial site's
+     App.css, and these are its files. Mono is the Lab's own third register and
+     `fonts.css` explains why it earns one where the site does not. */
+  --f-display: 'Rajdhani', 'Arial Narrow', system-ui, sans-serif;
+  --f-body: 'Newsreader', Georgia, 'Times New Roman', serif;
   --f-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
   /* ---- type scale : fluid, but with intent at both ends ----------------- */
@@ -103,13 +126,30 @@
   --ground: var(--c-bone);
   --ground-deep: var(--c-bone-deep);
   --figure: var(--c-ink);
-  --figure-dim: #5d605a;
-  --figure-faint: rgba(25, 29, 28, 0.34);
-  --rule: rgba(25, 29, 28, 0.22);
-  --rule-faint: rgba(25, 29, 28, 0.1);
+  --figure-dim: #5a5f59;
+  /* rgba() of the canonical ink 35 42 42, not the old 25 29 28 the deck gave. */
+  --figure-faint: rgba(35, 42, 42, 0.34);
+  --rule: rgba(35, 42, 42, 0.22);
+  --rule-faint: rgba(35, 42, 42, 0.1);
   --signal: var(--c-signal);
   --signal-hot: var(--c-signal-hot);
-  --screen-dot: rgba(25, 29, 28, 0.09);
+  /*
+   * SIGNAL, PRINTED HEAVIER.
+   *
+   * #F19020 on the company's own paper is 1.69:1 — the mode chrome's identity
+   * line ("08 / PORTAL") was orange-on-cream at 10px and effectively unreadable.
+   * The brand does not get to be less orange, so the ink gets denser: this is
+   * the same hue laid down heavier, the way a second pass of the same plate
+   * behaves, and it clears 4.78:1.
+   *
+   * The commercial site solves the same problem the same way round — see
+   * PROVENANCE_STYLES, where on light stock the orange becomes the border and
+   * a wash while the ink carries the words.
+   *
+   * On ink and blueprint the orange is already 6.09:1 and stays exactly itself.
+   */
+  --signal-text: #9c3d0b;
+  --screen-dot: rgba(35, 42, 42, 0.09);
 }
 
 /* ======================================================================== */
@@ -119,13 +159,20 @@
   --ground: var(--c-ink);
   --ground-deep: var(--c-void);
   --figure: var(--c-bone);
-  --figure-dim: #8f8b7e;
-  --figure-faint: rgba(233, 226, 208, 0.3);
-  --rule: rgba(233, 226, 208, 0.2);
-  --rule-faint: rgba(233, 226, 208, 0.08);
+  /* Lifted in Phase 6. The canonical ink (#232A2A) is lighter than the deck ink
+     the Lab had been using, which cost every dim string contrast it could not
+     afford: taglines and the graph's reason lines measured 4.29:1 at 14px the
+     moment the real value went in. The ground is not negotiable — it is the
+     company's — so the dim is. */
+  --figure-dim: #a3a091;
+  /* rgba() of the canonical paper 224 216 193, not the old 233 226 208. */
+  --figure-faint: rgba(224, 216, 193, 0.3);
+  --rule: rgba(224, 216, 193, 0.2);
+  --rule-faint: rgba(224, 216, 193, 0.08);
   --signal: var(--c-signal);
   --signal-hot: var(--c-signal-hot);
-  --screen-dot: rgba(233, 226, 208, 0.05);
+  --signal-text: var(--signal);
+  --screen-dot: rgba(224, 216, 193, 0.05);
 }
 
 /* ======================================================================== */
@@ -135,11 +182,16 @@
   --ground: #101413;
   --ground-deep: #0a0d0d;
   --figure: #e4ddca;
-  --figure-dim: #7d8079;
+  /* 3.65:1 before Phase 6 measured it — a pre-existing failure on the darkest
+     ground in the product, found while re-checking every material against the
+     canonical values. Blueprint's ground is X-Ray's own and did not change;
+     only the dim needed to earn its place at 14px. */
+  --figure-dim: #96988f;
   --figure-faint: rgba(228, 221, 202, 0.26);
   --rule: rgba(228, 221, 202, 0.17);
   --rule-faint: rgba(228, 221, 202, 0.07);
   --signal: var(--c-signal);
   --signal-hot: var(--c-signal-hot);
+  --signal-text: var(--signal);
   --screen-dot: rgba(228, 221, 202, 0.04);
 }

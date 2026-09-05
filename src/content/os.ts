@@ -1,4 +1,4 @@
-import { METHOD, SERVICES } from './canonical';
+import { METHOD, NETWORK_CAPABILITIES, SERVICES } from './canonical';
 
 /**
  * ANZY.OS — an operating environment for a consultancy.
@@ -90,7 +90,23 @@ export const APP_BODY: Record<Exclude<AppId, 'terminal' | 'system'>, string[][]>
   strategy: sheetFor('business-audit-strategy'),
   design: sheetFor('brand-experience'),
   technology: sheetFor('digital-technology-automation'),
-  network: sheetFor('media-creators-experiences'),
+  /*
+   * NETWORK.app is the one sheet that outgrew its category.
+   *
+   * It used to print the CONNECT service category and stop, which described the
+   * offer but not the thing being offered. `NETWORK_SUBCATS` on the commercial
+   * site names sixteen disciplines and what each one actually contains, and
+   * that is what a network directory is: not "we have a network", but the
+   * sixteen headings and what sits under each. Nobody is named — these are
+   * capabilities, and the canonical source is careful about the difference.
+   */
+  network: [
+    ...sheetFor('media-creators-experiences'),
+    ...Object.entries(NETWORK_CAPABILITIES).map(([discipline, subs]) => [
+      discipline.toUpperCase(),
+      subs.join(' · '),
+    ]),
+  ],
   // The real method, mirrored from the commercial frontend rather than kept as
   // a second copy here. Each sheet prints the stage's own promise and duration.
   method: METHOD.map((m) => [m.label, `${m.title} ${m.page} (${m.duration})`]),

@@ -78,7 +78,14 @@ export type PrimitiveId =
   | 'ROUTE_TRACE'
   | 'GRAIN_RESOLVE'
   | 'DIAGNOSTIC_FIELD'
-  | 'PROVENANCE_MARK';
+  | 'PROVENANCE_MARK'
+  /* ---- Phase 6: extracted from components/three and components/motion ---- */
+  | 'LATTICE_ASSEMBLY'
+  | 'NOISE_ORDER'
+  | 'POSITION_RAIL'
+  | 'CONTACT_GAP'
+  | 'DERIVED_SUMMARY'
+  | 'HALFTONE_FIELD';
 
 export interface Primitive {
   id: PrimitiveId;
@@ -90,6 +97,18 @@ export interface Primitive {
   spatialBehaviour: string;
   /** Realities that consume it. A primitive with no consumer is dead weight. */
   consumers: string[];
+  /**
+   * Whether a reality actually reads this today, or whether it is a mapping
+   * that has been made but not yet built.
+   *
+   * Added in Phase 6 and it is the more useful of the two flags. `consumers`
+   * says where a primitive *belongs*; naming a destination is free, and a
+   * manifest full of confident destinations is exactly how a translation
+   * system comes to describe work nobody did. This says whether the code is
+   * there, and PERFORMANCE prints both numbers so the gap is visible rather
+   * than implied.
+   */
+  wired: boolean;
   /** What happens when motion is not wanted. Never "nothing happens". */
   reducedMotion: string;
 }
@@ -97,6 +116,7 @@ export interface Primitive {
 export const PRIMITIVES: Primitive[] = [
   {
     id: 'PINNED_FIELD',
+    wired: true,
     origin: 'components/PinnedSequence.js',
     canonicalBehaviour:
       'A section holds still while scroll advances it through its steps, so a five-part method reads as one move rather than five blocks. Every step stays in the DOM; only opacity and transform change.',
@@ -107,6 +127,7 @@ export const PRIMITIVES: Primitive[] = [
   },
   {
     id: 'SPATIAL_DECK',
+    wired: true,
     origin: 'components/EvidenceDeck.js',
     canonicalBehaviour:
       'A fan of cards in 3D with one forward at a time; a side card can be brought forward, the front one opened. Geometry is tuned per breakpoint rather than hardcoded.',
@@ -117,6 +138,7 @@ export const PRIMITIVES: Primitive[] = [
   },
   {
     id: 'ANATOMY_SPINE',
+    wired: true,
     origin: 'components/CaseAnatomy.js',
     canonicalBehaviour:
       'The shape a case study follows, drawn as a spine of ordered steps that fill in one at a time. Steps are passed in rather than duplicated so the diagram cannot drift from the sections it describes.',
@@ -127,6 +149,7 @@ export const PRIMITIVES: Primitive[] = [
   },
   {
     id: 'ORBIT_CLUSTER',
+    wired: true,
     origin: 'components/OrbitSection.js + three/SignalField.js',
     canonicalBehaviour:
       'Relationships arranged around a conceptual centre, opening from a collapsed bar rather than dropping a full 3D fan on the reader. Pulses travel out from the core and back, a few at a time.',
@@ -137,6 +160,7 @@ export const PRIMITIVES: Primitive[] = [
   },
   {
     id: 'ROUTE_TRACE',
+    wired: true,
     origin: 'components/RouteLine.js',
     canonicalBehaviour:
       'The signature orange route — an SVG path that draws itself as you scroll, rendered fully drawn under reduced motion.',
@@ -147,6 +171,7 @@ export const PRIMITIVES: Primitive[] = [
   },
   {
     id: 'GRAIN_RESOLVE',
+    wired: true,
     origin: 'components/DissolveImage.js',
     canonicalBehaviour:
       'Turbulence feeds a displacement map; scrolling scrubs displacement to zero so a picture resolves out of grain rather than appearing. Done as an SVG filter to avoid a third canvas context.',
@@ -157,6 +182,7 @@ export const PRIMITIVES: Primitive[] = [
   },
   {
     id: 'DIAGNOSTIC_FIELD',
+    wired: true,
     origin: 'components/SystemDiagnostic.js',
     canonicalBehaviour:
       'Five parts of a business wired in a loop with one link that fails. The point: nothing is broken on its own — the connection between two working things is what failed.',
@@ -167,6 +193,7 @@ export const PRIMITIVES: Primitive[] = [
   },
   {
     id: 'PROVENANCE_MARK',
+    wired: true,
     origin: 'components/ProvenanceTag.js',
     canonicalBehaviour:
       'Every piece of work carries a typed label saying who did it — direct, or with a collaborator. The key is byte-stable because it is also an API contract.',
@@ -177,11 +204,104 @@ export const PRIMITIVES: Primitive[] = [
   },
 ];
 
+/* -------------------------------------------------------------------------- */
+/* Phase 6 — the components/three and components/motion families               */
+/*                                                                            */
+/* Phase 5.5 read the canonical DOM components and stopped there. The site     */
+/* also ships eleven WebGL components and three motion utilities, and those    */
+/* are the ones that already contain a spatial idea — they did not need        */
+/* translating so much as recognising.                                        */
+/* -------------------------------------------------------------------------- */
+
+const PHASE_6_PRIMITIVES: Primitive[] = [
+  {
+    id: 'LATTICE_ASSEMBLY',
+    wired: true,
+    origin: 'components/three/SystemCore.js',
+    canonicalBehaviour:
+      'Sixteen scattered nodes assemble into a lattice around one core the moment the scene mounts, each meshing with its two nearest neighbours, then keep drifting while a signal wanders the connections. Its own comment states the argument: "disconnected things, meshed into one system".',
+    spatialBehaviour:
+      'The Reality Index has sixteen rows and the canonical scene has sixteen nodes, which is a coincidence worth taking seriously: the index is a list of separate demos until something shows they mesh. The lattice is that showing — realities as nodes, the graph’s edges as the mesh, the visitor’s trail as the signal wandering it.',
+    consumers: ['reality-index'],
+    reducedMotion: 'Assembled. The lattice is the finished state and the assembly is the part that can be skipped.',
+  },
+  {
+    id: 'NOISE_ORDER',
+    wired: false,
+    origin: 'components/three/LensField.js + motion/OrderingGrid.js',
+    canonicalBehaviour:
+      'A scatter of points resolves into an exact grid as two lenses cross — the site’s argument that "a note is worth writing when something stops being noise". OrderingGrid does the same thing in the DOM with seeded, never random, offsets resolving into alignment.',
+    spatialBehaviour:
+      'Ordering as an event rather than a state. Distinct from GRAIN_RESOLVE, which is about a surface becoming legible: this is about scattered things turning out to have had an arrangement all along. Dream’s contours settling around a word, Chaos reconstructing.',
+    consumers: ['dream', 'chaos'],
+    reducedMotion: 'Ordered. Both source components render their resolved state directly under reduced motion, and so does this.',
+  },
+  {
+    id: 'POSITION_RAIL',
+    wired: false,
+    origin: 'components/three/IndexSpine.js',
+    canonicalBehaviour:
+      'A narrow strip beside the section index: a dim rail, a travelling node at the reader’s position, and a slow drift of motes. Its own note is the important part — "nothing here carries information the DOM does not".',
+    spatialBehaviour:
+      'Where you are, as a physical position on a measured length. Memory’s record rail is this, and so is the Index’s visited trail: both say how far through you are without asking you to read a number.',
+    consumers: ['memory', 'reality-index'],
+    reducedMotion: 'The rail and the position mark, both static. Position is information; the drift is not.',
+  },
+  {
+    id: 'CONTACT_GAP',
+    wired: false,
+    origin: 'components/three/SparkGap.js',
+    canonicalBehaviour:
+      'Two arms approach, something ignites in the space between them at closest approach, then they withdraw. Motes drift toward the contact point so the gap reads as charged rather than empty. "It is the gap, and the fact that something ignites in it."',
+    spatialBehaviour:
+      'The Lab’s aperture is the same subject seen from the other side: Portal is a gap in a sheet that has something on the far side of it. The charge is what stops an opening reading as a hole.',
+    consumers: ['portal'],
+    reducedMotion: 'The gap is open and the far side is visible. Approach and ignition are both travel.',
+  },
+  {
+    id: 'DERIVED_SUMMARY',
+    wired: false,
+    origin: 'components/PackageBuilder.js',
+    canonicalBehaviour:
+      'Pick the systems you want and the summary derives itself — which systems you touched, which method stages that implies, the rough duration band. "Derived, never stored", and deliberately no price, because "a number printed next to a checkbox would be a lie".',
+    spatialBehaviour:
+      'A reading assembled from what the visitor actually did, and honest about being a reading. The Agency Simulator’s table already works this way; this names the discipline it was working to and ties it to the canonical component that shares it.',
+    consumers: ['agency-simulator'],
+    reducedMotion: 'The summary is text and was always text.',
+  },
+  {
+    id: 'HALFTONE_FIELD',
+    wired: false,
+    origin: 'components/three/HalftoneBackdrop.js + HalftoneStatic.js',
+    canonicalBehaviour:
+      'The brand deck’s dot collage rendered as a fixed field behind the page — a fragment shader, one cell size, dots breathing on a slow travelling wave, crawling diagonally like a scan. Ink at 2–5% effective alpha: "texture, never noise".',
+    spatialBehaviour:
+      'Tone made of countable marks. After Dark is a room where the printed surface is the only thing still present, and a halftone is the most literal version of that: at reading distance it is a tone, up close it is a grid of decisions.',
+    consumers: ['after-dark'],
+    reducedMotion: 'The screen holds still. Dot structure is the information; the wave is not.',
+  },
+];
+
 export function primitive(id: PrimitiveId): Primitive | undefined {
-  return PRIMITIVES.find((p) => p.id === id);
+  return ALL_PRIMITIVES.find((p) => p.id === id);
 }
+
+/** Phase 5.5's eight plus Phase 6's six. One list, one contract. */
+export const ALL_PRIMITIVES: Primitive[] = [...PRIMITIVES, ...PHASE_6_PRIMITIVES];
 
 /** Primitives with no declared consumer — dead infrastructure, if any. */
 export function orphanPrimitives(): Primitive[] {
-  return PRIMITIVES.filter((p) => p.consumers.length === 0);
+  return ALL_PRIMITIVES.filter((p) => p.consumers.length === 0);
+}
+
+/**
+ * Mapped but not yet built.
+ *
+ * These are not defects. A translation system is allowed to describe a
+ * relationship before anybody implements it — what it is not allowed to do is
+ * let that read as finished work, which is what happens when the only
+ * available signal is a list of destinations.
+ */
+export function unwiredPrimitives(): Primitive[] {
+  return ALL_PRIMITIVES.filter((p) => !p.wired);
 }

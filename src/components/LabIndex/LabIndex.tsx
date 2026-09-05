@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { EXPERIMENT_MODES, FLAGSHIP_MODES, findMode, MODES } from '../../content/lab';
 import { EDGES } from '../../content/graph';
 import { INDEX_COPY, indexNote } from '../../content/brand';
 import { isEnterable, STATUS_LABEL, type ModeDefinition } from '../../experience/types';
 import { useExperience } from '../../experience/context';
-import { hasVisited, subscribeVisited, takeReturningFrom, visitedCount } from '../../experience/visited';
+import { hasVisited, subscribeVisited, takeReturningFrom, visitedCount, visitTrail } from '../../experience/visited';
 import { useReducedMotion } from '../../core/hooks';
 import { setPointerIntent } from '../../core/pointer';
 import { guaranteeCompletion, rowsIn, settleImmediately } from '../../motion/primitives';
@@ -127,7 +127,12 @@ function Row({ mode, expanded, onToggle, visited }: RowProps) {
  * the same sixteen destinations would be duplicate navigation, and it would put
  * thirteen more stops in the tab order for nothing.
  */
-function CrossReferences() {
+/* The one module on this page that reaches three.js, behind a dynamic import so
+   it cannot land in the entry chunk. The list below renders and is complete
+   whether or not this ever loads. */
+const IndexLatticeCanvas = lazy(() => import('./IndexLatticeCanvas'));
+
+function CrossReferences({ visited }: { visited: string[] }) {
   const edges = EDGES.map((edge) => ({
     edge,
     from: findMode(edge.from),
@@ -141,6 +146,12 @@ function CrossReferences() {
       <h2 className="t-mono t-mono-xs t-dim index__graph-label" id="index-graph-label">
         CROSS-REFERENCES — WHERE EACH REALITY LEADS
       </h2>
+      {/* The same twelve relationships, drawn. Decorative in the accessibility
+          sense and nowhere else: it is the only thing on this page that can
+          show they form one structure rather than twelve observations. */}
+      <Suspense fallback={null}>
+        <IndexLatticeCanvas visited={visited} />
+      </Suspense>
       <ul className="index__graph-list">
         {edges.map(({ edge, from, to }) => (
           <li className="index__graph-row" key={`${edge.from}-${edge.to}`}>
@@ -270,7 +281,7 @@ export function LabIndex() {
         </ul>
       </div>
 
-      <CrossReferences />
+      <CrossReferences visited={visitTrail() as string[]} />
     </main>
   );
 }

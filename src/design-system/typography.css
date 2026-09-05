@@ -1,12 +1,22 @@
 /*
  * TYPOGRAPHY — three voices, kept strictly apart.
  *
- *   .t-display   Rajdhani. editorial mass. headlines, index titles, wordmark.
- *   .t-body      IBM Plex Sans. reading. statements, descriptions.
+ *   .t-display   Rajdhani. THE SYSTEM VOICE. headlines, index titles, wordmark.
+ *   .t-body      Newsreader. THE HUMAN VOICE. statements, descriptions.
  *   .t-mono      IBM Plex Mono. THE INSTRUMENT'S VOICE.
  *
+ * The first two names are not this product's invention. `App.css` in the
+ * commercial frontend opens by declaring the pairing "locked" — Rajdhani =
+ * System Voice, Newsreader = Human Voice (serif) — and Phase 6 adopted it,
+ * files and all. The Lab had been reading every human sentence in IBM Plex
+ * Sans, a face that appears nowhere in the canonical system.
+ *
+ * The serif is the point. It is what a visitor recognises before they can say
+ * why, and it is the reason a page of Lab copy now reads as the same company
+ * talking rather than as a technical product quoting one.
+ *
  * Rule enforced by review, not by the compiler: a mono string must be a real
- * value the system is reporting. Labels that are not measurements are Plex Sans.
+ * value the system is reporting. Labels that are not measurements are Newsreader.
  */
 
 .t-display {
@@ -76,8 +86,10 @@
 .t-faint {
   color: var(--figure-faint);
 }
+/* Signal AS TEXT. On ink this is the orange unchanged; on paper it is the same
+   plate printed heavier, because #F19020 on #E0D8C1 is 1.69:1. See tokens.css. */
 .t-signal {
-  color: var(--signal);
+  color: var(--signal-text);
 }
 
 /* A measured value: the number reads, the unit recedes. */

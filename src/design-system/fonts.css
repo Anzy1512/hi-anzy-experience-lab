@@ -6,14 +6,48 @@
  * genuinely waits on `document.fonts.ready` before it can measure real glyph
  * bounds, so a slow font response delayed the whole choreography.
  *
- * Both families are SIL Open Font License 1.1, which permits redistribution:
+ * All three families are SIL Open Font License 1.1, which permits redistribution:
  *   Rajdhani     — Indian Type Foundry
  *   IBM Plex     — IBM / Bold Monday
+ *   Newsreader   — Production Type
  *
  * Latin subsets only, matching exactly the weights the product actually uses.
- * Six files, ~128 kB total, served from our own origin. No layout shift beyond
- * what Phase 1 already had, because the metrics are byte-identical to the files
- * Google was serving.
+ * No layout shift beyond what Phase 1 already had, because the metrics are
+ * byte-identical to the files Google was serving.
+ *
+ * ── PHASE 6: THESE ARE THE COMMERCIAL SITE'S OWN FILES ──────────────────────
+ *
+ * Not "the same families". The same bytes. Verified sha256 against
+ * `frontend/public/fonts/` in Anzy1512/hi-anzy-platform @ 6e36db1:
+ *
+ *   rajdhani-500.woff2        23afdb9b5b89   = rajdhani-500-normal-latin
+ *   rajdhani-600.woff2        433a7007e474   = rajdhani-600-normal-latin
+ *   rajdhani-700.woff2        5b7e4a6f9716   = rajdhani-700-normal-latin
+ *   plex-mono-400.woff2       08949f728dc5   = ibm-plex-mono-400-normal-latin
+ *   plex-mono-500.woff2       01d285447409   = ibm-plex-mono-500-normal-latin
+ *   newsreader-var.woff2      62981321d9a3   = newsreader-200-800-normal-latin
+ *
+ * The Lab had been reading Rajdhani and Plex Mono from files that already
+ * matched the site byte for byte — which nobody had checked until Phase 6, and
+ * which is quietly the best evidence the two products share a source.
+ *
+ * The body face did NOT match, and that was the largest single divergence in
+ * the product. `frontend/src/App.css` opens with a line that settles it:
+ *
+ *     Typography system (locked): Rajdhani = System Voice
+ *                                 Newsreader = Human Voice (serif)
+ *
+ * The Lab was setting every human sentence in IBM Plex Sans — a neutral
+ * grotesque that appears nowhere in the canonical system. Plex Sans is gone;
+ * Newsreader is the human voice here for the same reason it is there.
+ *
+ * IBM Plex Mono stays, and the distinction is worth stating because the
+ * canonical site makes the opposite choice: its `.font-mono-sys` is *spaced
+ * Rajdhani*, with the comment "no third font in the system". That is right for
+ * a site whose mono-looking strings are annotations. The Lab's are not
+ * annotations — they are values it measured, and a monospace face with tabular
+ * figures is doing structural work there, not costume. Same reasoning, two
+ * different jobs, two different answers.
  */
 
 /* ---- Rajdhani — display ------------------------------------------------- */
@@ -45,17 +79,25 @@
     U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/* ---- IBM Plex Sans — body ----------------------------------------------- */
-/* One variable file covers both weights the product uses. */
+/* ---- Newsreader — the human voice --------------------------------------- */
+/* One variable file per style, 200-800, exactly as the commercial site ships. */
 @font-face {
-  font-family: 'IBM Plex Sans';
+  font-family: 'Newsreader';
   font-style: normal;
-  font-weight: 400 500;
+  font-weight: 200 800;
   font-display: swap;
-  src: url('/fonts/plex-sans-var.woff2') format('woff2');
+  src: url('/fonts/newsreader-var.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
     U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
+
+/* The accent register — Newsreader italic — was mirrored and then removed.
+   `.font-accent` on the commercial site is that face, and it is the obvious
+   home for the Lab's asides. Nothing here sets italic on body copy today, and
+   a 64 kB face in the repository that no page asks for is dead weight even
+   though no visitor would ever download it. Mirror it when something uses it:
+   frontend/public/fonts/newsreader-200-800-italic-latin.woff2, sha256/12
+   48bc8861b9b2. */
 
 /* ---- IBM Plex Mono — the instrument's voice ----------------------------- */
 @font-face {

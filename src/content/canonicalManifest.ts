@@ -419,7 +419,12 @@ export const COMPONENTS: ManifestEntry[] = [
   comp('three/HalftoneStatic.js', 'MATERIAL_SOURCE', ['graphics/ContourPlate'], 'The static fallback for the above — the Lab’s semantic-fallback habit, in the canonical codebase.'),
   comp('three/LensField.js', 'MATERIAL_SOURCE', ['x-ray'], 'Focus as an optical instrument.'),
   comp('three/SparkGap.js', 'MATERIAL_SOURCE', ['matter-engine'], 'Energy across a gap.'),
-  comp('three/SystemCore.js', 'MATERIAL_SOURCE', ['anzy-os'], 'The system as a rendered object.'),
+  comp(
+    'three/SystemCore.js',
+    'SPATIAL_TRANSFORM',
+    ['reality-index', 'translation.LATTICE_ASSEMBLY'],
+    'Phase 5.5 guessed at this one — "the system as a rendered object", pointed at Anzy.OS, from the filename. Phase 6 read it. Sixteen scattered nodes assemble into a lattice around a core, each meshing with its two nearest neighbours, and the comment states the argument as "disconnected things, meshed into one system". Sixteen nodes; sixteen realities. It is now built as the Reality Index’s cross-reference figure, with the graph’s twelve travellable edges drawn in signal across the structural mesh.',
+  ),
   comp('three/AdaptiveQuality.js', 'SYSTEM_SOURCE', ['core/capability'], 'Quality tiers from device capability — the same architecture the Lab arrived at independently.'),
   comp('three/Fallbacks.js', 'SYSTEM_SOURCE', ['spatial/SpatialCanvas'], 'WebGL failure containment.'),
   comp('three/useSceneVisibility.js', 'SYSTEM_SOURCE', ['core/raf', 'matter-engine'], 'Stop rendering when unseen. The Lab’s frameloop discipline states the same rule.'),
@@ -561,7 +566,7 @@ export const ASSETS: ManifestEntry[] = [
     treatment: 'EXCLUDED',
     destinations: [],
     rationale:
-      'The site’s body and editorial voices. The Lab keeps IBM Plex Sans as its third voice; the typography rule is three voices kept apart, and adding two more would break it. Recorded so the divergence is deliberate rather than accidental.',
+      'Phase 6 reversed this. The rationale here used to say the Lab kept IBM Plex Sans because three voices had to stay apart — which described the Lab’s rule while ignoring the site’s, and App.css declares that one locked: Rajdhani = System Voice, Newsreader = Human Voice. newsreader-200-800-normal-latin and its italic are now mirrored byte-for-byte (sha256/12 62981321d9a3, 48bc8861b9b2) and Plex Sans is gone. Figtree and Amaranth remain excluded: the site itself notes Figtree is a fallback nothing sets as a primary face, and Amaranth dresses one editorial joke component the Lab does not carry.',
     consentRisk: 'none',
     payloadRisk: 'low',
     status: 'done',
