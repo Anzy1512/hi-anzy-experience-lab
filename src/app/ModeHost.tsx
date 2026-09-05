@@ -5,6 +5,7 @@ import type { ModeDefinition, ModeViewProps } from '../experience/types';
 import { useEscape, useFocusTrap } from '../core/hooks';
 import { setPointerIntent } from '../core/pointer';
 import { XRAY_COPY } from '../content/brand';
+import { edgesFrom } from '../content/graph';
 import './modehost.css';
 
 /**
@@ -58,6 +59,42 @@ function ModeFallback({ title }: { title: string }) {
   );
 }
 
+/**
+ * The two onward moves a reality earns, if it has any.
+ *
+ * Deliberately not a "next mode" button: each edge states why the move is worth
+ * making, and a reality with no honest onward relationship shows nothing.
+ */
+function OnwardMoves({ fromId, phase }: { fromId: string; phase: string }) {
+  const { enterMode } = useExperience();
+  const edges = edgesFrom(fromId);
+  if (edges.length === 0 || phase !== 'active') return null;
+  return (
+    <nav className="modehost__onward" aria-label="Related realities">
+      {edges.map((e) => (
+        <button
+          key={e.to}
+          type="button"
+          className="modehost__onward-btn t-mono t-mono-xs"
+          onClick={() => enterMode(e.to)}
+          onPointerEnter={() => setPointerIntent('enter')}
+          onPointerLeave={() => setPointerIntent('scan')}
+        >
+          <span className="modehost__onward-why">{e.because}</span>
+          <span className="modehost__onward-to">
+            {findModeTitle(e.to)}
+            <span aria-hidden="true"> →</span>
+          </span>
+        </button>
+      ))}
+    </nav>
+  );
+}
+
+function findModeTitle(id: string): string {
+  return MODES.find((m) => m.id === id)?.title ?? id.toUpperCase();
+}
+
 export function ModeHost() {
   const { activeMode, phase, exitMode, reportReady, reportError, scope } = useExperience();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -92,6 +129,7 @@ export function ModeHost() {
       className="modehost"
       ref={containerRef}
       data-phase={phase}
+      data-mode={activeMode.id}
       role="dialog"
       aria-modal="true"
       aria-label={`${activeMode.title} — ${activeMode.tagline}`}
@@ -125,6 +163,11 @@ export function ModeHost() {
       <Suspense fallback={<ModeFallback title={activeMode.title} />}>
         <LazyMode onReady={reportReady} onExit={exitMode} scope={scope} />
       </Suspense>
+
+      {/* Where this reality leads. Offered in the chrome rather than inside the
+          mode, so no reality has to be redesigned to carry it and none of them
+          can trap you: the index and Escape are always still there. */}
+      <OnwardMoves fromId={activeMode.id} phase={phase} />
     </div>
   );
 }

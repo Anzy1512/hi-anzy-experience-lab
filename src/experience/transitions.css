@@ -1,0 +1,95 @@
+/* ==========================================================================
+   TRANSITION OVERLAY
+
+   One element, above the document, driven by a single --tr-p custom property
+   from 0 to 1. It never carries content and nothing waits for it: if it is
+   cancelled or never runs, the visitor has already arrived.
+   ========================================================================== */
+
+.tr {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-pointer);
+  pointer-events: none;
+  --tr-p: 0;
+  /* Fades in over the first third and back out over the last. */
+  --tr-a: calc(1 - abs(var(--tr-p) * 2 - 1));
+}
+
+/* Reduced motion: one frame of offset, then gone. */
+.tr--static {
+  opacity: 0.5;
+}
+
+/* ---- REGISTRATION_SHIFT — three plates slipping and pulling back --------- */
+.tr--registration_shift::before,
+.tr--registration_shift::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: screen;
+  opacity: calc(var(--tr-a) * 0.5);
+}
+.tr--registration_shift::before {
+  background: var(--signal);
+  transform: translateY(calc((1 - var(--tr-p)) * -14px));
+}
+.tr--registration_shift::after {
+  background: var(--signal-hot);
+  transform: translateY(calc((1 - var(--tr-p)) * 14px));
+}
+
+/* ---- PAPER_APERTURE — a hole opening in the sheet ------------------------ */
+.tr--paper_aperture {
+  background: var(--ground);
+  opacity: var(--tr-a);
+  clip-path: polygon(
+    0 0, 100% 0, 100% 100%, 0 100%, 0 0,
+    calc(50% - var(--tr-p) * 50%) calc(50% - var(--tr-p) * 50%),
+    calc(50% - var(--tr-p) * 50%) calc(50% + var(--tr-p) * 50%),
+    calc(50% + var(--tr-p) * 50%) calc(50% + var(--tr-p) * 50%),
+    calc(50% + var(--tr-p) * 50%) calc(50% - var(--tr-p) * 50%),
+    calc(50% - var(--tr-p) * 50%) calc(50% - var(--tr-p) * 50%)
+  );
+}
+
+/* ---- PLATE_SEPARATE — layers pulling apart in depth ---------------------- */
+.tr--plate_separate::before,
+.tr--plate_separate::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: var(--ground);
+  opacity: calc(var(--tr-a) * 0.9);
+}
+.tr--plate_separate::before {
+  top: 0;
+  transform: translateY(calc(var(--tr-p) * -100%));
+}
+.tr--plate_separate::after {
+  bottom: 0;
+  transform: translateY(calc(var(--tr-p) * 100%));
+}
+
+/* ---- INK_DISSOLVE / ARCHIVE_RESOLVE — the surface as grain --------------- */
+.tr--ink_dissolve,
+.tr--archive_resolve {
+  background-image: radial-gradient(var(--figure-faint) 1px, transparent 1px);
+  background-size: 3px 3px;
+  opacity: var(--tr-a);
+}
+.tr--ink_dissolve {
+  background-size: calc(3px + var(--tr-p) * 22px) calc(3px + var(--tr-p) * 22px);
+}
+/* The inverse: grain gathering back into a surface. */
+.tr--archive_resolve {
+  background-size: calc(25px - var(--tr-p) * 22px) calc(25px - var(--tr-p) * 22px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tr {
+    transition: none;
+  }
+}

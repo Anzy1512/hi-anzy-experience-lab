@@ -3,6 +3,8 @@ import { CleanupScope, emergencyReset, setScrollLock } from '../core/cleanup';
 import { findMode } from '../content/lab';
 import { isEnterable, type ModePhase } from './types';
 import { markVisited } from './visited';
+import { clearTransition, runTransition, transitionFor } from './transitions';
+import { prefersReducedMotion } from '../core/capability';
 import { ExperienceContext, type ExperienceValue, type Stage } from './context';
 
 /**
@@ -117,7 +119,13 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
         // The map remembers where this visitor has walked, for this session.
         markVisited(loc.modeId);
         closeScope();
-        openScope(loc.modeId);
+        const next = openScope(loc.modeId);
+        // Punctuation, chosen by destination. Registered on the new scope so
+        // any exit removes it; nothing waits for it to finish.
+        runTransition(transitionFor(loc.modeId), {
+          scope: next,
+          reduced: prefersReducedMotion(),
+        });
         setActiveId(loc.modeId);
         setStage('mode');
         setPhase('loading');
@@ -125,7 +133,9 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Leaving mode territory in any way disposes the mode.
+      // Leaving mode territory in any way disposes the mode — and takes any
+      // in-flight transition overlay with it.
+      clearTransition();
       closeScope();
       setActiveId(null);
       setPhase('idle');

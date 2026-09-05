@@ -280,3 +280,77 @@ export const POSITION = {
 export function servicesForStage(stage: string): ServiceCategory[] {
   return SERVICES.filter((s) => s.stage === stage);
 }
+
+/* -------------------------------------------------------------------------- */
+/* THE REST OF THE CANONICAL MODEL                                             */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * `TRUST_PRINCIPLES` — how the company says it works, in its own words.
+ * Anzy.OS prints these as system policy, which is the honest place for them:
+ * a promise the operating environment holds itself to.
+ */
+export const PRINCIPLES: { name: string; short: string }[] = [
+  { name: 'Defined problem', short: 'We will not start until the problem fits in one sentence.' },
+  { name: 'Clear roadmap', short: 'What happens, in what order, and what must be true first.' },
+  { name: 'Named ownership', short: 'Every item has a person, not a department.' },
+  { name: 'Labelled credit', short: 'Who did what, always.' },
+  { name: 'Measured outcome', short: 'The measure is agreed in advance or it is not a measure.' },
+];
+
+/** `AUDIENCES` — who the work is for. Shapes of business, never named clients. */
+export const AUDIENCES: string[] = [
+  'Idea builders',
+  'Entrepreneurs',
+  'Founder-led companies',
+  'Established businesses modernising systems',
+  'D2C businesses',
+  'Commerce businesses',
+  'Hospitality',
+  'Service companies',
+  'Experience-led businesses',
+  'Internal innovation teams',
+  'Companies adopting AI or automation',
+  'Teams entering the next stage of growth',
+];
+
+/** `DIAGNOSTIC_AREAS` — the eleven areas an audit actually covers. */
+export const DIAGNOSTIC_AREAS: string[] = [
+  'Business', 'Brand', 'Customer', 'Sales', 'Marketing', 'Technology',
+  'Data', 'Operations', 'Automation', 'Security', 'Growth',
+];
+
+/** `DIAGNOSTIC_OUTCOMES` — what an audit produces, in order. */
+export const DIAGNOSTIC_OUTCOMES: string[] = [
+  'What is happening',
+  'Why it matters',
+  'What it is costing you',
+  'What should change',
+  'What happens first',
+  'Who should own it',
+  'How success gets measured',
+];
+
+/**
+ * `SOMETHINGS_OFF` — the symptoms a business notices before it can name the
+ * problem. The Agency Simulator opens on one of these because that is the real
+ * starting condition: not a brief, a feeling.
+ */
+export const SIGNALS: string[] = [
+  'Sales are growing but margins are not invited.',
+  'Marketing is busy. Nobody can explain what the busy-ness returns.',
+  'The website gets traffic. The traffic gets confused. The confusion leaves.',
+  'Four tools, three spreadsheets and one person who knows how it all connects. She is on leave.',
+  'Everything looks normal. That is occasionally the most expensive symptom of all.',
+];
+
+/** `NETWORK_CATEGORIES_HOME` — the twelve disciplines the network is built from. */
+export const NETWORK_DISCIPLINES: string[] = [
+  'STRATEGY', 'DESIGN', 'TECHNOLOGY', 'AI', 'AUTOMATION', 'MEDIA',
+  'CREATORS', 'PRODUCTION', 'EXPERIENCES', 'PR', 'SECURITY', 'OPERATIONS',
+];
+
+/** `INSIGHT_CATEGORIES` — the knowledge taxonomy. */
+export const INSIGHT_CATEGORIES: string[] = [
+  'Strategy', 'Design', 'Technology', 'Culture', 'Operations',
+];

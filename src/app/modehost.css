@@ -105,3 +105,115 @@
     display: none;
   }
 }
+
+/* ==========================================================================
+   ONWARD MOVES — the reality graph, offered without interrupting
+
+   Sits in the chrome, low-contrast until approached, so no reality had to be
+   redesigned to carry it. Never the only way out: the index and Escape remain.
+   ========================================================================== */
+.modehost__onward {
+  position: fixed;
+  right: var(--trim);
+  /* Clear of every mode's own bottom strip. Anzy.OS's job ticket, Sonic's
+     control strip and Matter's instrument band all live in the bottom band;
+     anchoring here printed the graph straight through them. */
+  bottom: calc(var(--trim) * 0.5 + 178px);
+  z-index: var(--z-chrome);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  max-width: min(46ch, 42vw);
+  pointer-events: none;
+}
+.modehost__onward-btn {
+  pointer-events: auto;
+  display: grid;
+  justify-items: end;
+  gap: 1px;
+  padding: 6px 9px;
+  /* Its own ground: this floats over whatever the reality is rendering. */
+  background: color-mix(in srgb, var(--ground) 88%, transparent);
+  border-right: 2px solid var(--rule);
+  text-align: right;
+  opacity: 0.4;
+  transition:
+    opacity var(--d-2) var(--e-snap),
+    border-right-color var(--d-2) var(--e-snap);
+}
+.modehost__onward-btn:hover,
+.modehost__onward-btn:focus-visible {
+  opacity: 1;
+  border-right-color: var(--signal);
+}
+.modehost__onward-why {
+  color: var(--figure-dim);
+  letter-spacing: 0.04em;
+  font-size: 0.5625rem;
+  max-width: 42ch;
+}
+.modehost__onward-to {
+  color: var(--figure);
+  letter-spacing: var(--tr-mono-wide);
+}
+
+/* On a phone the chrome is already busy; the graph folds to one move. */
+@media (max-width: 900px) {
+  .modehost__onward {
+    left: var(--trim);
+    max-width: none;
+    align-items: stretch;
+    bottom: calc(var(--trim) * 0.5 + 210px);
+  }
+  .modehost__onward-btn:nth-child(n + 2) {
+    display: none;
+  }
+  .modehost__onward-btn {
+    justify-items: start;
+    text-align: left;
+    border-right: 0;
+    border-left: 2px solid var(--rule);
+    padding: 8px;
+    opacity: 0.75;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modehost__onward-btn {
+    transition-duration: 1ms;
+  }
+}
+
+/* Memory keeps a position rail down the whole right edge and its card along the
+   bottom left, so neither default lane is free. Its one clear corner is top
+   right, under the exit control. Per-mode because only Memory is shaped this
+   way — the alternative is a layout contract every reality would have to obey. */
+.modehost[data-mode='memory'] .modehost__onward {
+  top: calc(var(--trim) * 0.5 + 46px);
+  bottom: auto;
+  right: calc(var(--trim) + 58px);
+}
+@media (max-width: 900px) {
+  .modehost[data-mode='memory'] .modehost__onward {
+    right: var(--trim);
+    left: auto;
+    top: calc(var(--trim) * 0.5 + 84px);
+    bottom: auto;
+    max-width: 60vw;
+  }
+}
+
+/* The Agency Simulator reserves the right third for its question panel and the
+   left two thirds for a composed working table. The graph tucks under the
+   panel's own bottom edge rather than sitting across either. */
+.modehost[data-mode='agency-simulator'] .modehost__onward {
+  bottom: calc(var(--trim) * 0.5 + 4px);
+  right: var(--trim);
+  max-width: 30ch;
+}
+@media (max-width: 900px) {
+  .modehost[data-mode='agency-simulator'] .modehost__onward {
+    max-width: none;
+  }
+}
