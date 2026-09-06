@@ -448,3 +448,22 @@
   color: var(--figure-dim);
   letter-spacing: var(--tr-mono-wide);
 }
+
+/* The artefact in the document fallback. Flat, small, and beside the writing —
+   a figure in a record, not a picture in a gallery. */
+.mem-doc__artefact {
+  margin: var(--s-2) 0 0;
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+}
+.mem-doc__artefact img {
+  display: block;
+  width: clamp(96px, 26vw, 140px);
+  height: auto;
+  background: color-mix(in srgb, var(--c-bone) 92%, transparent);
+  padding: 6px;
+}
+.mem-doc__artefact figcaption {
+  letter-spacing: var(--tr-mono-wide);
+}

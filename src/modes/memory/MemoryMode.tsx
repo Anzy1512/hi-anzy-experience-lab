@@ -9,6 +9,7 @@ import { SpatialCanvas } from '../../spatial/SpatialCanvas';
 import { clamp01, damp, lerp } from '../../spatial/projection';
 import { MEMORY_COPY, RECORDS, phaseFor } from '../../content/memory';
 import { SpecimenPlate } from '../../components/Specimen/SpecimenPlate';
+import { specimen, specimenSrc } from '../../content/specimens';
 import { MemoryField } from './MemoryField';
 import './memory.css';
 
@@ -389,6 +390,43 @@ function MemoryDocument({ capability }: { capability: { webgl: boolean; reducedM
                 {l}
               </p>
             ))}
+            {/*
+              The artefact belongs in the fallback too.
+
+              The spatial card gained one and this did not, which quietly made
+              a surviving object something only a WebGL visitor could know
+              about — and `ARTEFACT — UNRECOVERED` something only they were
+              told. Both are findings, and the Lab's rule is that the semantic
+              path carries the same information rather than a summary of it.
+
+              No plate separation here: a fallback is a document, and a
+              document shows the artefact flat. That is also the correct
+              reduced-motion answer rather than a second one.
+            */}
+            {r.artefact ? (
+              <figure className="mem-doc__artefact">
+                <img
+                  src={specimenSrc(r.artefact)}
+                  width={specimen(r.artefact)?.w}
+                  height={specimen(r.artefact)?.h}
+                  loading="lazy"
+                  decoding="async"
+                  alt={(() => {
+                    const sp = specimen(r.artefact);
+                    if (!sp) return '';
+                    return sp.instead
+                      ? `${sp.subject} Where the head would be: ${sp.instead}.`
+                      : sp.subject;
+                  })()}
+                />
+                <figcaption className="t-mono t-mono-xs t-faint">ARTEFACT · RECOVERED</figcaption>
+              </figure>
+            ) : (
+              <p className="t-mono t-mono-xs t-faint mem-doc__lost">
+                ARTEFACT — {MEMORY_COPY.unrecovered}
+              </p>
+            )}
+
             {r.lost.length > 0 && (
               <p className="t-mono t-mono-xs t-faint mem-doc__lost">
                 {r.lost.join(' · ')} — {MEMORY_COPY.unrecovered}
