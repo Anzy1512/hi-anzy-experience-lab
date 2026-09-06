@@ -23,6 +23,7 @@ export type ShotKind =
   | 'plate'
   | 'roster'
   | 'mark'
+  | 'specimen'
   | 'end';
 
 export interface Shot {
@@ -34,6 +35,16 @@ export interface Shot {
   caption?: string;
   /** No movement. The shot arrives and holds. */
   still?: boolean;
+  /**
+   * A `SPECIMENS` id, for `kind: 'specimen'`.
+   *
+   * Four of these across six acts, and each one is chosen because the image
+   * argues the line beside it — not because the film needed a picture. A film
+   * about a company that had no images of anything was the largest single gap
+   * in this reality; four is enough to close it and few enough that it does not
+   * become a slideshow.
+   */
+  specimen?: string;
 }
 
 export const ACTS = [
@@ -50,6 +61,10 @@ export const SHOTS: Shot[] = [
   { kind: 'slate', act: 0, dur: 3.4, caption: 'HA/XL — DIRECTOR', still: true },
   { kind: 'wordmark', act: 0, dur: 5.2 },
   { kind: 'statement', act: 0, dur: 3.6, lines: ['ONE COMPANY.', 'MULTIPLE REALITIES.'], still: true },
+  /* Two figures walking in step with cameras for heads. The act is called
+     SIGNAL and the line before it is "one company, multiple realities" — this
+     is that sentence as a photograph the company already owns. */
+  { kind: 'specimen', act: 0, dur: 5.0, specimen: 'char-walkers', caption: 'TWO WAYS OF LOOKING · ONE DIRECTION' },
 
   /* ---- ACT II — THE PROBLEM --------------------------------------------- */
   {
@@ -60,9 +75,16 @@ export const SHOTS: Shot[] = [
   },
   { kind: 'scatter', act: 1, dur: 6.2, caption: 'FOUR AGENCIES. FOUR ANSWERS. ONE COMPANY.' },
   { kind: 'statement', act: 1, dur: 4.0, lines: ['A COMPANY IS NOT', 'A LIST OF SERVICES.'], still: true },
+  /* A figure with a Rubik's cube where its head should be. There is no better
+     image for the act called THE PROBLEM: a thing you can turn all day and
+     still not have solved. */
+  { kind: 'specimen', act: 1, dur: 5.6, specimen: 'pop-cube-thinker', caption: 'SOLVABLE. NOT YET SOLVED.' },
 
   /* ---- ACT III — STRUCTURE ---------------------------------------------- */
   { kind: 'grid', act: 2, dur: 5.4, caption: 'MEASURE FIRST' },
+  /* A clock and a watch — the same measure at two scales, which is what the
+     method is: one sequence that runs a fortnight or a year. */
+  { kind: 'specimen', act: 2, dur: 4.8, specimen: 'pop-clock-watch', caption: 'THE SAME MEASURE, TWICE' },
   { kind: 'stages', act: 2, dur: 8.6, caption: 'THE METHOD' },
   { kind: 'statement', act: 2, dur: 3.8, lines: ['STRUCTURE IS', 'THE PRODUCT.'], still: true },
 
@@ -85,6 +107,10 @@ export const SHOTS: Shot[] = [
     still: true,
   },
   { kind: 'statement', act: 5, dur: 3.2, lines: ['AND IT SAYS SO.'], still: true },
+  /* A hat and a balloon: the lighter thing tethered to the heavier one. The
+     act is POSSIBILITY and the film has just finished insisting on structure,
+     so it closes on the object that needs both. */
+  { kind: 'specimen', act: 5, dur: 5.2, specimen: 'pop-hat-balloon', caption: 'TETHERED, AND STILL RISING' },
   { kind: 'end', act: 5, dur: 6.5, still: true },
 ];
 

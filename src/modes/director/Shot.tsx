@@ -1,5 +1,7 @@
 import { FRAGMENTS, STAGES, DIRECTOR_COPY, type Shot as ShotDef } from '../../content/director';
 import { MODES, onlineCount } from '../../content/lab';
+import { SpecimenPlate } from '../../components/Specimen/SpecimenPlate';
+import type { CleanupScope } from '../../core/cleanup';
 
 /**
  * THE SHOTS.
@@ -22,7 +24,17 @@ function ease(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
-export function Shot({ shot, p, reduced }: { shot: ShotDef; p: number; reduced: boolean }) {
+export function Shot({
+  shot,
+  p,
+  reduced,
+  scope,
+}: {
+  shot: ShotDef;
+  p: number;
+  reduced: boolean;
+  scope: CleanupScope;
+}) {
   // Reduced motion cuts to the composed frame: every shot is an editorial
   // tableau that arrives whole. The film keeps its structure and its silence.
   const q = reduced ? 1 : p;
@@ -46,12 +58,74 @@ export function Shot({ shot, p, reduced }: { shot: ShotDef; p: number; reduced: 
       return <Roster p={q} caption={shot.caption ?? ''} />;
     case 'mark':
       return <Mark p={q} reduced={reduced} />;
+    case 'specimen':
+      return (
+        <SpecimenShot
+          p={q}
+          id={shot.specimen ?? ''}
+          caption={shot.caption ?? ''}
+          reduced={reduced}
+          scope={scope}
+        />
+      );
     case 'end':
       return <End p={q} />;
   }
 }
 
 /* -------------------------------------------------------------------------- */
+
+/**
+ * A specimen, held in frame.
+ *
+ * The camera does not move and the plate does not follow the pointer — this is
+ * a film. What happens across the shot is a *lens move*: the plate arrives
+ * slightly off-axis and settles square, so the collage's own layers separate
+ * and then register. The image is being brought into focus, not flown past.
+ *
+ * The caption sits under it in the system voice, set as a specimen label
+ * rather than a title, because that is what it is.
+ */
+function SpecimenShot({
+  p,
+  id,
+  caption,
+  reduced,
+  scope,
+}: {
+  p: number;
+  id: string;
+  caption: string;
+  reduced: boolean;
+  scope: CleanupScope;
+}) {
+  const settle = ease(span(p, 0.04, 0.62));
+  const out = span(p, 0.9, 1);
+  // Off-axis on arrival, square by the middle of the shot. Small numbers: this
+  // is a plate being set down, not a card being flipped.
+  const rx = reduced ? 0 : (1 - settle) * -6;
+  const ry = reduced ? 0 : (1 - settle) * 11;
+
+  return (
+    <div className="dr-shot dr-specimen" style={{ opacity: reduced ? 1 : Math.min(settle * 1.6, 1) * (1 - out) }}>
+      <SpecimenPlate
+        id={id}
+        reduced={reduced}
+        scope={scope}
+        width={330}
+        /* The frame decides. Half the viewport height leaves the plate room to
+           be a held object rather than a wall, and leaves its label somewhere
+           to sit. */
+        maxHeight={Math.round(typeof window === 'undefined' ? 420 : window.innerHeight * 0.52)}
+        separation={0.85}
+        tilt={{ rx, ry }}
+      />
+      {caption && (
+        <p className="t-mono t-mono-xs t-dim dr-specimen__caption">{caption}</p>
+      )}
+    </div>
+  );
+}
 
 function Slate({ p, caption, reduced }: { p: number; caption: string; reduced: boolean }) {
   const on = reduced ? 1 : span(p, 0.06, 0.3) * (1 - span(p, 0.82, 1));

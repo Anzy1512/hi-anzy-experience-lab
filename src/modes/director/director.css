@@ -483,3 +483,24 @@
     transition-duration: 1ms;
   }
 }
+
+/* ==========================================================================
+   THE SPECIMEN SHOT
+
+   A collage held in frame. Centred, at plate scale, with its label under it —
+   the composition of a specimen being examined rather than an image being
+   presented. The film's only images, and they are the company's own.
+   ========================================================================== */
+.dr-specimen {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  /* Clearance. The plate's mount bleeds past its own box, so the label needs
+     more than a normal gap or it prints onto the paper. */
+  gap: var(--s-5);
+}
+.dr-specimen__caption {
+  letter-spacing: var(--tr-mono-wide);
+  text-align: center;
+  max-width: 40ch;
+}

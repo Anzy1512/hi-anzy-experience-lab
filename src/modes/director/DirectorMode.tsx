@@ -195,7 +195,7 @@ export default function DirectorMode({ onReady, onExit, scope }: ModeViewProps) 
       {/* ---- the frame ---------------------------------------------------- */}
       {playing && (
         <div className="dr-frame" key={index}>
-          <Shot shot={shot} p={p} reduced={reduced} />
+          <Shot shot={shot} p={p} reduced={reduced} scope={scope} />
         </div>
       )}
 
