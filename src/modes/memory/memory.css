@@ -411,3 +411,40 @@
     padding: 8px 12px;
   }
 }
+
+/* ==========================================================================
+   THE ARTEFACT SLOT
+
+   Five records have a surviving object and five do not. Both states occupy
+   the same place in the card and are set in the same voice, so the absence
+   reads as a finding rather than as a gap in the layout — which is the whole
+   point of an archive that reports what it has lost.
+
+   The plate is small on purpose. This is a record card, not a gallery: the
+   artefact is evidence attached to a document, and it should read as the
+   smaller thing beside the writing.
+   ========================================================================== */
+.mem-card__artefact {
+  display: grid;
+  gap: var(--s-1);
+  justify-items: start;
+  margin-top: var(--s-2);
+}
+.mem-card__artefact-label {
+  letter-spacing: var(--tr-mono-wide);
+}
+/* Condition follows integrity. A record that kept less of itself shows an
+   artefact that kept less of itself — the plate and the meter above it are
+   reporting the same number. */
+.mem-card__plate {
+  opacity: calc(0.45 + 0.55 * var(--mem-integrity, 1));
+}
+
+.mem-card__artefact-lost {
+  margin-top: var(--s-2);
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  color: var(--figure-dim);
+  letter-spacing: var(--tr-mono-wide);
+}

@@ -8,6 +8,7 @@ import { spatialQuality } from '../../spatial/quality';
 import { SpatialCanvas } from '../../spatial/SpatialCanvas';
 import { clamp01, damp, lerp } from '../../spatial/projection';
 import { MEMORY_COPY, RECORDS, phaseFor } from '../../content/memory';
+import { SpecimenPlate } from '../../components/Specimen/SpecimenPlate';
 import { MemoryField } from './MemoryField';
 import './memory.css';
 
@@ -233,7 +234,13 @@ export default function MemoryMode({ onReady, scope }: ModeViewProps) {
 
       {/* ---- the record, as an archive card ------------------------------- */}
       {live && (
-        <article className="mem-card" data-conf={confidence > 0.5 ? 'high' : 'low'}>
+        <article
+          className="mem-card"
+          data-conf={confidence > 0.5 ? 'high' : 'low'}
+          /* The artefact's condition is the record's integrity, not a second
+             number invented for it. */
+          style={{ ['--mem-integrity' as string]: String(record.integrity) }}
+        >
           <header className="mem-card__head">
             <span className="t-mono t-mono-xs mem-card__index">{record.index}</span>
             <span className="t-mono t-mono-xs t-dim mem-card__cat">{record.category}</span>
@@ -273,6 +280,43 @@ export default function MemoryMode({ onReady, scope }: ModeViewProps) {
             <span className="mem-card__sep">·</span>
             RECONSTRUCTION {Math.round(confidence * 100).toString().padStart(3, '0')}
           </p>
+
+          {/*
+            THE ARTEFACT.
+
+            An archive that holds only words is a glossary. Five of the ten
+            records have a surviving object; the other five say so, in exactly
+            the register the lost fields use, because a record whose artefact
+            did not survive is reporting something true rather than missing a
+            picture.
+
+            The plate's condition is driven by the record's own integrity — the
+            same number the meter above it is drawing — so the artefact and the
+            document agree about how much of this survived.
+          */}
+          {record.artefact ? (
+            <div className="mem-card__artefact">
+              <p className="t-mono t-mono-xs t-faint mem-card__artefact-label">
+                ARTEFACT · RECOVERED
+              </p>
+              <SpecimenPlate
+                id={record.artefact}
+                reduced={reduced}
+                scope={scope}
+                width={148}
+                maxHeight={188}
+                separation={0.6}
+                marks={false}
+                className="mem-card__plate"
+              />
+            </div>
+          ) : (
+            <p className="t-mono t-mono-xs mem-card__artefact-lost">
+              <span className="mem-card__rule" aria-hidden="true" />
+              ARTEFACT
+              <span className="t-faint"> {MEMORY_COPY.unrecovered}</span>
+            </p>
+          )}
 
           {record.lost.length > 0 && (
             <ul className="mem-card__lost">

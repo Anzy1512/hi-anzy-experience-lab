@@ -34,6 +34,25 @@ export interface MemoryRecord {
   integrity: number;
   /** Fields that did not survive. Shown as unrecovered rather than invented. */
   lost: string[];
+  /**
+   * A surviving artefact, if this record has one. A `SPECIMENS` id.
+   *
+   * ── WHY ONLY SOME RECORDS HAVE ONE ──────────────────────────────────────
+   *
+   * Deliberately optional, and deliberately absent from half the set. An
+   * archive where every record comes with a picture is a catalogue; an archive
+   * where some records have an artefact and some have only a description is an
+   * archive. The absence is the same information as `lost` — it says the
+   * document survived and the thing it describes did not — and Memory's whole
+   * thesis is that what is missing is reported rather than filled in.
+   *
+   * The artefacts themselves are the company's own collages (see
+   * `content/specimens.ts`), which is what makes this an archive of Hi Anzy
+   * rather than an archive of stock photography. Each one's condition is
+   * driven by its record's `integrity`, so the plate reports the same number
+   * the meter does.
+   */
+  artefact?: string;
 }
 
 export const RECORDS: MemoryRecord[] = [
@@ -51,6 +70,7 @@ export const RECORDS: MemoryRecord[] = [
   },
   {
     id: 'register',
+    artefact: 'pop-hands-a',
     index: 'M.02',
     category: 'ORIGIN',
     title: 'REGISTER',
@@ -63,6 +83,7 @@ export const RECORDS: MemoryRecord[] = [
   },
   {
     id: 'audit',
+    artefact: 'pop-cube-thinker',
     index: 'M.03',
     category: 'METHOD',
     title: 'AUDIT',
@@ -111,6 +132,7 @@ export const RECORDS: MemoryRecord[] = [
   },
   {
     id: 'night',
+    artefact: 'char-walkers',
     index: 'M.07',
     category: 'CULTURE',
     title: 'NIGHT',

@@ -13,9 +13,16 @@
  * photomontage library in the company's exact palette: monochrome cut-out
  * figures with an object where the head should be — a Rubik's cube, a balloon,
  * a Praktica SLR — standing on a halftone dot field the colour of the
- * canonical `--paper`, sometimes with a signal-orange shape behind. Seven
- * archetypes, seven object studies. Nobody in them is identifiable, because
- * nobody in them has a face.
+ * canonical `--paper`, sometimes with a signal-orange shape behind. Nobody in
+ * them is identifiable, because nobody in them has a face.
+ *
+ * Every `subject` below was written after opening the file. The first pass
+ * wrote five of them from the filename and got them wrong — `pop-hat-balloon`
+ * was recorded as "a hat and a balloon" when it is a headless suited figure
+ * lifting a hat, and `pop-hands-a` as "two hands and the space between them"
+ * when the hands are clasped and form the apex of a letter A. These strings
+ * become alt text: they are a factual claim about what an image contains, made
+ * to somebody who cannot check it.
  *
  * ── WHY THIS IS NOT "ADD PICTURES" ──────────────────────────────────────────
  *
@@ -50,7 +57,27 @@
  *   source   Anzy1512/hi-anzy-platform @ 6e36db1, frontend/public/brand/
  */
 
-export type SpecimenFamily = 'ARCHETYPE' | 'OBJECT';
+/**
+ * CUT, or MOUNTED.
+ *
+ * The first version of this file called the two families ARCHETYPE and OBJECT,
+ * from the `char-` and `pop-` filename prefixes. Opening all fourteen shows
+ * something far better: they are the *same seven works in two states*. `pop-`
+ * is the collage cut out against white. `char-` is that same collage mounted
+ * on the halftone paper field, with a grey disc behind it and a signal shape at
+ * the edge.
+ *
+ * pop-clock-watch   is char-anchor, cut out.
+ * pop-bulb-armchair is char-challenger, cut out.
+ * pop-cube-thinker  is char-fixer, cut out.
+ * pop-hat-balloon   is char-visionary, cut out.
+ * pop-camera-duo    is char-walkers, cut out.
+ *
+ * Which is the entire argument of SPECIMEN_PLATE, shipped by the company as
+ * files: a collage is a cut thing and a mounted thing, and the difference
+ * between those two states is the space this Lab puts back.
+ */
+export type SpecimenFamily = 'CUT' | 'MOUNTED';
 
 export interface Specimen {
   /** File stem in `/brand/`. */
@@ -59,11 +86,12 @@ export interface Specimen {
   /** What is actually in the frame. Written from looking, not from the name. */
   subject: string;
   /**
-   * Where the head is not.
+   * What stands where the head is not.
    *
-   * Every archetype in this set replaces the face with an object, which is why
-   * the set carries no consent question — and it is also the whole idea, so it
-   * is recorded rather than left as an observation somebody has to re-make.
+   * Twelve of the fourteen replace the face with an object, which is why the
+   * set carries no consent question — and it is also the whole idea, so it is
+   * recorded rather than left as an observation somebody has to re-make. The
+   * two that are not figures (`pop-hands-a`, `pop-white-flag`) hold `null`.
    */
   instead: string | null;
   /** sha256/12 of the mirrored AVIF, against the canonical file. */
@@ -74,127 +102,141 @@ export interface Specimen {
 }
 
 export const SPECIMENS: Specimen[] = [
-  {
-    id: 'char-visionary',
-    family: 'ARCHETYPE',
-    subject: 'A suited figure raising a hat, on a halftone paper field with a signal shape below.',
-    instead: 'a balloon',
-    hash: '5efe13abb7d3',
-    w: 321,
-    h: 720,
-  },
-  {
-    id: 'char-walkers',
-    family: 'ARCHETYPE',
-    subject: 'Two figures walking in step, arm in arm.',
-    instead: 'a Praktica SLR and a Polaroid',
-    hash: 'e29b017b52be',
-    w: 522,
-    h: 980,
-  },
+  /* ---- MOUNTED — the collage on its halftone paper field ----------------- */
   {
     id: 'char-anchor',
-    family: 'ARCHETYPE',
-    subject: 'A standing figure, weight settled.',
-    instead: 'an object',
+    family: 'MOUNTED',
+    subject:
+      'A figure in a windowpane-check suit, checking a wristwatch, mounted on halftone paper with a signal shape at the foot.',
+    instead: 'a ringing alarm clock reading eight o’clock',
     hash: '1f0c5c82d117',
     w: 410,
     h: 720,
   },
   {
     id: 'char-challenger',
-    family: 'ARCHETYPE',
-    subject: 'A figure mid-gesture, leaning into something.',
-    instead: 'an object',
+    family: 'MOUNTED',
+    subject:
+      'A figure in a dinner jacket and bow tie, sprawled across a buttoned armchair, mounted on halftone paper.',
+    instead: 'a large filament light bulb',
     hash: '65f2ce90cd7c',
     w: 520,
     h: 657,
   },
   {
     id: 'char-expressionist',
-    family: 'ARCHETYPE',
-    subject: 'A figure whose posture is doing the talking.',
-    instead: 'an object',
+    family: 'MOUNTED',
+    subject:
+      'A seated figure in a fedora with its arms folded, mounted on halftone paper. No cut-out version of this one was supplied.',
+    instead: 'a vintage ribbon microphone',
     hash: '8f8f705d61ca',
     w: 464,
     h: 720,
   },
   {
     id: 'char-fixer',
-    family: 'ARCHETYPE',
-    subject: 'A figure with its hands already occupied.',
-    instead: 'an object',
+    family: 'MOUNTED',
+    subject:
+      'A figure in a period blouse, one hand raised to where a chin would be, on a grey disc over halftone paper.',
+    instead: 'a Rubik’s cube',
     hash: '416f0019f818',
     w: 494,
     h: 720,
   },
   {
     id: 'char-trendsetter',
-    family: 'ARCHETYPE',
-    subject: 'A figure half-turned, going somewhere.',
-    instead: 'an object',
+    family: 'MOUNTED',
+    subject:
+      'A figure in a patterned top, arm raised, against an orange bar and halftone paper. No cut-out version of this one was supplied.',
+    instead: 'a burst of striped foliage',
     hash: 'e8a6c1f93815',
     w: 412,
     h: 720,
   },
   {
+    id: 'char-visionary',
+    family: 'MOUNTED',
+    subject:
+      'A suited figure lifting a hat clear of its shoulders, mounted on halftone paper with a signal shape at the foot.',
+    instead: 'a balloon on a string',
+    hash: '5efe13abb7d3',
+    w: 321,
+    h: 720,
+  },
+  {
+    id: 'char-walkers',
+    family: 'MOUNTED',
+    subject:
+      'Two figures walking arm in arm in tailored suits, mounted on halftone paper beside a dark bar.',
+    instead: 'a Praktica SLR and a Polaroid camera',
+    hash: 'e29b017b52be',
+    w: 522,
+    h: 980,
+  },
+
+  /* ---- CUT — the same works, scissored out against white ----------------- */
+  {
+    id: 'pop-clock-watch',
+    family: 'CUT',
+    subject: 'A figure in a check suit checking a wristwatch, cut out against white.',
+    instead: 'a ringing alarm clock reading eight o’clock',
+    hash: '0931f55c306a',
+    w: 428,
+    h: 583,
+  },
+  {
+    id: 'pop-bulb-armchair',
+    family: 'CUT',
+    subject:
+      'A figure in a dinner jacket sprawled across a buttoned armchair, cut out against white.',
+    instead: 'a large filament light bulb',
+    hash: '9a4d637f397b',
+    w: 376,
+    h: 664,
+  },
+  {
     id: 'pop-cube-thinker',
-    family: 'OBJECT',
-    subject: 'A seated figure in a period blouse, hand raised to where a chin would be, on a grey disc.',
+    family: 'CUT',
+    subject:
+      'A figure in a period blouse, one hand raised to where a chin would be, on a grey disc.',
     instead: 'a Rubik’s cube',
     hash: '23277c0c1520',
     w: 422,
     h: 591,
   },
   {
+    id: 'pop-hat-balloon',
+    family: 'CUT',
+    subject: 'A suited figure lifting a hat clear of its shoulders, cut out against white.',
+    instead: 'a balloon on a string',
+    hash: 'ba5a0c75b44a',
+    w: 392,
+    h: 637,
+  },
+  {
     id: 'pop-camera-duo',
-    family: 'OBJECT',
-    subject: 'Two cameras, composed as a pair.',
-    instead: null,
+    family: 'CUT',
+    subject: 'Two figures walking arm in arm in tailored suits, cut out against white.',
+    instead: 'a Praktica SLR and a Polaroid camera',
     hash: '096a6ca1bb5e',
     w: 402,
     h: 621,
   },
   {
-    id: 'pop-clock-watch',
-    family: 'OBJECT',
-    subject: 'A clock and a watch — the same measure at two scales.',
-    instead: null,
-    hash: '0931f55c306a',
-    w: 428,
-    h: 583,
-  },
-  {
     id: 'pop-hands-a',
-    family: 'OBJECT',
-    subject: 'Two hands, and the space between them.',
+    family: 'CUT',
+    subject:
+      'Two hands clasped at the wrist, forming the apex of a letter A whose serif legs are drawn in solid black beneath them. A letterform built out of a grip.',
     instead: null,
     hash: '9dc87ab81b87',
     w: 435,
     h: 573,
   },
   {
-    id: 'pop-hat-balloon',
-    family: 'OBJECT',
-    subject: 'A hat and a balloon, the lighter thing tethered to the heavier.',
-    instead: null,
-    hash: 'ba5a0c75b44a',
-    w: 392,
-    h: 637,
-  },
-  {
-    id: 'pop-bulb-armchair',
-    family: 'OBJECT',
-    subject: 'A bulb and an armchair — the idea and the place you have it.',
-    instead: null,
-    hash: '9a4d637f397b',
-    w: 376,
-    h: 664,
-  },
-  {
     id: 'pop-white-flag',
-    family: 'OBJECT',
-    subject: 'A white flag, raised.',
+    family: 'CUT',
+    subject:
+      'A hand reaching up through a hole cut in a grey card, waving a small white flag, with a black disc in the upper corner.',
     instead: null,
     hash: '87513658fec6',
     w: 375,
@@ -231,8 +273,32 @@ export function specimen(id: string): Specimen | undefined {
   return SPECIMENS.find((s) => s.id === id);
 }
 
-export const ARCHETYPES = SPECIMENS.filter((s) => s.family === 'ARCHETYPE');
-export const OBJECTS = SPECIMENS.filter((s) => s.family === 'OBJECT');
+export const CUT = SPECIMENS.filter((s) => s.family === 'CUT');
+export const MOUNTED = SPECIMENS.filter((s) => s.family === 'MOUNTED');
+
+/**
+ * The same work in its other state, where one exists.
+ *
+ * Two of the cut-outs (`pop-hands-a`, `pop-white-flag`) were never mounted, and
+ * two of the mounted plates (`char-expressionist`, `char-trendsetter`) were
+ * never supplied cut out. Recorded as `null` rather than guessed.
+ */
+export const COUNTERPART: Record<string, string | null> = {
+  'char-anchor': 'pop-clock-watch',
+  'char-challenger': 'pop-bulb-armchair',
+  'char-fixer': 'pop-cube-thinker',
+  'char-visionary': 'pop-hat-balloon',
+  'char-walkers': 'pop-camera-duo',
+  'char-expressionist': null,
+  'char-trendsetter': null,
+  'pop-clock-watch': 'char-anchor',
+  'pop-bulb-armchair': 'char-challenger',
+  'pop-cube-thinker': 'char-fixer',
+  'pop-hat-balloon': 'char-visionary',
+  'pop-camera-duo': 'char-walkers',
+  'pop-hands-a': null,
+  'pop-white-flag': null,
+};
 
 /** The path a reality loads. Nothing here is bundled; these are public files. */
 export function specimenSrc(id: string): string {
