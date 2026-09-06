@@ -161,3 +161,55 @@
   .pr-band { transition-duration: 120ms; }
   .pr-meter__fill { transition-duration: 1ms; }
 }
+
+/* ==========================================================================
+   CONTACT_GAP — where the field changes its mind.
+
+   A ring at the visitor's current radius of influence, drawn at the presence
+   point rather than at the cursor: on the camera path there is no cursor, and
+   the point is the reading, not the mouse.
+
+   The inversion is the event. Below the threshold the field is drawn toward
+   the visitor and the ring is a dashed approach; above it the field is pushed
+   away and the ring closes to a solid signal edge. One boundary, two states,
+   and the state is read from the same number the physics is given — so this
+   cannot drift out of agreement with what the particles are doing.
+
+   Never a glow, never a cursor. The Lab does not draw fake cursors, and a
+   coarse pointer gets the same ring at the same place a finger actually is.
+   ========================================================================== */
+.pr-gap {
+  position: absolute;
+  left: var(--gx, 50%);
+  top: var(--gy, 50%);
+  width: calc(var(--gr, 0.2) * 42vmin);
+  height: calc(var(--gr, 0.2) * 42vmin);
+  margin-left: calc(var(--gr, 0.2) * -21vmin);
+  margin-top: calc(var(--gr, 0.2) * -21vmin);
+  border-radius: 50%;
+  border: var(--hair) dashed var(--rule);
+  pointer-events: none;
+  transition:
+    border-color var(--d-1) var(--e-snap),
+    border-style var(--d-1) var(--e-snap);
+}
+/* Ignition. The moment attraction becomes repulsion. */
+.pr-gap[data-inverted='true'] {
+  border-style: solid;
+  border-color: var(--signal);
+}
+/* A second, fixed ring at the threshold radius, so the boundary is a place on
+   screen and not only a state — you can see how far you have to move. */
+.pr-gap::after {
+  content: '';
+  position: absolute;
+  inset: 22%;
+  border-radius: 50%;
+  border: var(--hair) solid var(--rule-faint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pr-gap {
+    transition-duration: 1ms;
+  }
+}

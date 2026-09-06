@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ModeViewProps } from '../../experience/types';
+import { METHOD } from '../../content/canonical';
 import { useCoarsePointer, useReducedMotion } from '../../core/hooks';
 import { onFrame } from '../../core/raf';
 import { setPointerIntent } from '../../core/pointer';
 import { useAudio } from '../../audio/useAudio';
 import { bed, degree, play } from '../../audio/voices';
+import { pointer } from '../../core/pointer';
+import { HalftoneField, type LampPosition } from './HalftoneField';
 import './afterdark.css';
 
 /**
@@ -53,9 +56,15 @@ const POSTERS: Poster[] = [
     layout: 'block',
   },
   {
+    /* This poster was still printing ABSORB · CLARIFY · BLUEPRINT · ASSEMBLE ·
+       SUSTAIN — the method from an older printed deck. Phase 5.5 replaced that
+       with the company's real sequence across five realities and missed this
+       one, because a poster is not where anybody looks for a data dependency.
+       It is the canonical method now, and it comes from `canonical.METHOD`
+       rather than from a second copy typed here. */
     kicker: 'THE METHOD, LATE',
-    lines: ['ABSORB', 'CLARIFY', 'BLUEPRINT'],
-    foot: 'ASSEMBLE · SUSTAIN',
+    lines: [METHOD[0].label, METHOD[1].label, METHOD[2].label],
+    foot: `${METHOD[3].label} · ${METHOD[4].label}`,
     layout: 'stack',
   },
   {
@@ -73,6 +82,8 @@ const POSTERS: Poster[] = [
 ];
 
 const HOLD_MS = 7200;
+/** How long the visitor keeps the lamp after they stop moving. */
+const HOLD_LAMP_MS = 2000;
 
 export default function AfterDarkMode({ onReady, scope }: ModeViewProps) {
   const reduced = useReducedMotion();
@@ -87,6 +98,28 @@ export default function AfterDarkMode({ onReady, scope }: ModeViewProps) {
   const elapsed = useRef(0);
   const lampRef = useRef<HTMLDivElement>(null);
   const stopBed = useRef<(() => void) | null>(null);
+
+  /*
+   * Where the light is, 0..1 in each axis.
+   *
+   * A ref rather than state: the halftone reads it every frame and the posters
+   * must never re-render because a lamp moved. It starts at centre so the wall
+   * is lit before anybody touches anything — the studio is closed, but the
+   * light is still on.
+   */
+  const lamp = useRef<LampPosition>({ x: 0.5, y: 0.46 });
+  /*
+   * When the visitor last moved. `held` is derived from this inside the frame
+   * callback rather than kept in state.
+   *
+   * The first version bound the lamp to pointer enter/leave on the whole mode,
+   * which meant the light was "held" whenever the mouse happened to be in the
+   * window — i.e. permanently, on any desktop. That is not somebody picking up
+   * a lamp; that is the pointer existing. Movement is the signal: while the
+   * visitor is moving they have the light, and two seconds after they stop the
+   * wall goes back to sweeping on its own, which is the mode's whole premise.
+   */
+  const lastMove = useRef(0);
 
   const poster = POSTERS[i % POSTERS.length];
 
@@ -115,12 +148,33 @@ export default function AfterDarkMode({ onReady, scope }: ModeViewProps) {
       elapsed.current += dt;
       if (elapsed.current >= HOLD_MS) advance();
 
-      // The sodium lamp sweeps. Written straight to a custom property so the
-      // poster never re-renders for it.
-      if (!reduced && lampRef.current) {
-        const t = performance.now() / 9000;
-        lampRef.current.style.setProperty('--lx', `${50 + Math.sin(t) * 34}%`);
-        lampRef.current.style.setProperty('--ly', `${46 + Math.cos(t * 0.73) * 22}%`);
+      /*
+       * The lamp.
+       *
+       * Unattended, it sweeps on its own — that is the mode's premise and it
+       * has to keep being true when nobody is there. The moment a pointer is
+       * over the wall the visitor is holding the light instead, and the sweep
+       * hands over rather than fighting it. Written straight to custom
+       * properties and to a ref, so neither the posters nor the halftone
+       * re-render for a light that moved.
+       */
+      if (!reduced) {
+        const held = performance.now() - lastMove.current < HOLD_LAMP_MS;
+        if (held) {
+          lamp.current.x = pointer.nx;
+          lamp.current.y = pointer.ny;
+        } else {
+          const t = performance.now() / 9000;
+          lamp.current.x = 0.5 + Math.sin(t) * 0.34;
+          lamp.current.y = 0.46 + Math.cos(t * 0.73) * 0.22;
+        }
+        if (lampRef.current) {
+          lampRef.current.style.setProperty('--lx', `${lamp.current.x * 100}%`);
+          lampRef.current.style.setProperty('--ly', `${lamp.current.y * 100}%`);
+        }
+        if (rootRef.current) {
+          rootRef.current.dataset.held = held ? 'true' : 'false';
+        }
       }
     });
     scope.add(stop);
@@ -167,11 +221,23 @@ export default function AfterDarkMode({ onReady, scope }: ModeViewProps) {
       ref={rootRef}
       data-armed={armed ? 'true' : 'false'}
       data-paused={paused ? 'true' : 'false'}
+      data-held="false"
+      /* Moving is holding. Touch has no hover, so a finger down counts too. */
+      onPointerMove={() => {
+        lastMove.current = performance.now();
+      }}
+      onPointerDown={() => {
+        lastMove.current = performance.now();
+      }}
       onClick={(e) => {
         if ((e.target as HTMLElement).closest('button')) return;
         advance();
       }}
     >
+      {/* THE HALFTONE. The stock itself, as a dot screen that opens under the
+          light and closes away from it — HALFTONE_FIELD, running. */}
+      <HalftoneField lampRef={lamp} scope={scope} reduced={reduced} />
+
       {/* Sodium lamp. One warm light on black stock, never a neon glow. */}
       <div className="ad-lamp" ref={lampRef} aria-hidden="true" />
 

@@ -227,56 +227,56 @@ const PHASE_6_PRIMITIVES: Primitive[] = [
   },
   {
     id: 'NOISE_ORDER',
-    wired: false,
+    wired: true,
     origin: 'components/three/LensField.js + motion/OrderingGrid.js',
     canonicalBehaviour:
       'A scatter of points resolves into an exact grid as two lenses cross — the site’s argument that "a note is worth writing when something stops being noise". OrderingGrid does the same thing in the DOM with seeded, never random, offsets resolving into alignment.',
     spatialBehaviour:
-      'Ordering as an event rather than a state. Distinct from GRAIN_RESOLVE, which is about a surface becoming legible: this is about scattered things turning out to have had an arrangement all along. Dream’s contours settling around a word, Chaos reconstructing.',
-    consumers: ['dream', 'chaos'],
+      'Ordering as an event rather than a state, and its exact inverse. `spatial/noiseOrder.ts` returns a frozen zero displacement at zero disorder, which is what lets Chaos claim its reconstruction is exact rather than convincing: the ordered state is not animated toward, it is the identity the function already returns. Chaos also uses its `misplaced()` half for taxonomy drift — every category correct, none of them where it belongs.',
+    consumers: ['chaos'],
     reducedMotion: 'Ordered. Both source components render their resolved state directly under reduced motion, and so does this.',
   },
   {
     id: 'POSITION_RAIL',
-    wired: false,
+    wired: true,
     origin: 'components/three/IndexSpine.js',
     canonicalBehaviour:
       'A narrow strip beside the section index: a dim rail, a travelling node at the reader’s position, and a slow drift of motes. Its own note is the important part — "nothing here carries information the DOM does not".',
     spatialBehaviour:
-      'Where you are, as a physical position on a measured length. Memory’s record rail is this, and so is the Index’s visited trail: both say how far through you are without asking you to read a number.',
-    consumers: ['memory', 'reality-index'],
+      'Where you are, as a physical position on a measured length. Time Machine’s seven eras sit on a rail with one travelling node, so moving era reads as movement along thirty years rather than as changing a tab. It adds no focusable anything — the seven stops were already buttons and still are.',
+    consumers: ['time-machine'],
     reducedMotion: 'The rail and the position mark, both static. Position is information; the drift is not.',
   },
   {
     id: 'CONTACT_GAP',
-    wired: false,
+    wired: true,
     origin: 'components/three/SparkGap.js',
     canonicalBehaviour:
       'Two arms approach, something ignites in the space between them at closest approach, then they withdraw. Motes drift toward the contact point so the gap reads as charged rather than empty. "It is the gap, and the fact that something ignites in it."',
     spatialBehaviour:
-      'The Lab’s aperture is the same subject seen from the other side: Portal is a gap in a sheet that has something on the far side of it. The charge is what stops an opening reading as a hole.',
-    consumers: ['portal'],
+      'Presence already had a gap and could not see it: `forceRef.sign` crosses a threshold where the field stops being drawn toward the visitor and starts being pushed away, and nothing on screen said where that boundary was. Now a ring sits at the radius of influence and closes to a solid signal edge at the inversion — reporting a number the simulation is already using, not a new one invented to be drawn.',
+    consumers: ['presence'],
     reducedMotion: 'The gap is open and the far side is visible. Approach and ignition are both travel.',
   },
   {
     id: 'DERIVED_SUMMARY',
-    wired: false,
+    wired: true,
     origin: 'components/PackageBuilder.js',
     canonicalBehaviour:
       'Pick the systems you want and the summary derives itself — which systems you touched, which method stages that implies, the rough duration band. "Derived, never stored", and deliberately no price, because "a number printed next to a checkbox would be a lie".',
     spatialBehaviour:
-      'A reading assembled from what the visitor actually did, and honest about being a reading. The Agency Simulator’s table already works this way; this names the discipline it was working to and ties it to the canonical component that shares it.',
+      'Systems touched → method stages implied → the span the company itself publishes for those stages, every value looked up rather than estimated, and the three things it cannot know printed at the same weight. No ROI, no probability, no projected outcome — the numbers PackageBuilder refuses for the same stated reason.',
     consumers: ['agency-simulator'],
     reducedMotion: 'The summary is text and was always text.',
   },
   {
     id: 'HALFTONE_FIELD',
-    wired: false,
+    wired: true,
     origin: 'components/three/HalftoneBackdrop.js + HalftoneStatic.js',
     canonicalBehaviour:
       'The brand deck’s dot collage rendered as a fixed field behind the page — a fragment shader, one cell size, dots breathing on a slow travelling wave, crawling diagonally like a scan. Ink at 2–5% effective alpha: "texture, never noise".',
     spatialBehaviour:
-      'Tone made of countable marks. After Dark is a room where the printed surface is the only thing still present, and a halftone is the most literal version of that: at reading distance it is a tone, up close it is a grid of decisions.',
+      'Tone made of countable marks, and the surface itself rather than a backdrop to it. After Dark is a printed system on black stock with the studio closed; the screen opens under a lamp and closes away from it, which is what a halftone physically does. Built on a 2D canvas — a few thousand arcs redrawn only while the light moves — because a shader would have put a GPU context on a mode with no other use for one.',
     consumers: ['after-dark'],
     reducedMotion: 'The screen holds still. Dot structure is the information; the wave is not.',
   },

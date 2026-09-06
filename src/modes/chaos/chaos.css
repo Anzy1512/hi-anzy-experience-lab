@@ -201,3 +201,32 @@
     transition-duration: 1ms;
   }
 }
+
+/* ==========================================================================
+   MATERIAL MISMATCH (stage 05)
+
+   A fragment drawn in another register's material. The word stays true; what
+   it appears to be made of does not — which is a stranger failure than a wrong
+   word, because everything on screen is still correct and the system is still
+   plainly broken.
+
+   Three treatments, one per register, and they are the Lab's own materials
+   rather than three decorative states.
+   ========================================================================== */
+.ch-frag[data-register='METHOD'] {
+  color: var(--figure);
+}
+.ch-frag[data-register='SERVICE'] {
+  color: var(--figure-dim);
+  -webkit-text-stroke: var(--hair) var(--rule);
+}
+.ch-frag[data-register='MATERIAL'] {
+  color: transparent;
+  -webkit-text-stroke: var(--hair) var(--figure-dim);
+}
+/* The lead fragment keeps its signal whatever register it has drifted into —
+   there is always one thing on screen that has not lost its identity. */
+.ch-frag[data-lead='true'] {
+  color: var(--signal);
+  -webkit-text-stroke: 0;
+}

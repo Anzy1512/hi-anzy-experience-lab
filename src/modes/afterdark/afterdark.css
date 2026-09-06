@@ -209,3 +209,34 @@
     transition-duration: 200ms;
   }
 }
+
+/* ==========================================================================
+   THE HALFTONE SCREEN
+
+   HALFTONE_FIELD, drawn on a 2D canvas beneath everything. It is the stock,
+   not an effect over it, so it sits under the posters and above nothing.
+
+   No blend mode and no filter: the dots are already sodium on black, which is
+   what a night poster is printed with, and asking the compositor for a
+   screen blend on a full-viewport canvas would cost more than the drawing.
+   ========================================================================== */
+.ad-halftone {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ink becomes legible where the light falls. The poster is always in the DOM
+   and always readable to a screen reader; what the lamp changes is how much of
+   it the eye can pick off black stock — which is the true behaviour of one
+   colour printed on dark paper, not a flashlight cut-out. */
+.ad[data-held='true'] .ad-poster {
+  --ad-ink: 1;
+}
+.ad-poster {
+  position: relative;
+  z-index: 2;
+}

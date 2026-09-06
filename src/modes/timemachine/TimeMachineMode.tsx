@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type CSSProperties } from 'react';
 import type { ModeViewProps } from '../../experience/types';
 import { useReducedMotion } from '../../core/hooks';
 import { setPointerIntent } from '../../core/pointer';
@@ -84,8 +84,29 @@ export default function TimeMachineMode({ onReady, scope }: ModeViewProps) {
         <EraView era={era} />
       </div>
 
-      {/* ---- the scrubber ------------------------------------------------- */}
-      <nav className="tm-scrub" aria-label="Eras">
+      {/*
+        ---- the scrubber, on a rail ----------------------------------------
+
+        POSITION_RAIL. `three/three/IndexSpine.js` on the commercial site is a
+        dim rail the height of the section index with a travelling node at the
+        reader's position, and its own note is the half worth keeping: "nothing
+        here carries information the DOM does not".
+
+        The seven stops were already here and they still are — same buttons,
+        same order, no new tab stops, because the brief this reality answers to
+        says navigation must not be duplicated. What the rail adds is the thing
+        seven separate buttons cannot say: how far through thirty years you are
+        standing, and how much is left. The node travels rather than switching,
+        so moving era reads as movement along a chronology instead of as
+        changing a tab.
+      */}
+      <nav
+        className="tm-scrub"
+        aria-label="Eras"
+        style={{ '--tm-pos': `${(index / Math.max(1, ERAS.length - 1)) * 100}%` } as CSSProperties}
+      >
+        <span className="tm-rail" aria-hidden="true" />
+        <span className="tm-rail__node" aria-hidden="true" />
         {ERAS.map((e) => (
           <button
             key={e.id}

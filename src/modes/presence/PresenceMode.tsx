@@ -40,6 +40,16 @@ const COUNTS: Record<string, number> = {
 
 type Source = 'pointer' | 'camera';
 
+/**
+ * Where attraction becomes repulsion.
+ *
+ * Not a display constant: `forceRef.sign` is what the particle field is handed,
+ * and this is the value it crosses. Change the physics and this has to move
+ * with it, which is the correct coupling — a threshold drawn somewhere other
+ * than where it actually is would be worse than not drawing it.
+ */
+const INVERSION = 0.7;
+
 export default function PresenceMode({ onReady, scope }: ModeViewProps) {
   const capability = useCapability();
   const reduced = useReducedMotion();
@@ -55,6 +65,28 @@ export default function PresenceMode({ onReady, scope }: ModeViewProps) {
   const signal = useRef<PresenceSignal>({ x: 0.5, y: 0.5, energy: 0 });
   const { status, start, stop } = useCameraMotion(signal);
   const forceRef = useRef({ x: 0, y: 0, sign: 0 });
+  /*
+   * CONTACT_GAP.
+   *
+   * `three/SparkGap.js` on the commercial site draws two arms approaching, a
+   * burst firing at closest approach, and motes drifting toward the contact
+   * point so the space between reads as charged rather than empty. Its own
+   * comment names the subject: "it is the gap, and the fact that something
+   * ignites in it."
+   *
+   * The gap already existed in this mode and was invisible. `forceRef.sign`
+   * crosses a threshold as the visitor's energy rises — below it the field is
+   * drawn toward them, above it the field is pushed away — and that inversion
+   * is the single most consequential thing happening here. Nothing on screen
+   * said where it was, so the field simply changed its mind and the visitor
+   * had no way to know why.
+   *
+   * This draws it: a ring at the current radius of influence, and a mark at
+   * the moment the relationship inverts. It reports a parameter the simulation
+   * is already using — no new physics, no second signal, and nothing about
+   * hardware that has not actually been measured.
+   */
+  const gapRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef(1);
   const [energy, setEnergy] = useState(0);
 
@@ -85,6 +117,19 @@ export default function PresenceMode({ onReady, scope }: ModeViewProps) {
         forceRef.current.sign = lerp(forceRef.current.sign, -(0.35 + e * 0.65), k);
         shown = lerp(shown, e, k);
       }
+      /* The gap, written straight to custom properties. A ring that grows with
+         energy, and a state flip at the inversion — which is a real boundary in
+         the force this mode applies, not a number chosen to look like one. */
+      if (gapRef.current) {
+        const g = gapRef.current;
+        const px = source === 'camera' && status === 'active' ? signal.current.x : pointer.nx;
+        const py = source === 'camera' && status === 'active' ? signal.current.y : pointer.ny;
+        g.style.setProperty('--gx', `${px * 100}%`);
+        g.style.setProperty('--gy', `${py * 100}%`);
+        g.style.setProperty('--gr', `${(0.18 + shown * 0.82).toFixed(3)}`);
+        g.dataset.inverted = forceRef.current.sign < -INVERSION ? 'true' : 'false';
+      }
+
       // React only hears about energy in coarse steps, for the readout.
       const rounded = Math.round(shown * 20) / 20;
       setEnergy((prev) => (Math.abs(prev - rounded) > 0.049 ? rounded : prev));
@@ -165,6 +210,8 @@ export default function PresenceMode({ onReady, scope }: ModeViewProps) {
               reduced={reduced}
             />
           </SpatialCanvas>
+          {/* CONTACT_GAP — the threshold the field is actually using, drawn. */}
+          <div className="pr-gap" ref={gapRef} data-inverted="false" aria-hidden="true" />
         </div>
       ) : (
         <p className="pr-fallback t-mono t-mono-xs" role="status">

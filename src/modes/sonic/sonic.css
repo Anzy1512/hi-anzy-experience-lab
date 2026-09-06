@@ -26,6 +26,54 @@
 }
 
 /* ==========================================================================
+   DATUM LINES
+
+   Nine levels ruled across the whole elevation, each named with the note a bay
+   reaching it sounds. This is the change that stops height being a quantity
+   and makes it a storey — you can see that bay 07 is two levels above bay 03
+   without comparing two rectangles, and you can read what both will play.
+
+   Hairlines at the Lab's faintest rule. The drawing must not compete with the
+   thing drawn on it.
+   ========================================================================== */
+.sn-datums {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 0;
+}
+.sn-datum {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  height: 0;
+}
+.sn-datum__note {
+  flex: 0 0 auto;
+  width: 3.4ch;
+  text-align: right;
+  color: var(--figure-faint);
+  font-size: 0.5rem;
+  letter-spacing: 0.04em;
+  transform: translateY(-0.5em);
+}
+.sn-datum__rule {
+  flex: 1 1 auto;
+  height: var(--hair);
+  background: var(--rule-faint);
+}
+/* Ground datum reads as ground, not as another level. */
+.sn-datum:last-child .sn-datum__rule {
+  background: var(--rule);
+}
+
+/* ==========================================================================
    THE ELEVATION
    ========================================================================== */
 .sn-field {
@@ -37,6 +85,9 @@
   display: flex;
   align-items: flex-end;
   gap: 3px;
+  /* Room for the datum notes in the left margin, the way a drawing carries its
+     level annotations outside the elevation itself. */
+  padding-left: 4.6ch;
   cursor: ns-resize;
   opacity: 0;
   transition: opacity var(--d-4) var(--e-glide);
@@ -54,9 +105,25 @@
   background: var(--rule);
   pointer-events: none;
 }
+/* Earth. An elevation that floats is a diagram; one that stands on something
+   is a building, and the hatch below the ground line is how a drawing says so. */
+.sn-earth {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 12px;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--rule-faint) 0 var(--hair),
+    transparent var(--hair) 6px
+  );
+}
 
 .sn-bay {
   position: relative;
+  z-index: 1;
   flex: 1 1 0;
   height: 100%;
   display: flex;
@@ -72,7 +139,7 @@
   min-height: 2px;
   border: var(--hair) solid var(--rule);
   border-bottom: 0;
-  background: rgba(233, 226, 208, 0.04);
+  background: rgba(224, 216, 193, 0.04);
   transition:
     height 140ms var(--e-snap),
     background-color var(--d-1) var(--e-snap),
@@ -87,33 +154,66 @@
 /* Six materials, six treatments of the same bone. Not six hues — the Lab has
    one accent and this is not the place to spend it. */
 .sn-bay__mass[data-family='SIGNAL'] {
-  background: rgba(242, 145, 27, 0.16);
-  border-color: rgba(242, 145, 27, 0.5);
+  background: rgba(241, 144, 32, 0.16);
+  border-color: rgba(241, 144, 32, 0.5);
 }
 .sn-bay__mass[data-family='PAPER'] {
-  background: rgba(233, 226, 208, 0.14);
+  background: rgba(224, 216, 193, 0.14);
 }
 .sn-bay__mass[data-family='INK'] {
-  background: rgba(233, 226, 208, 0.03);
-  border-color: rgba(233, 226, 208, 0.4);
+  background: rgba(224, 216, 193, 0.03);
+  border-color: rgba(224, 216, 193, 0.4);
 }
 .sn-bay__mass[data-family='STRUCTURE'] {
   background: repeating-linear-gradient(
     to bottom,
-    rgba(233, 226, 208, 0.16) 0 1px,
+    rgba(224, 216, 193, 0.16) 0 1px,
     transparent 1px 7px
   );
 }
 .sn-bay__mass[data-family='MACHINE'] {
   background: repeating-linear-gradient(
     90deg,
-    rgba(233, 226, 208, 0.2) 0 1px,
+    rgba(224, 216, 193, 0.2) 0 1px,
     transparent 1px 5px
   );
 }
 .sn-bay__mass[data-family='CULTURE'] {
-  background: rgba(233, 226, 208, 0.09);
+  background: rgba(224, 216, 193, 0.09);
   border-style: dashed;
+}
+
+/* COURSING — one rule per storey.
+   A solid block is a bar chart. A coursed block is a building, and the courses
+   are exactly the quantisation the audio is already doing: nine levels, one
+   scale degree each. They sit inside the mass and stop at its top edge. */
+.sn-bay__courses {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column-reverse;
+  pointer-events: none;
+}
+.sn-bay__course {
+  flex: 1 1 0;
+  border-top: var(--hair) solid rgba(224, 216, 193, 0.18);
+}
+.sn-bay__course:last-child {
+  border-top: 0;
+}
+
+/* The note this bay will sound, riding its roofline. In normal flow directly
+   above the mass, so it moves with the height instead of sitting on the
+   baseline where the first version pinned every one of them. */
+.sn-bay__note {
+  flex: 0 0 auto;
+  text-align: center;
+  color: var(--figure-faint);
+  font-size: 0.5rem;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  padding-bottom: 3px;
+  pointer-events: none;
 }
 
 .sn-bay__label {
@@ -124,7 +224,9 @@
 
 .sn-bay__n {
   position: absolute;
-  bottom: 2px;
+  /* Clear of the earth hatch: a drawing puts its bay references on the ground
+     line, not in the ground. */
+  bottom: -13px;
   left: 0;
   right: 0;
   text-align: center;
@@ -133,10 +235,21 @@
   letter-spacing: 0.08em;
 }
 
-/* The playhead is the bay itself lighting, not a line sliding over the top. */
+/* THE SECTION CUT.
+   The bay the playhead is on is drawn cut — heavy outline, solid poché — which
+   is the drawing convention for "we are looking through here" and is also,
+   without any second device, the bay that is currently sounding. */
 .sn-bay[data-now='true'] .sn-bay__mass {
   background: var(--signal);
   border-color: var(--signal);
+  border-width: 2px;
+  border-bottom: 0;
+}
+.sn-bay[data-now='true'] .sn-bay__course {
+  border-top-color: rgba(35, 42, 42, 0.35);
+}
+.sn-bay[data-now='true'] .sn-bay__note {
+  color: var(--signal);
 }
 .sn-bay[data-now='true'] .sn-bay__label {
   color: var(--c-ink);
@@ -253,20 +366,132 @@
 }
 
 /* ==========================================================================
-   MOBILE — a touch instrument. Bays stay tall; the legend folds away.
+   MOBILE — a different drawing, not a smaller one.
    ========================================================================== */
 @media (max-width: 900px) {
+  /* ========================================================================
+     THE SECTION — the mobile instrument.
+
+     Not the elevation shrunk. The drawing turns ninety degrees: floors stack
+     down the page and height runs across it, so the musical range gets the
+     full width of the phone instead of the 21px per bay the elevation would
+     have given it. Eight floors, each a comfortable drag target, each showing
+     its own coursing and material hatch exactly as the elevation does.
+     ======================================================================== */
   .sn-field {
-    top: calc(var(--trim) * 0.5 + 84px);
+    top: calc(var(--trim) * 0.5 + 108px);
     bottom: 190px;
-    gap: 2px;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 4px;
+    padding-left: 0;
+    padding-top: 1.4em;
+    cursor: ew-resize;
+  }
+
+  /* Datums become vertical: the level rules run down the drawing and their
+     notes sit along the head, which is where a section carries them. */
+  .sn-datums {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    flex-direction: row-reverse;
+  }
+  .sn-datum {
+    flex-direction: column;
+    align-items: center;
+    height: auto;
+    width: 0;
+    gap: 0;
+  }
+  .sn-datum__note {
+    width: auto;
+    text-align: center;
+    transform: none;
+    order: -1;
+  }
+  .sn-datum__rule {
+    width: var(--hair);
+    height: 100%;
+    flex: 1 1 auto;
+  }
+
+  .sn-bay {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    height: auto;
+    flex: 1 1 0;
+    padding-bottom: 0;
+    padding-left: 26px;
+  }
+  .sn-bay__mass {
+    /* The inline style still writes `height`; in section the mass takes its
+       length from the width instead, so height is pinned back to full. */
+    height: 100% !important;
+    width: var(--sn-len, 100%);
+    min-height: 0;
+    min-width: 3px;
+    border: var(--hair) solid var(--rule);
+    border-left: 0;
+    align-items: center;
+    padding-top: 0;
+    padding-left: 4px;
+    justify-content: flex-start;
+  }
+  .sn-bay__courses {
+    flex-direction: row;
+  }
+  .sn-bay__course {
+    border-top: 0;
+    border-left: var(--hair) solid rgba(224, 216, 193, 0.18);
+  }
+  .sn-bay__course:last-child {
+    border-left: 0;
+  }
+  .sn-bay__note {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    padding-bottom: 0;
+    width: 3.2ch;
+    text-align: right;
+  }
+  .sn-bay__n {
+    position: static;
+    order: -1;
+    width: 0;
+    overflow: hidden;
   }
   .sn-bay__label {
     display: none;
   }
-  .sn-bay__n {
-    font-size: 0.4375rem;
+  .sn-bay[data-now='true'] .sn-bay__mass {
+    border-width: 2px;
+    border-left: 0;
   }
+
+  /* Ground becomes the left edge the floors spring from. */
+  .sn-ground {
+    left: 26px;
+    right: auto;
+    top: 0;
+    bottom: 0;
+    width: var(--hair);
+    height: auto;
+  }
+  .sn-earth {
+    left: 14px;
+    right: auto;
+    top: 0;
+    bottom: 0;
+    width: 12px;
+    height: auto;
+  }
+
   .sn-strip {
     flex-wrap: wrap;
     gap: var(--s-2);
@@ -283,16 +508,17 @@
     margin-left: 0;
     width: 100%;
   }
-  /* The strip grew when the legend wrapped; this line was printing across the
-     bay numbers. It belongs with the title, above the elevation. */
+  /* The title wraps to two lines at 390 and the silent notice was printing
+     straight through it. Anchor the notice to the drawing's head instead of to
+     a pixel offset guessed from the one-line case. */
   .sn-silent {
     left: var(--trim);
     right: var(--trim);
-    top: calc(var(--trim) * 0.5 + 62px);
+    top: calc(var(--trim) * 0.5 + 96px);
     bottom: auto;
   }
   .sn-field {
-    top: calc(var(--trim) * 0.5 + 108px);
+    top: calc(var(--trim) * 0.5 + 150px);
   }
   .sn-btn {
     padding: 9px 11px;

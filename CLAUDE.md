@@ -3,6 +3,11 @@
 Standalone experimental product. Not a website redesign, not a marketing site, not a
 component showcase. Read this before changing anything.
 
+**CURRENT PROJECT STATE:** `docs/PROJECT_STATE_PRE_PHASE_6_5.md` — read it before starting
+work. This file holds permanent engineering rules; that one holds what phase the product is
+actually in, what is built, and what remains open. When they disagree about anything other
+than a standing rule, the state doc and the source code win.
+
 ## What this is
 
 An interface institution: one company, multiple realities. A launcher, a Reality Index, and
@@ -72,8 +77,11 @@ now a promise the product has to keep every time.
 - **Never blueprint-blue.** X-Ray is bone-on-ink.
 - Mono (`t-mono`) is the instrument's voice: use it only for values the system actually
   measured. Decorative pseudo-technical strings are banned.
-- Typography is three voices kept apart: Rajdhani display, IBM Plex Sans body, IBM Plex Mono
-  system. No fourth voice.
+- Typography is three voices kept apart: **Rajdhani** display/system voice, **Newsreader**
+  body/human voice (adopted in Phase 6 from the canonical site's own locked pairing —
+  "Rajdhani = System Voice, Newsreader = Human Voice (serif)" in its `App.css` — replacing
+  the Lab's previous IBM Plex Sans body face), **IBM Plex Mono** the instrument's voice. No
+  fourth voice.
 - One named easing vocabulary (`snap / glide / weight / mechanical / cinematic`), shared by
   CSS tokens and GSAP CustomEase. No `ease-in-out`, no GSAP defaults.
 - No generic `fadeUp`. Reveals use masks, clipping, tracking, drawn rules or registration.
@@ -201,8 +209,8 @@ src/
 
 ## Phase discipline
 
-Phases 1–4 are complete and all sixteen realities are `online`.
+All sixteen realities are `online`. Phases 1 through 6 are complete or partially complete —
+see `docs/PROJECT_STATE_PRE_PHASE_6_5.md` for exactly which, and for what the next phase is.
 
-**Do not start Phase 5** without explicit instruction. Phase 5 is stabilisation: audit,
-performance, accessibility, security, mobile, visual consistency, content truth and
-production readiness. It adds no realities.
+**Do not start a new phase without explicit instruction**, and do not infer scope for one
+from this file — phase scope is stated fresh each time by whoever is directing the work.

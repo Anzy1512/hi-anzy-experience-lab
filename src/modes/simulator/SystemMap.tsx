@@ -1,4 +1,5 @@
 import { SERVICES, SYSTEM_LOOP } from '../../content/canonical';
+import { deriveSummary } from '../../content/derivedSummary';
 import { CLUSTERS, SIM_COPY } from '../../content/simulator';
 import { setPointerIntent } from '../../core/pointer';
 import type { SystemReading } from './model';
@@ -82,6 +83,45 @@ export function SystemMap({ reading, onDistrict }: Props) {
           ))}
         </ul>
       </div>
+
+      {/* ---- DERIVED_SUMMARY -------------------------------------------------
+           PackageBuilder's discipline, applied to a reading instead of a
+           basket: what you touched, what method that implies, how long the
+           company says that span takes — every one of them looked up rather
+           than estimated — and then, in the same block and the same weight,
+           the three things it cannot know. A summary that printed only the
+           first half would be the exact lie the source component refuses. */}
+      {(() => {
+        const summary = deriveSummary(reading.clusters.map((c) => c.cluster.category));
+        if (summary.systems.length === 0) return null;
+        return (
+          <div className="sim-map__block">
+            <p className="t-mono t-mono-xs t-dim sim-map__label">
+              WHAT THAT IMPLIES · DERIVED, NOT STORED
+            </p>
+            <dl className="sim-derived">
+              <div>
+                <dt className="t-mono t-mono-xs t-faint">SYSTEMS TOUCHED</dt>
+                <dd className="t-body-s">{summary.systems.join(' · ')}</dd>
+              </div>
+              <div>
+                <dt className="t-mono t-mono-xs t-faint">METHOD IMPLIED</dt>
+                <dd className="t-mono t-mono-xs">{summary.stages.join(' → ')}</dd>
+              </div>
+              {summary.span && (
+                <div>
+                  <dt className="t-mono t-mono-xs t-faint">SPAN</dt>
+                  <dd className="t-mono t-mono-xs">{summary.span}</dd>
+                </div>
+              )}
+              <div>
+                <dt className="t-mono t-mono-xs t-faint">NOT KNOWN HERE</dt>
+                <dd className="t-body-s t-dim">{summary.unknown.join(' · ')}</dd>
+              </div>
+            </dl>
+          </div>
+        );
+      })()}
 
       {/* ---- the loop -------------------------------------------------------
            `components/SystemDiagnostic.js` on the commercial site draws five

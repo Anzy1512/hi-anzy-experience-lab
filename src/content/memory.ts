@@ -62,7 +62,7 @@ export const RECORDS: MemoryRecord[] = [
     lost: ['ORIGINAL ARTWORK', 'PRESS'],
   },
   {
-    id: 'absorb',
+    id: 'audit',
     index: 'M.03',
     category: 'METHOD',
     title: 'AUDIT',

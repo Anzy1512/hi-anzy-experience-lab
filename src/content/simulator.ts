@@ -3,13 +3,18 @@ import { METHOD_LABELS } from './canonical';
 /**
  * AGENCY SIMULATOR — content and model inputs.
  *
- * The methodology is the source deck's own five-part working philosophy:
- * absorb → clarify → blueprint → assemble → sustain. The fifth stage is
- * SUSTAIN because the deck's fifth step is "Because great ideas deserve great
- * endings — measurable results, sustained brand systems, long-term growth
- * support". No new corporate methodology has been invented here.
+ * The methodology is the company's own, read from the commercial frontend:
+ * AUDIT → ARCHITECT → BUILD → CONNECT → SCALE, via `METHOD_LABELS` so there is
+ * one copy of it in this product and not two. No methodology has been invented
+ * here.
  *
- * Capability clusters are the deck's own service groupings. Nothing in this
+ * This comment described the previous sequence — absorb → clarify → blueprint
+ * → assemble → sustain, from an older printed deck — for a phase and a half
+ * after Phase 5.5 replaced the data underneath it. The file was importing the
+ * right stages the whole time and explaining the wrong ones, which is its own
+ * kind of untruth in a file whose subject is not inventing methodology.
+ *
+ * Capability clusters are the company's own service groupings. Nothing in this
  * file predicts a business outcome, and the output vocabulary is deliberately
  * hedged — LIKELY, POSSIBLE, NEEDS VALIDATION, OPEN QUESTION.
  */

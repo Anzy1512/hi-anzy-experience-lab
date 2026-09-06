@@ -3,6 +3,9 @@ import type { ModeViewProps } from '../../experience/types';
 import { useReducedMotion } from '../../core/hooks';
 import { onFrame } from '../../core/raf';
 import { setPointerIntent } from '../../core/pointer';
+import { METHOD, SERVICES } from '../../content/canonical';
+import { MATERIALS } from '../../design-system/materials';
+import { disorder, misplaced } from '../../spatial/noiseOrder';
 import './chaos.css';
 
 /**
@@ -33,8 +36,8 @@ const STAGES = [
   { n: '01', name: 'REGISTRATION SLIPS', note: 'The plates stop agreeing.' },
   { n: '02', name: 'BASELINE LOST', note: 'Type forgets what it was sitting on.' },
   { n: '03', name: 'GRAVITY', note: 'Down becomes a direction.' },
-  { n: '04', name: 'COLLISION', note: 'The pieces discover each other.' },
-  { n: '05', name: 'RULES DETACH', note: 'The measure comes off the page.' },
+  { n: '04', name: 'TAXONOMY DRIFT', note: 'Every category is still correct. None of them is where it belongs.' },
+  { n: '05', name: 'MATERIAL MISMATCH', note: 'Paper behaves like ink. Ink behaves like structure.' },
   { n: '06', name: 'HIERARCHY COLLAPSES', note: 'Everything is the same size now.' },
   { n: '07', name: 'THE WORLD FRAGMENTS', note: 'Structure stops being load-bearing.' },
   { n: '08', name: 'NEAR-TOTAL FAILURE', note: 'Almost nothing is legible.' },
@@ -42,12 +45,37 @@ const STAGES = [
   { n: '10', name: 'RECONSTRUCTION', note: 'Every piece back where it began.' },
 ];
 
-/** The fragments. Copies of the Lab's own vocabulary, owned by this mode only. */
-const WORDS = [
-  'HI ANZY', 'STRATEGY', 'DESIGN', 'TECHNOLOGY', 'CULTURE', 'ABSORB', 'CLARIFY',
-  'BLUEPRINT', 'ASSEMBLE', 'SUSTAIN', 'PAPER', 'INK', 'SIGNAL', 'REGISTER',
-  'STRUCTURE', 'FIELD', 'SHEET', 'TRACE', 'PLATE', 'MEASURE',
+/**
+ * The fragments — the actual system, not a list of words that resemble it.
+ *
+ * This was a hand-typed array, and it still contained ABSORB · CLARIFY ·
+ * BLUEPRINT · ASSEMBLE · SUSTAIN: the method from a printed deck the company
+ * stopped using, surviving here because nobody looks for a data dependency in
+ * a pile of falling type. Two realities were still printing it (After Dark had
+ * the other copy).
+ *
+ * Derived now, from the three things the Lab actually claims to be made of:
+ * the canonical method, the canonical service taxonomy, and the material
+ * vocabulary. The mode's premise — that the system can survive being taken
+ * apart because its structure is understood — only means something if what
+ * comes apart is the structure rather than a souvenir of it.
+ *
+ * Each fragment carries its register, because the taxonomy stage needs to be
+ * able to put a thing in the wrong one and have that be legible as wrong.
+ */
+interface Fragment {
+  word: string;
+  register: 'METHOD' | 'SERVICE' | 'MATERIAL';
+}
+
+const FRAGMENTS: Fragment[] = [
+  { word: 'HI ANZY', register: 'MATERIAL' },
+  ...METHOD.map((m) => ({ word: m.label, register: 'METHOD' as const })),
+  ...SERVICES.slice(0, 6).map((c) => ({ word: c.label.split(/[,&]/)[0].trim().toUpperCase(), register: 'SERVICE' as const })),
+  ...Object.keys(MATERIALS).slice(0, 8).map((m) => ({ word: m, register: 'MATERIAL' as const })),
 ];
+
+const WORDS = FRAGMENTS.map((f) => f.word);
 
 interface Body {
   /** Home — where the fragment belongs, in fractions of the viewport. */
@@ -278,6 +306,25 @@ export default function ChaosMode({ onReady, scope }: ModeViewProps) {
 
   const current = STAGES[stage];
 
+  /*
+   * NOISE_ORDER, driving presentation only.
+   *
+   * The disorder ramps in over the taxonomy and material stages and is gone
+   * again by the reconstruction. Two things read it, and neither of them
+   * touches data:
+   *
+   *   `misplaced` decides which register's word a slot shows — so at stage 04
+   *   every category on screen is still a real category and not one of them is
+   *   where it belongs, which is a far more unsettling failure than a word
+   *   being wrong.
+   *
+   *   `disorder` supplies the resting offset before the physics takes over and
+   *   after it hands back. `disorder(i, 0)` returns a shared frozen zero, so
+   *   the reconstructed state is not "animated close to home" — it is the
+   *   identity the function returns when there is no disorder left.
+   */
+  const noise = !running || stage >= 9 ? 0 : Math.max(0, Math.min(1, (stage - 2) / 5));
+
   return (
     <div className="ch" data-armed={armed ? 'true' : 'false'} data-stage={stage} data-running={running ? 'true' : 'false'}>
       <div className="ch-field" ref={fieldRef} aria-hidden="true">
@@ -286,6 +333,13 @@ export default function ChaosMode({ onReady, scope }: ModeViewProps) {
             key={b.word}
             className="t-display ch-frag"
             data-lead={i === 0 ? 'true' : 'false'}
+            /* At stage 05 a fragment is drawn in another register's material.
+               The word is still true; what it is made of is not. */
+            data-register={
+              noise > 0
+                ? FRAGMENTS[misplaced(i, noise, FRAGMENTS.length)].register
+                : FRAGMENTS[i].register
+            }
             ref={(el) => {
               nodesRef.current[i] = el;
             }}
@@ -293,12 +347,17 @@ export default function ChaosMode({ onReady, scope }: ModeViewProps) {
               fontSize: `${b.size}rem`,
               transform: running
                 ? undefined
-                : `translate3d(${b.hx * 100}%, ${b.hy * 100}%, 0)`,
+                : (() => {
+                    // Exactly home when there is no disorder — the identity
+                    // case, not a small number that rounds to it.
+                    const d = disorder(i, 0);
+                    return `translate3d(calc(${b.hx * 100}% + ${d.x}px), calc(${b.hy * 100}% + ${d.y}px), 0) rotate(${d.rotate}deg)`;
+                  })(),
               left: running ? 0 : undefined,
               top: running ? 0 : undefined,
             }}
           >
-            {b.word}
+            {noise > 0 ? WORDS[misplaced(i, noise, WORDS.length)] : b.word}
           </span>
         ))}
       </div>

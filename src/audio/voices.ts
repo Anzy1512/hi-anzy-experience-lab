@@ -45,9 +45,27 @@ export const SCALE = [
   587.33, 659.25, 783.99, 880.0, 1046.5, // D5 E5 G5 A5 C6
 ];
 
+/**
+ * The same fifteen notes, named.
+ *
+ * Kept beside SCALE rather than typed into a component, because Sonic
+ * Architecture labels its datum lines with them and a label that disagreed
+ * with the frequency it names would be the Lab printing a measurement it had
+ * not taken. Index for index with SCALE above.
+ */
+export const SCALE_NAMES = [
+  'D3', 'E3', 'G3', 'A3', 'C4',
+  'D4', 'E4', 'G4', 'A4', 'C5',
+  'D5', 'E5', 'G5', 'A5', 'C6',
+];
+
+/** The scale index a normalised height lands on. */
+export function degreeIndex(t: number): number {
+  return Math.max(0, Math.min(SCALE.length - 1, Math.round(t * (SCALE.length - 1))));
+}
+
 export function degree(t: number): number {
-  const i = Math.max(0, Math.min(SCALE.length - 1, Math.round(t * (SCALE.length - 1))));
-  return SCALE[i];
+  return SCALE[degreeIndex(t)];
 }
 
 export interface VoiceOptions {

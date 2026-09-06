@@ -132,7 +132,48 @@ function Row({ mode, expanded, onToggle, visited }: RowProps) {
    whether or not this ever loads. */
 const IndexLatticeCanvas = lazy(() => import('./IndexLatticeCanvas'));
 
+/**
+ * DO NOT FETCH A RENDERER FOR A FIGURE NOBODY HAS SCROLLED TO.
+ *
+ * A lazy import is not a gate. `lazy()` resolves the moment React renders the
+ * component, so mounting it inside the cross-reference section meant every
+ * visitor who opened the Index pulled **227 kB of react-three-fiber** before
+ * entering a single reality — measured on the production build, not guessed.
+ * The section sits roughly two thousand pixels down a sixteen-row plate list;
+ * most visitors never reach it.
+ *
+ * So intent is the gate, and intent here is "scrolled far enough that the
+ * figure is about to matter". The margin is deliberately generous, for the
+ * reason `three/useSceneVisibility.js` gives on the canonical side: resuming
+ * well before the element is visible means the discontinuity happens off
+ * screen. Once armed it stays armed — this is a load gate, not a render loop.
+ */
+function useApproached(ref: React.RefObject<HTMLElement | null>): boolean {
+  /* A browser with no IntersectionObserver starts armed, decided during the
+     lazy initialiser rather than by writing state from inside the effect — the
+     same reason ANZY.OS derives its boot lines instead of setting them. */
+  const [approached, setApproached] = useState(() => typeof IntersectionObserver === 'undefined');
+  useEffect(() => {
+    const node = ref.current;
+    if (!node || approached) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setApproached(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: '600px 0px' },
+    );
+    io.observe(node);
+    return () => io.disconnect();
+  }, [ref, approached]);
+  return approached;
+}
+
 function CrossReferences({ visited }: { visited: string[] }) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const approached = useApproached(sectionRef);
   const edges = EDGES.map((edge) => ({
     edge,
     from: findMode(edge.from),
@@ -142,16 +183,18 @@ function CrossReferences({ visited }: { visited: string[] }) {
   if (edges.length === 0) return null;
 
   return (
-    <section className="index__graph" aria-labelledby="index-graph-label">
+    <section className="index__graph" aria-labelledby="index-graph-label" ref={sectionRef}>
       <h2 className="t-mono t-mono-xs t-dim index__graph-label" id="index-graph-label">
         CROSS-REFERENCES — WHERE EACH REALITY LEADS
       </h2>
       {/* The same twelve relationships, drawn. Decorative in the accessibility
           sense and nowhere else: it is the only thing on this page that can
           show they form one structure rather than twelve observations. */}
-      <Suspense fallback={null}>
-        <IndexLatticeCanvas visited={visited} />
-      </Suspense>
+      {approached && (
+        <Suspense fallback={null}>
+          <IndexLatticeCanvas visited={visited} />
+        </Suspense>
+      )}
       <ul className="index__graph-list">
         {edges.map(({ edge, from, to }) => (
           <li className="index__graph-row" key={`${edge.from}-${edge.to}`}>

@@ -52,7 +52,7 @@ which is why it is conceptually defensible rather than decorative.
 **Do not copy.** Green-on-black terminal cosplay and scramble-on-everything.
 
 **Hi Anzy translation.** IBM Plex Mono is the instrument's voice and appears only where the system
-is genuinely reporting a value. If a mono string is not a measurement, it is set in Plex Sans.
+is genuinely reporting a value. If a mono string is not a measurement, it is set in Newsreader (Phase 6; formerly Plex Sans).
 
 ---
 

@@ -658,3 +658,56 @@
     padding: 8px 0;
   }
 }
+
+/* ==========================================================================
+   POSITION_RAIL — thirty years as a measured length.
+
+   A continuous rule behind the seven stops with one node travelling along it.
+   Decoration in the accessibility sense and nothing else: every era is still
+   its own button, `aria-current` still says which one is live, and the rail
+   adds no focusable anything. What it adds is distance — a visitor can see
+   they are two stops from the start and four from the end without counting.
+   ========================================================================== */
+.tm-scrub {
+  position: relative;
+}
+.tm-rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 5px;
+  height: 2px;
+  background: var(--rule-faint);
+  pointer-events: none;
+}
+/* The node. It travels; the stops do not. */
+.tm-rail__node {
+  position: absolute;
+  top: 3px;
+  left: var(--tm-pos, 0%);
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  border-radius: 50%;
+  background: var(--signal);
+  pointer-events: none;
+  transition: left var(--d-3) var(--e-glide);
+}
+/* The travelled part of the chronology is behind you, and reads that way. */
+.tm-rail::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--tm-pos, 0%);
+  background: var(--rule);
+  transition: width var(--d-3) var(--e-glide);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tm-rail__node,
+  .tm-rail::after {
+    transition-duration: 1ms;
+  }
+}

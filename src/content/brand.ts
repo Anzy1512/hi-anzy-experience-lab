@@ -80,17 +80,29 @@ export const SPECIMEN = {
   subtitle: 'A composition, and everything holding it up.',
   standfirst:
     'Every interface is two things at once: the surface someone reads, and the structure that makes the surface possible. Only one of them is usually allowed to be seen.',
+  /*
+   * These four headings were ABSORB · CLARIFY · BLUEPRINT · ASSEMBLE — the
+   * stage names of a methodology the company stopped using. Nothing here ever
+   * claimed to be the method, and that is exactly why it survived three
+   * content-truth sweeps: it is a specimen about interfaces, so nobody read it
+   * as a methodology statement. A visitor who knows the real five stages would
+   * have, and the Lab spent Phase 5.5 removing precisely that confusion.
+   *
+   * The words are now what the columns actually argue, and deliberately none
+   * of them collides with AUDIT · ARCHITECT · BUILD · CONNECT · SCALE either.
+   * The specimen is about reading a sheet; it is not a second method.
+   */
   columns: [
     {
-      head: 'ABSORB',
+      head: 'LOOK',
       body: 'Nothing useful starts with an answer. It starts with a long, undefended look at the thing as it actually is — including the parts that contradict each other.',
     },
     {
-      head: 'CLARIFY',
+      head: 'ORDER',
       body: 'Ambiguity is not removed, it is ordered. What matters is separated from what is merely loud, and the shape of the real problem is allowed to appear.',
     },
     {
-      head: 'BLUEPRINT',
+      head: 'DRAW',
       body: 'A problem becomes a drawing: measured, annotated, and specific enough that other people can build from it without being in the room.',
     },
     {

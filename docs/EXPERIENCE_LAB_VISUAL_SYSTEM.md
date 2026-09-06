@@ -69,7 +69,7 @@ Three voices, kept strictly apart. Two are inherited from the deck; the third is
 | Role | Face | Use |
 |---|---|---|
 | Display | **Rajdhani** 500/600/700 | Wordmark, index titles, specimen headings. Editorial mass. |
-| Body | **IBM Plex Sans** 400/500 | Statements, descriptions, reading. |
+| Body | **Newsreader** 200-800 (serif) | Statements, descriptions, reading. Phase 6: adopted from the canonical site's own `App.css` ("Newsreader = Human Voice"), replacing IBM Plex Sans. |
 | System | **IBM Plex Mono** 400/500 | **The instrument's voice.** |
 
 **Mono is only for values the system actually measured.** Decorative pseudo-technical strings are

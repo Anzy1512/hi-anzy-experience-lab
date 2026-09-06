@@ -1,10 +1,18 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { ModeViewProps } from '../../experience/types';
 import { useCoarsePointer, useLatest, useMediaQuery, useReducedMotion } from '../../core/hooks';
 import { onFrame } from '../../core/raf';
 import { setPointerIntent } from '../../core/pointer';
 import { useAudio } from '../../audio/useAudio';
-import { FAMILIES, FAMILY_NOTE, SCALE, play, type Family } from '../../audio/voices';
+import {
+  degreeIndex,
+  FAMILIES,
+  FAMILY_NOTE,
+  SCALE,
+  SCALE_NAMES,
+  play,
+  type Family,
+} from '../../audio/voices';
 import './sonic.css';
 
 /**
@@ -26,6 +34,34 @@ import './sonic.css';
  *
  * Nothing sounds until sound is switched on, and the whole graph is torn down
  * by the shared engine on exit.
+ *
+ * ── PHASE 6: IT HAD TO STOP BEING A BAR CHART ───────────────────────────────
+ *
+ * All of the above was true before this phase and the mode still read as a row
+ * of coloured bars, because that is what it was drawn as. The thesis says
+ * architecture; the drawing said chart. Four changes, all of them borrowed from
+ * how an elevation is actually drawn, and none of them WebGL:
+ *
+ *   DATUM LINES   Nine levels ruled across the whole field, each labelled with
+ *                 the note a bay reaching it will sound. Height stops being a
+ *                 quantity and becomes a storey you can name.
+ *   COURSING      A bay of seven draws seven courses. A solid block is a bar; a
+ *                 subdivided one is a building, and the subdivision is the
+ *                 quantisation the audio is already doing.
+ *   HATCH         Materials are drawn as hatches rather than flat tones —
+ *                 poché, the convention every section drawing uses to say what
+ *                 something is made of. Six fills that differ in *pattern*
+ *                 survive being small, printed, or seen by someone who cannot
+ *                 separate the hues.
+ *   SECTION CUT   The bay the playhead is on is drawn cut: heavy outline, solid
+ *                 poché. One device doing two jobs — it is the drawing
+ *                 convention for "we are looking through here", and it is also
+ *                 the bay that is sounding.
+ *
+ * The mobile instrument is a different drawing, not this one shrunk. See
+ * `sonic.css` — the elevation turns on its side and becomes a section through
+ * stacked floors, so the height axis gets the full width of the phone instead
+ * of 21 pixels of it.
  */
 
 /**
@@ -63,6 +99,18 @@ export default function SonicMode({ onReady, scope }: ModeViewProps) {
 
   const narrow = useMediaQuery('(max-width: 900px)');
   const bayCount = narrow || coarse ? TOUCH_BAYS : DESK_BAYS;
+  /*
+   * Below 900px the drawing turns ninety degrees and becomes a SECTION —
+   * floors stacked down the page, height running across it. Not a preference:
+   * on a 390px screen the elevation gives the height axis 21px per bay, which
+   * is the entire musical range of the instrument squeezed into a thumbnail,
+   * while the section hands that axis the full width of the phone.
+   *
+   * Same DOM, same bays, same audio. The drag axes swap and the CSS lays it on
+   * its side, which is what "a different instrument rather than a cramped one"
+   * has to mean if it is going to mean anything.
+   */
+  const section = narrow;
 
   const [bays, setBays] = useState<Bay[]>(() => initialBays(bayCount));
 
@@ -176,15 +224,18 @@ export default function SonicMode({ onReady, scope }: ModeViewProps) {
     if (!field) return;
     let active = -1;
 
+    /* One gesture, two orientations. In elevation the height is up the screen
+       and the bay is across it; in section they are exactly swapped. */
     const heightFromEvent = (e: PointerEvent) => {
       const r = field.getBoundingClientRect();
-      const t = 1 - (e.clientY - r.top) / r.height;
+      const t = section ? (e.clientX - r.left) / r.width : 1 - (e.clientY - r.top) / r.height;
       return Math.round(Math.max(0, Math.min(1, t)) * MAX_H);
     };
     const bayFromEvent = (e: PointerEvent) => {
       const r = field.getBoundingClientRect();
       const n = baysRef.current.length;
-      return Math.max(0, Math.min(n - 1, Math.floor(((e.clientX - r.left) / r.width) * n)));
+      const t = section ? (e.clientY - r.top) / r.height : (e.clientX - r.left) / r.width;
+      return Math.max(0, Math.min(n - 1, Math.floor(t * n)));
     };
 
     const down = (e: PointerEvent) => {
@@ -213,7 +264,7 @@ export default function SonicMode({ onReady, scope }: ModeViewProps) {
       window.removeEventListener('pointerup', up);
       window.removeEventListener('pointercancel', up);
     };
-  }, [setHeight, baysRef]);
+  }, [setHeight, baysRef, section]);
 
   return (
     <div className="sn" data-armed={armed ? 'true' : 'false'}>
@@ -226,14 +277,47 @@ export default function SonicMode({ onReady, scope }: ModeViewProps) {
       </header>
 
       {/* ---- the elevation ------------------------------------------------ */}
-      <div className="sn-field" ref={fieldRef} role="group" aria-label="Elevation">
+      <div
+        className="sn-field"
+        ref={fieldRef}
+        role="group"
+        aria-label={section ? 'Section' : 'Elevation'}
+        data-orientation={section ? 'section' : 'elevation'}
+      >
+        {/* Datum lines. Every level is named with the note a bay reaching it
+            sounds — a measured value, which is why it is set in mono. */}
+        <div className="sn-datums" aria-hidden="true">
+          {Array.from({ length: MAX_H + 1 }, (_, level) => MAX_H - level).map((level) => (
+            <div className="sn-datum" key={level}>
+              <span className="t-mono t-mono-xs sn-datum__note">
+                {level === 0 ? 'REST' : SCALE_NAMES[degreeIndex(level / MAX_H)]}
+              </span>
+              <span className="sn-datum__rule" />
+            </div>
+          ))}
+        </div>
+
         {bays.map((bay, i) => (
           <div className="sn-bay" key={i} data-now={i === step ? 'true' : 'false'}>
+            {/* What this bay will sound, printed at its head. In flow above the
+                mass so it rides the roofline instead of being pinned to the
+                baseline — the first version put every note on the ground. */}
+            <span className="t-mono t-mono-xs sn-bay__note" aria-hidden="true">
+              {bay.h === 0 ? '·' : SCALE_NAMES[degreeIndex(bay.h / MAX_H)]}
+            </span>
             <button
               type="button"
               className="sn-bay__mass"
-              style={{ height: `${(bay.h / MAX_H) * 100}%` }}
+              /* One number, two axes: height in elevation, width in section.
+                 The custom property is what the section stylesheet reads. */
+              style={
+                {
+                  height: `${(bay.h / MAX_H) * 100}%`,
+                  '--sn-len': `${(bay.h / MAX_H) * 100}%`,
+                } as CSSProperties
+              }
               data-family={bay.family}
+              data-storeys={bay.h}
               onClick={(e) => {
                 e.stopPropagation();
                 cycleFamily(i);
@@ -241,10 +325,12 @@ export default function SonicMode({ onReady, scope }: ModeViewProps) {
               /* Dragging is a pointer gesture. The same two properties are on
                  the keyboard: arrows set the height, Enter cycles material. */
               onKeyDown={(e) => {
-                if (e.key === 'ArrowUp') {
+                /* Both axes are bound in both orientations. A keyboard visitor
+                   should not have to know which way the drawing is turned. */
+                if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
                   e.preventDefault();
                   setHeight(i, bay.h + 1);
-                } else if (e.key === 'ArrowDown') {
+                } else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') {
                   e.preventDefault();
                   setHeight(i, bay.h - 1);
                 }
@@ -254,15 +340,27 @@ export default function SonicMode({ onReady, scope }: ModeViewProps) {
               aria-valuemax={MAX_H}
               aria-valuenow={bay.h}
               aria-valuetext={`Height ${bay.h} of ${MAX_H}, material ${bay.family}`}
-              aria-label={`Bay ${i + 1}. Up and down arrows set height; Enter changes material.`}
+              aria-label={`Bay ${i + 1}. ${
+                section ? 'Left and right arrows' : 'Up and down arrows'
+              } set height; Enter changes material.`}
             >
+              {/* Coursing: one rule per storey. A block is a bar; a coursed
+                  block is a building, and the courses are the quantisation the
+                  audio already performs. */}
+              <span className="sn-bay__courses" aria-hidden="true">
+                {Array.from({ length: bay.h }, (_, c) => (
+                  <span className="sn-bay__course" key={c} />
+                ))}
+              </span>
               <span className="t-mono sn-bay__label">{bay.family.slice(0, 2)}</span>
             </button>
             <span className="t-mono t-mono-xs sn-bay__n">{String(i + 1).padStart(2, '0')}</span>
           </div>
         ))}
-        {/* Ground line — the elevation stands on the sheet's own rule. */}
+        {/* Ground line, with earth hatched below it. An elevation that floats
+            is a diagram; one that stands on something is a building. */}
         <span className="sn-ground" aria-hidden="true" />
+        <span className="sn-earth" aria-hidden="true" />
       </div>
 
       {/* ---- the instrument's controls ------------------------------------ */}
@@ -303,8 +401,11 @@ export default function SonicMode({ onReady, scope }: ModeViewProps) {
 
         <p className="t-mono t-mono-xs t-faint sn-hint">
           {coarse
-            ? 'DRAG A BAY UP · TAP ITS MASS TO CHANGE MATERIAL'
+            ? 'DRAG A FLOOR ACROSS TO SET ITS NOTE · TAP TO CHANGE MATERIAL'
             : 'DRAG TO BUILD · CLICK A MASS TO CHANGE MATERIAL · TAB THEN ↑ ↓ TO PLAY BY KEYBOARD'}
+        </p>
+        <p className="t-mono t-mono-xs t-faint sn-hint" aria-hidden="true">
+          {section ? 'SECTION · SIXTEEN FLOORS BECOME EIGHT' : ''}
         </p>
       </div>
 
