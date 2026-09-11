@@ -502,15 +502,21 @@
   font-size: var(--t-mono-xs);
   letter-spacing: var(--tr-mono-wide);
   /* One step up the same scale the rule uses: an unreached register is
-     legible structure, a reached one is promoted to full figure. */
-  color: var(--figure-dim);
+     legible structure, a reached one is promoted to full figure.
+     Measured at 10px against this mode's own paper ground: plain
+     --figure-dim renders 4.49:1, just under AA. Rather than darken the
+     token every other --figure-dim consumer in this file shares (the
+     column heads, the brief intro, the loop list), this one load-bearing
+     label is mixed 10% toward --figure — still one clear step short of
+     the reached state's full ink, now 4.88:1. */
+  color: color-mix(in srgb, var(--figure-dim) 90%, var(--figure) 10%);
   transition: color var(--d-3) var(--e-glide);
 }
 .sim-register[data-reached='true'] .sim-register__name {
   color: var(--figure);
 }
 .sim-register__n {
-  color: var(--figure-dim);
+  color: color-mix(in srgb, var(--figure-dim) 90%, var(--figure) 10%);
 }
 
 /* Consequences between one answer's fragments, drawn as hairlines. */
