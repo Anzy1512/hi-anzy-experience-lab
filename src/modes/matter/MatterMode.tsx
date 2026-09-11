@@ -246,7 +246,7 @@ export default function MatterMode({ onReady, scope }: ModeViewProps) {
                 onPointerLeave={() => setPointerIntent('default')}
               >
                 {STATE_LABEL[s]}
-                <span className="mx-btn__key t-faint">{i + 1}</span>
+                <span className="mx-btn__key">{i + 1}</span>
               </button>
             ))}
           </div>

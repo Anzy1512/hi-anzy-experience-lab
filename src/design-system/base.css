@@ -75,6 +75,15 @@ button {
   outline: 2px solid var(--signal);
   outline-offset: 3px;
 }
+/* The skip link's landing site is a landmark, not a control, and it is focused
+   programmatically so the next Tab continues from the content. Ringing it draws
+   the signal outline around the entire viewport — 1440×900 of orange border —
+   which says nothing a visitor who just pressed "Skip to content" does not
+   already know. Focus still moves, and the region is still announced; only the
+   box is suppressed. Every real control keeps its ring. */
+#lab-main:focus-visible {
+  outline: none;
+}
 
 /* ---- utilities ---------------------------------------------------------- */
 .u-sr {

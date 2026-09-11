@@ -279,8 +279,12 @@ export function LabIndex() {
   // reality visibly marks it. Session-only; nothing is persisted.
   const seen = useSyncExternalStore(subscribeVisited, visitedCount);
 
+  // `tabIndex={-1}` so the skip link actually lands: without it the hash moves
+  // and focus stays on <body>, which is the one thing the link exists to
+  // prevent. Programmatic focus only — `:focus-visible` will not match, so no
+  // ring is printed. Same reason ModeHost carries it.
   return (
-    <main className="index" id="lab-main">
+    <main className="index" id="lab-main" tabIndex={-1}>
       <header className="index__head">
         <div className="index__head-left">
           <p className="t-mono t-mono-xs t-dim">{INDEX_COPY.eyebrow}</p>

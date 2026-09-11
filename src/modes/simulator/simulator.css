@@ -449,13 +449,24 @@
   pointer-events: none;
 }
 
+/*
+ * STATE IS CARRIED BY COLOUR, NOT BY A BLANKET OPACITY.
+ *
+ * This used to also sit at `opacity: 0.34`, on top of `__rule` and `__name`
+ * already expressing reached/unreached through their own tokens. The two
+ * dimmings compounded: a name at `--figure-faint` (1.93:1 on paper) fell to
+ * 1.25:1, which is under the perceptual floor — so the five canonical
+ * registers did not read as structure at all, and the left two-thirds of the
+ * mode looked genuinely empty rather than ruled and waiting. The blank space
+ * is supposed to be composed rather than absent; it cannot be either if it
+ * is invisible. Reached-ness is still obvious, because it is a step in both
+ * the rule's weight and the label's colour.
+ */
 .sim-register {
   position: absolute;
   left: 0;
   right: 0;
   height: calc((100% - 17%) / 5);
-  opacity: 0.34;
-  transition: opacity var(--d-3) var(--e-glide);
 }
 .sim-register:nth-child(1) { top: 11%; }
 .sim-register:nth-child(2) { top: calc(11% + ((100% - 17%) / 5) * 1); }
@@ -463,9 +474,6 @@
 .sim-register:nth-child(4) { top: calc(11% + ((100% - 17%) / 5) * 3); }
 .sim-register:nth-child(5) { top: calc(11% + ((100% - 17%) / 5) * 4); }
 
-.sim-register[data-reached='true'] {
-  opacity: 1;
-}
 
 .sim-register__rule {
   position: absolute;
@@ -493,13 +501,16 @@
   gap: var(--s-1);
   font-size: var(--t-mono-xs);
   letter-spacing: var(--tr-mono-wide);
-  color: var(--figure-faint);
+  /* One step up the same scale the rule uses: an unreached register is
+     legible structure, a reached one is promoted to full figure. */
+  color: var(--figure-dim);
+  transition: color var(--d-3) var(--e-glide);
 }
 .sim-register[data-reached='true'] .sim-register__name {
-  color: var(--figure-dim);
+  color: var(--figure);
 }
 .sim-register__n {
-  color: var(--figure-faint);
+  color: var(--figure-dim);
 }
 
 /* Consequences between one answer's fragments, drawn as hairlines. */

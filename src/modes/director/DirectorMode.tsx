@@ -6,6 +6,7 @@ import { onFrame } from '../../core/raf';
 import { setPointerIntent } from '../../core/pointer';
 import { ACTS, CUES, DIRECTOR_COPY, RUNTIME, SHOTS } from '../../content/director';
 import { MODES, onlineCount } from '../../content/lab';
+import { specimenSrc } from '../../content/specimens';
 import { useAudio } from '../../audio/useAudio';
 import { degree, play, type Family } from '../../audio/voices';
 import { Shot } from './Shot';
@@ -173,6 +174,42 @@ export default function DirectorMode({ onReady, onExit, scope }: ModeViewProps) 
     const local = (t - CUES[i]) / SHOTS[i].dur;
     return { index: i, p: Math.max(0, Math.min(1, local)) };
   }, [t]);
+
+  /*
+   * ---- the next plate, fetched while the current one is on screen --------
+   *
+   * `SpecimenPlate` is `loading="lazy"`, which is right everywhere else and
+   * wrong inside a film: the browser did not begin fetching a specimen until
+   * its own shot mounted, so the shot opened on an empty halftone card and
+   * the photograph arrived late. On localhost that is about 4ms and invisible;
+   * on a real connection it is the first thing a visitor sees of an authored
+   * shot.
+   *
+   * So the film reads one shot ahead, which is what a projectionist does. Only
+   * the next specimen is warmed — never the Lab's whole image library — and
+   * `decode()` takes it all the way to a paintable frame rather than stopping
+   * at bytes received. Failures are deliberately swallowed: a warm-up that
+   * does not land must never break the performance, the shot simply arrives
+   * as it did before.
+   */
+  useEffect(() => {
+    if (stage !== 'playing') return;
+    let next: string | undefined;
+    for (let n = index + 1; n < SHOTS.length; n++) {
+      if (SHOTS[n].specimen) {
+        next = SHOTS[n].specimen;
+        break;
+      }
+    }
+    if (!next) return;
+    let img: HTMLImageElement | null = new Image();
+    img.decoding = 'async';
+    img.src = specimenSrc(next);
+    void img.decode().catch(() => {});
+    return () => {
+      img = null;
+    };
+  }, [index, stage]);
 
   /* ---- the score: one cue per shot, and nothing if sound was declined ---- */
   useEffect(() => {

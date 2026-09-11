@@ -154,7 +154,7 @@ export function ModeHost() {
           onPointerLeave={() => setPointerIntent('scan')}
         >
           {XRAY_COPY.exit}
-          <span className="modehost__esc t-faint" aria-hidden="true">
+          <span className="modehost__esc t-dim" aria-hidden="true">
             ESC
           </span>
         </button>

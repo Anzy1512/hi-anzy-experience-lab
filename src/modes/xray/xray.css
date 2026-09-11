@@ -74,8 +74,25 @@
     filter 1100ms var(--e-cinematic);
 }
 
-/* ---- specimen composition : a real 12-column sheet ---------------------- */
-.spec {
+/* ---- specimen composition : a real 12-column sheet ----------------------
+ *
+ * NAMESPACED `xr-spec`, NOT `spec`, AND IT HAS TO STAY THAT WAY.
+ *
+ * This sheet is X-Ray's own document — masthead, standfirst, column set,
+ * colophon. `components/Specimen/SpecimenPlate` is a different component
+ * entirely: a photographic plate made of ground, figure, image and corner
+ * marks. They are unrelated, and they both used to answer to `.spec`.
+ *
+ * Because this file is a mode chunk and CSS chunks never unload, visiting
+ * X-Ray once left `.spec { display: grid }` and `.spec__figure { display:
+ * flex }` live over the whole session — so every shared plate in Living
+ * World, Anzy.OS and Director silently re-laid out behind the visitor's
+ * back (a 494px figure became 120px) and stayed broken until reload.
+ *
+ * The fix is the namespace, not specificity: a `.xr .spec` descendant rule
+ * would still collide the moment a shared plate is rendered inside X-Ray.
+ */
+.xr-spec {
   min-height: 100%;
   padding: calc(var(--trim) * 2.3) var(--trim) calc(var(--trim) * 5.6);
   display: grid;
@@ -86,24 +103,24 @@
   align-content: start;
 }
 
-.spec__head {
+.xr-spec__head {
   grid-column: 1 / 8;
   grid-row: 1;
 }
-.spec__kicker {
+.xr-spec__kicker {
   letter-spacing: var(--tr-mono-wide);
 }
-.spec__title {
+.xr-spec__title {
   font-size: clamp(2.25rem, 6.4vw, 5.4rem);
   margin-top: 0.16em;
 }
-.spec__subtitle {
+.xr-spec__subtitle {
   margin-top: 0.55em;
   max-width: 40ch;
   color: var(--figure-dim);
 }
 
-.spec__figure {
+.xr-spec__figure {
   grid-column: 9 / 13;
   grid-row: 1 / 4;
   position: relative;
@@ -112,26 +129,26 @@
   flex-direction: column;
   min-height: 0;
 }
-.spec__plate {
+.xr-spec__plate {
   width: 100%;
   flex: 1;
   min-height: 190px;
   object-fit: cover;
   background: #0b0e0e;
 }
-.spec__plate-frame {
+.xr-spec__plate-frame {
   position: absolute;
   inset: 0 0 auto 0;
   height: calc(100% - 2.6em);
   border: var(--hair) solid var(--rule);
   pointer-events: none;
 }
-.spec__caption {
+.xr-spec__caption {
   margin-top: 0.75em;
   line-height: 1.5;
 }
 
-.spec__standfirst {
+.xr-spec__standfirst {
   grid-column: 1 / 7;
   grid-row: 2;
   font-size: clamp(1rem, 1.15vw, 1.3rem);
@@ -139,7 +156,7 @@
   max-width: 46ch;
 }
 
-.spec__cols {
+.xr-spec__cols {
   grid-column: 1 / 8;
   grid-row: 3;
   display: grid;
@@ -150,21 +167,21 @@
   padding-top: var(--s-2);
   border-top: var(--hair) solid var(--rule);
 }
-.spec__col-head {
+.xr-spec__col-head {
   display: flex;
   align-items: baseline;
   gap: 0.6em;
 }
-.spec__col-num {
+.xr-spec__col-num {
   letter-spacing: var(--tr-mono);
 }
-.spec__col-body {
+.xr-spec__col-body {
   margin-top: 0.5em;
   color: var(--figure-dim);
   max-width: 42ch;
 }
 
-.spec__colophon {
+.xr-spec__colophon {
   grid-column: 1 / 13;
   grid-row: 4;
   padding-top: var(--s-2);
@@ -630,24 +647,24 @@
    RESPONSIVE — mobile is a different instrument, not a smaller one
    ========================================================================== */
 @media (max-width: 900px) {
-  .spec {
+  .xr-spec {
     grid-template-columns: 1fr;
     /* Bottom padding is the height of the fixed instrument: record + strip. */
     padding: calc(var(--trim) * 2.6) var(--trim) 212px;
     row-gap: var(--s-4);
   }
-  .spec__head,
-  .spec__figure,
-  .spec__standfirst,
-  .spec__cols,
-  .spec__colophon {
+  .xr-spec__head,
+  .xr-spec__figure,
+  .xr-spec__standfirst,
+  .xr-spec__cols,
+  .xr-spec__colophon {
     grid-column: 1;
     grid-row: auto;
   }
-  .spec__cols {
+  .xr-spec__cols {
     grid-template-columns: 1fr;
   }
-  .spec__plate {
+  .xr-spec__plate {
     min-height: 180px;
     max-height: 30vh;
   }
@@ -764,10 +781,10 @@
 }
 
 @media (max-width: 520px) {
-  .spec__cols {
+  .xr-spec__cols {
     row-gap: var(--s-3);
   }
-  .spec__title {
+  .xr-spec__title {
     font-size: clamp(1.9rem, 10vw, 2.6rem);
   }
 }

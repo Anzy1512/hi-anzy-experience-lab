@@ -340,13 +340,13 @@ export default function OsMode({ onReady, scope }: ModeViewProps) {
            would be chrome about chrome. The rail carries the state instead. */}
       <nav className="os-rail" aria-label="Resident processes">
         <div className="os-rail__head">
-          <p className="t-display t-display-s os-rail__wordmark">{OS_COPY.tagline}</p>
+          <h1 className="t-display t-display-s os-rail__wordmark">{OS_COPY.tagline}</h1>
           <p className="t-mono t-mono-xs t-faint os-rail__state">
             <span>SHEETS {String(open.length).padStart(2, '0')}</span>
             <span className="os-rail__clock">{clock}</span>
           </p>
         </div>
-        <p className="t-mono t-mono-xs t-faint os-rail__label">RESIDENT PROCESSES</p>
+        <h2 className="t-mono t-mono-xs t-faint os-rail__label">RESIDENT PROCESSES</h2>
         <ul className="os-rail__list">
           {APPS.map((a, i) => (
             <li key={a.id}>

@@ -17,50 +17,50 @@ interface Props {
 
 export function Specimen({ plateProcess }: Props) {
   return (
-    <article className="spec" data-xr="region" data-xr-name="SPECIMEN SHEET">
-      <header className="spec__head" data-xr="region" data-xr-name="MASTHEAD">
-        <p className="t-mono t-mono-xs spec__kicker" data-xr="mono" data-xr-name="KICKER">
+    <article className="xr-spec" data-xr="region" data-xr-name="SPECIMEN SHEET">
+      <header className="xr-spec__head" data-xr="region" data-xr-name="MASTHEAD">
+        <p className="t-mono t-mono-xs xr-spec__kicker" data-xr="mono" data-xr-name="KICKER">
           <span className="t-signal">{SPECIMEN.plate}</span>
           <span className="t-faint"> / </span>
           {SPECIMEN.kicker}
         </p>
-        <h2 className="t-display t-display-xl spec__title" data-xr="display" data-xr-name="TITLE">
+        <h2 className="t-display t-display-xl xr-spec__title" data-xr="display" data-xr-name="TITLE">
           {SPECIMEN.title}
         </h2>
-        <p className="t-body spec__subtitle" data-xr="body" data-xr-name="SUBTITLE">
+        <p className="t-body xr-spec__subtitle" data-xr="body" data-xr-name="SUBTITLE">
           {SPECIMEN.subtitle}
         </p>
       </header>
 
-      <figure className="spec__figure" data-xr="region" data-xr-name="FIGURE">
-        <ContourPlate process={plateProcess} className="spec__plate" />
-        <div className="spec__plate-frame" aria-hidden="true" />
-        <figcaption className="t-mono t-mono-xs t-dim spec__caption" data-xr="mono" data-xr-name="CAPTION">
+      <figure className="xr-spec__figure" data-xr="region" data-xr-name="FIGURE">
+        <ContourPlate process={plateProcess} className="xr-spec__plate" />
+        <div className="xr-spec__plate-frame" aria-hidden="true" />
+        <figcaption className="t-mono t-mono-xs t-dim xr-spec__caption" data-xr="mono" data-xr-name="CAPTION">
           {SPECIMEN.caption}
         </figcaption>
       </figure>
 
-      <p className="t-body spec__standfirst" data-xr="body" data-xr-name="STANDFIRST">
+      <p className="t-body xr-spec__standfirst" data-xr="body" data-xr-name="STANDFIRST">
         {SPECIMEN.standfirst}
       </p>
 
-      <div className="spec__cols" data-xr="region" data-xr-name="COLUMN SET">
+      <div className="xr-spec__cols" data-xr="region" data-xr-name="COLUMN SET">
         {SPECIMEN.columns.map((col, i) => (
-          <section className="spec__col" key={col.head} data-xr="region" data-xr-name={`COLUMN ${i + 1}`}>
-            <h3 className="t-display t-display-s spec__col-head" data-xr="display" data-xr-name={col.head}>
-              <span className="spec__col-num t-mono t-mono-xs t-faint" aria-hidden="true">
+          <section className="xr-spec__col" key={col.head} data-xr="region" data-xr-name={`COLUMN ${i + 1}`}>
+            <h3 className="t-display t-display-s xr-spec__col-head" data-xr="display" data-xr-name={col.head}>
+              <span className="xr-spec__col-num t-mono t-mono-xs t-faint" aria-hidden="true">
                 {String(i + 1).padStart(2, '0')}
               </span>
               {col.head}
             </h3>
-            <p className="t-body-s spec__col-body" data-xr="body" data-xr-name={`${col.head} BODY`}>
+            <p className="t-body-s xr-spec__col-body" data-xr="body" data-xr-name={`${col.head} BODY`}>
               {col.body}
             </p>
           </section>
         ))}
       </div>
 
-      <p className="t-mono t-mono-xs t-faint spec__colophon" data-xr="mono" data-xr-name="COLOPHON">
+      <p className="t-mono t-mono-xs t-faint xr-spec__colophon" data-xr="mono" data-xr-name="COLOPHON">
         {SPECIMEN.colophon}
       </p>
     </article>

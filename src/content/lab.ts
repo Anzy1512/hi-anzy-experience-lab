@@ -70,8 +70,13 @@ export const MODES: ModeDefinition[] = [
     index: '04',
     title: 'AGENCY SIMULATOR',
     tagline: 'Give Hi Anzy a problem.',
+    /* Reads the canonical five in order — AUDIT, ARCHITECT, BUILD, CONNECT,
+       SCALE — because the mode itself runs them off `METHOD_LABELS`. The
+       previous wording narrated ABSORB / CLARIFY / BLUEPRINT / ASSEMBLE /
+       SUSTAIN, the earlier printed deck's method that `canonical.ts` says was
+       replaced, so the index described a sequence the reality does not run. */
     description:
-      'State a brief and watch it get taken apart: absorbed, clarified, drawn as a blueprint, assembled from the right capabilities, and carried through. The method, made operable.',
+      'State a brief and watch it get taken apart: looked at before it is answered, decided into a map, built, staffed with whoever the problem needs, and proved against the measure you agreed. The method, made operable.',
     status: 'online',
     tier: 'flagship',
     material: 'paper',

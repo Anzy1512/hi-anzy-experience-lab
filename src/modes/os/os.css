@@ -87,7 +87,12 @@
   padding-right: var(--s-3);
   padding-bottom: var(--s-3);
 }
+/* An h1 and an h2 rather than two paragraphs: the OS was the one reality whose
+   outline began at h3, because its title and its rail label were set as body
+   copy and the sheet titles below them were already headings. Margins are
+   stated so promoting the elements changes the outline and not one pixel. */
 .os-rail__wordmark {
+  margin: 0;
   letter-spacing: var(--tr-display);
   line-height: 1;
 }
@@ -104,6 +109,7 @@
 }
 
 .os-rail__label {
+  margin: 0;
   padding: var(--s-2) var(--s-3) var(--s-1) 0;
   border-top: var(--hair) solid var(--rule);
   letter-spacing: var(--tr-mono-wide);
@@ -953,6 +959,31 @@
 .os-leaves {
   padding: var(--s-3) var(--s-3) var(--s-4) 0;
 }
+/*
+ * THE STOCK PASSES UNDER THE SHEET'S EDGE.
+ *
+ * Recomposing the leaf across took the method from 54% to 74% of the sheet at
+ * 1440 and put four of five stages above the fold, but SCALE still sits below
+ * it and closing the remaining 192px would mean setting the type smaller than
+ * it should be. So the sheet says so instead: a trimmed edge the last leaf
+ * runs under, which is what a continuing document actually looks like and is
+ * the one thing the old sheet never printed. It is drawn, not a scrollbar —
+ * the scrollbar is still there, thin, for anyone who wants to grab it.
+ */
+.os-leaves::after {
+  content: '';
+  position: sticky;
+  bottom: 0;
+  display: block;
+  height: 18px;
+  /* Rides over the last of the stock while there is more below; the trailing
+     padding on `.os-leaves` is what it comes to rest in, so at the end of the
+     scroll it sits clear of the final duration line instead of fading it. */
+  margin-top: -18px;
+  background: linear-gradient(to top, var(--ground) 30%, transparent);
+  border-bottom: var(--hair) solid var(--rule-faint);
+  pointer-events: none;
+}
 .os-leaf {
   display: grid;
   grid-template-columns: 44px minmax(0, 1fr);
@@ -998,22 +1029,49 @@
   left: 5px;
   width: var(--hair);
 }
+/*
+ * THE LEAF IS SET ACROSS, NOT DOWN.
+ *
+ * Stacked — label, title, three outputs, duration, all at the body's full
+ * 450px measure — five leaves came to 1039px inside a 556px sheet: 54% of the
+ * method visible, CONNECT and SCALE off the bottom of the stock. The sheet
+ * has always scrolled, so nothing was unreachable, but a visitor reading
+ * "five stages" was shown three and given no printed reason to believe in the
+ * other two.
+ *
+ * The width was never the problem: single-line outputs were sitting in a
+ * 450px column. So the stage's identity (label, promise, schedule) sets in a
+ * left measure and what it produces sets beside it, which is how a
+ * specification sheet is set anyway — the stage on the left, its deliverables
+ * ruled off to the right. The sheet's own width is a chosen measure (520,
+ * "five leaves, the most spaced sheet") and is not touched.
+ */
 .os-leaf__body {
   min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 148px) minmax(0, 1fr);
+  column-gap: var(--s-3);
+  align-items: start;
 }
 .os-leaf__label {
+  grid-column: 1;
+  grid-row: 1;
   margin: 0;
   line-height: 1;
   letter-spacing: 0.02em;
 }
 .os-leaf__title {
-  margin: 0.35em 0 var(--s-2);
+  grid-column: 1;
+  grid-row: 2;
+  margin: 0.35em 0 0;
   line-height: 1.4;
   color: var(--figure);
 }
 .os-leaf__outputs {
+  grid-column: 2;
+  grid-row: 1 / 4;
   list-style: none;
-  margin: 0 0 var(--s-2);
+  margin: 0;
   padding: 0;
 }
 .os-leaf__outputs li {
@@ -1032,7 +1090,24 @@
   background: var(--rule);
 }
 .os-leaf__dur {
+  grid-column: 1;
+  grid-row: 3;
+  margin-top: var(--s-2);
+  align-self: end;
   letter-spacing: var(--tr-mono-wide);
+}
+
+/* Stacked bench: the measure is gone, so the leaf goes back down the page. */
+@media (max-width: 900px) {
+  .os-leaf__body {
+    display: block;
+  }
+  .os-leaf__title {
+    margin-bottom: var(--s-2);
+  }
+  .os-leaf__outputs {
+    margin-bottom: var(--s-2);
+  }
 }
 
 /* ==========================================================================

@@ -134,6 +134,9 @@ export function Launcher() {
       data-beat={beat}
       data-leaving={leaving ? 'true' : 'false'}
       id="lab-main"
+      /* See LabIndex: the skip link needs a focusable target or focus never
+         leaves <body>. */
+      tabIndex={-1}
     >
       <h1 className="u-sr">Hi Anzy — Experience Lab. One company. Multiple realities.</h1>
 

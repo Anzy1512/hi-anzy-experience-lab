@@ -47,10 +47,13 @@
   border-color: var(--signal-hot);
   color: var(--c-bone);
 }
+/* Subordinate to the EXIT label by size, the hairline divider and one step of
+   colour — not by a second opacity on top of a faint token. Stacked, those two
+   put the only printed statement of the keyboard route out at 1.54:1 on ink and
+   1.01:1 on blueprint, i.e. invisible on the two blueprint modes. */
 .modehost__esc {
   padding-left: var(--s-2);
   border-left: var(--hair) solid currentColor;
-  opacity: 0.55;
 }
 
 /* ---- loading: a measured rule, never a spinner -------------------------- */
@@ -232,6 +235,19 @@
   .modehost[data-mode='agency-simulator'] .modehost__onward {
     max-width: none;
   }
+}
+
+/* Director is the one reality with no free lane to move the graph into: the
+   gate is the composition, and shots anchor left, right, centre and low across
+   the film, so every margin is somebody's frame at some point — measured, the
+   card printed straight through the "SOLVABLE. NOT YET SOLVED." caption by
+   54×47px. Placement cannot fix that; timing can. An onward move is a thing
+   you offer at the end of a film, not over one, and the film already ends on
+   its own routes. So the graph simply waits for the performance to stop —
+   which is also the one case where "offered without interrupting" was untrue. */
+.modehost[data-mode='director']:has(.dr[data-stage='playing']) .modehost__onward,
+.modehost[data-mode='director']:has(.dr[data-stage='paused']) .modehost__onward {
+  display: none;
 }
 
 /* X-Ray keeps a live inspector panel pinned to the lower right — it is the

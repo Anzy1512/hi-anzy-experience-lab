@@ -143,8 +143,14 @@
   border-color: var(--signal);
   color: var(--c-ink);
 }
+/* Tracks the button's own colour instead of being pinned to a bone faint: on
+   an active (orange) button a fixed `--figure-faint` printed at 1.15:1, the
+   worst ratio in the Lab, because it ignored the state that had just turned
+   the ground orange and the label ink. Size already subordinates it. */
 .mx-btn__key {
   font-size: 0.5625rem;
+  color: currentColor;
+  opacity: 0.78;
 }
 
 .mx-hint {
