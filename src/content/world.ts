@@ -27,6 +27,8 @@ export type DistrictStatus = 'open' | 'forming' | 'sealed';
  * sightings; TECHNOLOGY is a lattice because it is a machine; CULTURE scatters
  * because it is the least ordered thing here.
  */
+import type { MaterialId } from '../design-system/materials';
+
 export type DistrictForm =
   | 'tower'    // narrow, tall, in register
   | 'fan'      // plates widen as they rise
@@ -58,6 +60,29 @@ export interface District {
   shear: number;
   /** the district's architecture, and its silhouette */
   form: DistrictForm;
+  /**
+   * What the district is made of.
+   *
+   * ── WHY THIS EXISTS ──────────────────────────────────────────────────────
+   *
+   * The nine districts already differed in topology — eight silhouette
+   * builders, varying plate counts, rise and shear — and on screen they read
+   * as one thing, because every plate in the territory went through a single
+   * colour formula and a single bone hue. Eight different buildings drawn with
+   * one pen.
+   *
+   * A section drawing solves this the same way every time: materials are
+   * distinguished by **hatch pattern and line weight**, never by hue. Solid
+   * poché for cut concrete, diagonal hatch for masonry, a lighter hatch for
+   * timber — the outline carrying the strong weight, the hatch drawn at the
+   * thinnest line in the drawing.
+   *
+   * So each district is assigned a material from the Lab's own vocabulary
+   * (`design-system/materials.ts`) and `Territory.tsx` derives its value and
+   * its infill density from that. No district gets a colour of its own; the
+   * Lab has one accent and it means signal.
+   */
+  material: MaterialId;
   status: DistrictStatus;
 }
 
@@ -77,6 +102,8 @@ export const DISTRICTS: District[] = [
     rise: 46,
     shear: 2,
     form: 'tower',
+    /* Sightings and provisional construction. Graphite is the line that measures a thing it is not part of — drawn to be worked from, never meant to be inked. */
+    material: 'GRAPHITE',
     status: 'open',
   },
   {
@@ -94,6 +121,8 @@ export const DISTRICTS: District[] = [
     rise: 50,
     shear: 26,
     form: 'fan',
+    /* Where a position acquires a form. Planar, cuttable, the brightest stock in the territory: design is the district literally made of sheets. */
+    material: 'PAPER',
     status: 'open',
   },
   {
@@ -111,6 +140,8 @@ export const DISTRICTS: District[] = [
     rise: 34,
     shear: 4,
     form: 'lattice',
+    /* Fourteen plates, each subdivided. Rule is the thinnest mark the display can hold, and a lattice at that weight reads as dense structure rather than as a solid. */
+    material: 'RULE',
     status: 'open',
   },
   {
@@ -127,6 +158,8 @@ export const DISTRICTS: District[] = [
     rise: 54,
     shear: 34,
     form: 'terrace',
+    /* Terraced and heavy. Ink accumulates and stains — production is the stage where decisions stop being reversible. */
+    material: 'INK',
     status: 'open',
   },
   {
@@ -144,6 +177,8 @@ export const DISTRICTS: District[] = [
     rise: 44,
     shear: 30,
     form: 'radial',
+    /* Plates rotating as they stack. Trace is evidence that something moved through: fainter than the thing that made it, and the only honest material for a district about travel. */
+    material: 'TRACE',
     status: 'open',
   },
   {
@@ -161,6 +196,8 @@ export const DISTRICTS: District[] = [
     rise: 40,
     shear: 62,
     form: 'scatter',
+    /* Irregular and made of countable marks. At reading distance a tone; up close a grid of decisions — the argument the culture district exists to make. */
+    material: 'HALFTONE',
     status: 'open',
   },
   {
@@ -177,6 +214,8 @@ export const DISTRICTS: District[] = [
     rise: 34,
     shear: 0,
     form: 'ring',
+    /* An amphitheatre rather than a stack. Archive is preserved, labelled and incomplete, and its gaps are marked rather than filled. */
+    material: 'ARCHIVE',
     status: 'open',
   },
 
@@ -195,6 +234,8 @@ export const DISTRICTS: District[] = [
     rise: 60,
     shear: 18,
     form: 'stub',
+    /* Forming, not formed. Registration is misalignment as a state and alignment as an event — the correct material for something that has not quite arrived. */
+    material: 'REGISTRATION',
     status: 'forming',
   },
   {
@@ -211,6 +252,8 @@ export const DISTRICTS: District[] = [
     rise: 24,
     shear: 0,
     form: 'stub',
+    /* Sealed. Cut is an edge where material has been removed and the absence has a thickness — an aperture with nothing yet behind it. */
+    material: 'CUT',
     status: 'sealed',
   },
 ];

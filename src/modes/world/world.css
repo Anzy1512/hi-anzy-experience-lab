@@ -285,3 +285,9 @@
     transition-duration: 120ms;
   }
 }
+
+/* The district's material, named in the index the way the world draws it. */
+.lw-index__material {
+  letter-spacing: var(--tr-mono-wide);
+  margin: var(--s-1) 0 0;
+}

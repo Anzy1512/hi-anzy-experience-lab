@@ -78,6 +78,18 @@ export function WorldIndex({ districts, active, arrived, coarse, onSelect }: Pro
               {arrived ? active.name : `${WORLD_COPY.arriving} ${active.name}`}
             </p>
             <p className="t-body-s lw-index__line">{active.line}</p>
+            {/*
+              What the district is made of.
+
+              The world draws each district in its own material — value and
+              hatch density, never a colour — and that is genuinely information
+              about the place rather than a rendering decision. A visitor on
+              the index is reading the same territory; they should be told the
+              same thing, the same way Memory's fallback carries its artefacts.
+            */}
+            <p className="t-mono t-mono-xs t-faint lw-index__material">
+              MATERIAL · {active.material}
+            </p>
             <ul className="lw-index__notes">
               {active.notes.map((n) => (
                 <li className="t-mono t-mono-xs t-dim" key={n}>
