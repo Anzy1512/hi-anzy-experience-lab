@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ModeViewProps } from '../../experience/types';
 import { useExperience } from '../../experience/context';
-import { useReducedMotion } from '../../core/hooks';
+import { useCapability, useReducedMotion } from '../../core/hooks';
 import { onFrame } from '../../core/raf';
 import { setPointerIntent } from '../../core/pointer';
 import { ACTS, CUES, DIRECTOR_COPY, RUNTIME, SHOTS } from '../../content/director';
@@ -9,6 +9,7 @@ import { MODES, onlineCount } from '../../content/lab';
 import { useAudio } from '../../audio/useAudio';
 import { degree, play, type Family } from '../../audio/voices';
 import { Shot } from './Shot';
+import { gateFor } from './gate';
 import './director.css';
 
 /**
@@ -51,6 +52,8 @@ const CUE_FAMILY: Record<string, Family> = {
 
 export default function DirectorMode({ onReady, onExit, scope }: ModeViewProps) {
   const reduced = useReducedMotion();
+  const capability = useCapability();
+  const gate = useMemo(() => gateFor(capability.viewport), [capability.viewport]);
   const { enterMode } = useExperience();
 
   const [stage, setStage] = useState<Stage>('offer');
@@ -194,8 +197,20 @@ export default function DirectorMode({ onReady, onExit, scope }: ModeViewProps) 
     <div className="dr" data-stage={stage}>
       {/* ---- the frame ---------------------------------------------------- */}
       {playing && (
-        <div className="dr-frame" key={index}>
-          <Shot shot={shot} p={p} reduced={reduced} scope={scope} />
+        <div className="dr-frame">
+          <div className="dr-gate" style={{ width: gate.w, height: gate.h }}>
+            {/* Four corner marks. A gate is a full rectangle — unlike a
+                specimen plate, which gets two because it is stock that was cut
+                rather than a frame something is being shot through. */}
+            <span className="dr-gate__marks" aria-hidden="true">
+              <i /><i /><i /><i />
+            </span>
+            {/* Keyed on the shot so each one mounts fresh; the gate itself does
+                not remount, or its marks would blink on every cut. */}
+            <div className="dr-gate__inner" key={index}>
+              <Shot shot={shot} p={p} reduced={reduced} scope={scope} gate={gate} />
+            </div>
+          </div>
         </div>
       )}
 

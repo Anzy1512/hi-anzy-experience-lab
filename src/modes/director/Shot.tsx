@@ -1,7 +1,16 @@
-import { FRAGMENTS, STAGES, DIRECTOR_COPY, type Shot as ShotDef } from '../../content/director';
+import {
+  FRAGMENTS,
+  STAGES,
+  DIRECTOR_COPY,
+  type Anchor,
+  type Lens,
+  type Shot as ShotDef,
+} from '../../content/director';
 import { MODES, onlineCount } from '../../content/lab';
 import { SpecimenPlate } from '../../components/Specimen/SpecimenPlate';
+import { specimen } from '../../content/specimens';
 import type { CleanupScope } from '../../core/cleanup';
+import type { Gate } from './gate';
 
 /**
  * THE SHOTS.
@@ -29,108 +38,207 @@ export function Shot({
   p,
   reduced,
   scope,
+  gate,
 }: {
   shot: ShotDef;
   p: number;
   reduced: boolean;
   scope: CleanupScope;
+  gate: Gate;
 }) {
   // Reduced motion cuts to the composed frame: every shot is an editorial
   // tableau that arrives whole. The film keeps its structure and its silence.
   const q = reduced ? 1 : p;
+  // Where in the gate this shot composes. The default is deliberately NOT
+  // centre-for-everything any more — see `Anchor` in content/director.ts.
+  const a = shot.anchor ?? 'centre';
 
   switch (shot.kind) {
     case 'slate':
-      return <Slate p={q} caption={shot.caption ?? ''} reduced={reduced} />;
+      return <Slate p={q} caption={shot.caption ?? ''} reduced={reduced} anchor={a} />;
     case 'wordmark':
-      return <Wordmark p={q} reduced={reduced} />;
+      return <Wordmark p={q} reduced={reduced} anchor={a} />;
     case 'statement':
-      return <Statement p={q} lines={shot.lines ?? []} still={!!shot.still} reduced={reduced} />;
+      return (
+        <Statement
+          p={q}
+          lines={shot.lines ?? []}
+          still={!!shot.still}
+          reduced={reduced}
+          anchor={a}
+        />
+      );
     case 'scatter':
-      return <Scatter p={q} caption={shot.caption ?? ''} reduced={reduced} />;
+      return <Scatter p={q} caption={shot.caption ?? ''} reduced={reduced} anchor={a} />;
     case 'grid':
-      return <Grid p={q} caption={shot.caption ?? ''} reduced={reduced} />;
+      return <Grid p={q} caption={shot.caption ?? ''} reduced={reduced} anchor={a} />;
     case 'stages':
-      return <Stages p={q} caption={shot.caption ?? ''} reduced={reduced} />;
+      return <Stages p={q} caption={shot.caption ?? ''} reduced={reduced} anchor={a} />;
     case 'plate':
-      return <Plate p={q} caption={shot.caption ?? ''} reduced={reduced} />;
+      return <Plate p={q} caption={shot.caption ?? ''} reduced={reduced} anchor={a} />;
     case 'roster':
-      return <Roster p={q} caption={shot.caption ?? ''} />;
+      return <Roster p={q} caption={shot.caption ?? ''} anchor={a} />;
     case 'mark':
-      return <Mark p={q} reduced={reduced} />;
+      return <Mark p={q} reduced={reduced} anchor={a} />;
     case 'specimen':
       return (
         <SpecimenShot
           p={q}
           id={shot.specimen ?? ''}
           caption={shot.caption ?? ''}
+          lens={shot.lens ?? 'hold'}
+          focus={shot.focus ?? 0.5}
+          focusTo={shot.focusTo ?? shot.focus ?? 0.5}
+          anchor={a}
           reduced={reduced}
           scope={scope}
+          gate={gate}
         />
       );
     case 'end':
-      return <End p={q} />;
+      return <End p={q} anchor={a} />;
   }
 }
 
 /* -------------------------------------------------------------------------- */
 
 /**
- * A specimen, held in frame.
+ * HOW FAR THE LENS MAGNIFIES A CROPPED SHOT.
  *
- * The camera does not move and the plate does not follow the pointer — this is
- * a film. What happens across the shot is a *lens move*: the plate arrives
- * slightly off-axis and settles square, so the collage's own layers separate
- * and then register. The image is being brought into focus, not flown past.
+ * The scaled plate stands 1.7 gate-heights tall, which puts the crop around
+ * 1.8× native on this set and leaves it 0.35 of a gate-height of travel before
+ * the window reaches the plate's edge — enough for the two moves the edit asks
+ * for and not so much that the film starts roaming around inside a photograph.
+ */
+const MAG = 1.7;
+
+/**
+ * A specimen, and a lens.
  *
- * The caption sits under it in the system voice, set as a specimen label
- * rather than a title, because that is what it is.
+ * All four brand plates used to be shown the same way — whole, centred, 330px
+ * wide, dropped into a 1440px frame. Four postcards on four black walls. The
+ * plate is the best material this film has and it was being presented, not
+ * filmed.
+ *
+ * There are four shots now instead of one, and they are the four moves the
+ * captions were already describing. `hold` keeps a plate whole and never above
+ * native. `close` crops in and stops. `down` and `up` travel the crop across
+ * the plate, so "THE SAME MEASURE, TWICE" is found by moving from the clock to
+ * the wristwatch rather than asserted underneath a picture of both.
+ *
+ * ── WHERE THE MAGNIFICATION LIVES ───────────────────────────────────────────
+ *
+ * `SpecimenPlate` clamps its drawn width to the specimen's native size and
+ * that guarantee is left intact: the plate below is always requested at native
+ * and the enlargement is a `scale()` on the carriage that holds it. That is not
+ * a workaround, it is the correct model — a lens magnifies, the print does not
+ * change size — and it keeps the primitive's promise true for Anzy.OS and
+ * Memory, which have no camera and must never be upscaled.
+ *
+ * Reduced motion falls back to `hold` rather than freezing a travelling crop
+ * mid-move: the whole plate contains both the clock and the watch, so the
+ * information the move was carrying survives without the movement.
  */
 function SpecimenShot({
   p,
   id,
   caption,
+  lens,
+  focus,
+  focusTo,
+  anchor,
   reduced,
   scope,
+  gate,
 }: {
   p: number;
   id: string;
   caption: string;
+  lens: Lens;
+  focus: number;
+  focusTo: number;
+  anchor: Anchor;
   reduced: boolean;
   scope: CleanupScope;
+  gate: Gate;
 }) {
+  const spec = specimen(id);
   const settle = ease(span(p, 0.04, 0.62));
-  const out = span(p, 0.9, 1);
-  // Off-axis on arrival, square by the middle of the shot. Small numbers: this
-  // is a plate being set down, not a card being flipped.
-  const rx = reduced ? 0 : (1 - settle) * -6;
-  const ry = reduced ? 0 : (1 - settle) * 11;
+  /*
+   * The dissolve is its own ramp, not a by-product of `settle`.
+   *
+   * It used to be `min(settle * 1.8, 1)`, and `settle` is a cubic ease over
+   * the first 62% of the shot — so at a tenth of the way in the frame was
+   * still at two thousandths of an opacity. Measured on the clock shot: a
+   * full second of black at the head of a six-second take, and another half
+   * second lost at the tail. A dissolve is half a second at each end; the
+   * plate's own arrival easing is a separate thing and stays separate.
+   */
+  const opacity = reduced ? 1 : span(p, 0, 0.09) * (1 - span(p, 0.94, 1));
+  if (!spec) return null;
+
+  /* ---- HOLD — the whole plate, never above native ----------------------- */
+  if (lens === 'hold' || reduced) {
+    // Off-axis on arrival, square by the middle of the shot. Small numbers:
+    // this is a plate being set down, not a card being flipped.
+    const rx = reduced ? 0 : (1 - settle) * -6;
+    const ry = reduced ? 0 : (1 - settle) * 11;
+    return (
+      <div className="dr-shot dr-specimen" data-anchor={anchor} data-lens="hold" style={{ opacity }}>
+        <SpecimenPlate
+          id={id}
+          reduced={reduced}
+          scope={scope}
+          width={spec.w}
+          maxHeight={Math.round(gate.h * 0.84)}
+          separation={0.85}
+          tilt={{ rx, ry }}
+        />
+        {caption && <p className="t-mono t-mono-xs t-dim dr-specimen__caption">{caption}</p>}
+      </div>
+    );
+  }
+
+  /* ---- CROP — the gate shows part of a magnified plate ------------------- */
+  const k = (gate.h * MAG) / spec.h;
+  const H = spec.h * k;
+  const W = spec.w * k;
+  // The window never reaches past the plate's own edges.
+  const limit = Math.max(0, (H - gate.h) / 2);
+  const travel = lens === 'close' ? 1 : ease(span(p, 0.1, 0.96));
+  const f = focus + (focusTo - focus) * travel;
+  const dy = Math.max(-limit, Math.min(limit, (0.5 - f) * H));
 
   return (
-    <div className="dr-shot dr-specimen" style={{ opacity: reduced ? 1 : Math.min(settle * 1.6, 1) * (1 - out) }}>
-      <SpecimenPlate
-        id={id}
-        reduced={reduced}
-        scope={scope}
-        width={330}
-        /* The frame decides. Half the viewport height leaves the plate room to
-           be a held object rather than a wall, and leaves its label somewhere
-           to sit. */
-        maxHeight={Math.round(typeof window === 'undefined' ? 420 : window.innerHeight * 0.52)}
-        separation={0.85}
-        tilt={{ rx, ry }}
-      />
-      {caption && (
-        <p className="t-mono t-mono-xs t-dim dr-specimen__caption">{caption}</p>
-      )}
+    <div className="dr-shot dr-specimen" data-anchor={anchor} data-lens={lens} style={{ opacity }}>
+      <div className="dr-lens" style={{ width: Math.round(Math.min(W, gate.w)), height: gate.h }}>
+        <div
+          className="dr-lens__carriage"
+          style={{ transform: `translateY(${dy.toFixed(1)}px) scale(${k.toFixed(3)})` }}
+        >
+          <SpecimenPlate
+            id={id}
+            reduced={reduced}
+            scope={scope}
+            width={spec.w}
+            /* Marks off and separation halved: trim corners belong to a plate
+               being examined, not to a frame being shot through, and the
+               collage's own depth is about to be multiplied by the lens. */
+            marks={false}
+            separation={0.45}
+            tilt={{ rx: 0, ry: 2.5 }}
+          />
+        </div>
+      </div>
+      {caption && <p className="t-mono t-mono-xs t-dim dr-specimen__caption">{caption}</p>}
     </div>
   );
 }
 
-function Slate({ p, caption, reduced }: { p: number; caption: string; reduced: boolean }) {
+function Slate({ p, caption, reduced, anchor }: { p: number; caption: string; reduced: boolean; anchor: Anchor }) {
   const on = reduced ? 1 : span(p, 0.06, 0.3) * (1 - span(p, 0.82, 1));
   return (
-    <div className="dr-shot dr-slate">
+    <div className="dr-shot dr-slate" data-anchor={anchor}>
       <p className="t-mono t-mono-xs dr-slate__line" style={{ opacity: on }}>
         {caption}
       </p>
@@ -139,12 +247,12 @@ function Slate({ p, caption, reduced }: { p: number; caption: string; reduced: b
 }
 
 /** Three plates pulling into register — the Lab's own reveal, at film scale. */
-function Wordmark({ p, reduced }: { p: number; reduced: boolean }) {
+function Wordmark({ p, reduced, anchor }: { p: number; reduced: boolean; anchor: Anchor }) {
   const k = reduced ? 1 : ease(span(p, 0.05, 0.62));
   const off = (1 - k) * 46;
   const out = span(p, 0.86, 1);
   return (
-    <div className="dr-shot dr-wordmark" style={{ opacity: 1 - out }}>
+    <div className="dr-shot dr-wordmark" data-anchor={anchor} style={{ opacity: 1 - out }}>
       <div className="dr-wordmark__stack">
         <span
           className="t-display dr-wordmark__plate dr-wordmark__plate--a"
@@ -175,15 +283,17 @@ function Statement({
   lines,
   still,
   reduced,
+  anchor,
 }: {
   p: number;
   lines: string[];
   still: boolean;
   reduced: boolean;
+  anchor: Anchor;
 }) {
   const out = span(p, 0.88, 1);
   return (
-    <div className="dr-shot dr-statement" style={{ opacity: 1 - out }}>
+    <div className="dr-shot dr-statement" data-anchor={anchor} style={{ opacity: 1 - out }}>
       {lines.map((line, i) => {
         const k = reduced ? 1 : ease(span(p, 0.04 + i * 0.13, 0.42 + i * 0.13));
         return (
@@ -205,11 +315,11 @@ function Statement({
 }
 
 /** Act II: four capabilities that never met, drifting apart. */
-function Scatter({ p, caption, reduced }: { p: number; caption: string; reduced: boolean }) {
+function Scatter({ p, caption, reduced, anchor }: { p: number; caption: string; reduced: boolean; anchor: Anchor }) {
   const k = reduced ? 0.35 : ease(span(p, 0.1, 0.86));
   const out = span(p, 0.9, 1);
   return (
-    <div className="dr-shot dr-scatter" style={{ opacity: 1 - out }}>
+    <div className="dr-shot dr-scatter" data-anchor={anchor} style={{ opacity: 1 - out }}>
       <div className="dr-scatter__field">
         {FRAGMENTS.map((f, i) => {
           const dir = [-1, 1, -1, 1][i];
@@ -234,11 +344,11 @@ function Scatter({ p, caption, reduced }: { p: number; caption: string; reduced:
 }
 
 /** Rules drawing themselves. The grid is the argument. */
-function Grid({ p, caption, reduced }: { p: number; caption: string; reduced: boolean }) {
+function Grid({ p, caption, reduced, anchor }: { p: number; caption: string; reduced: boolean; anchor: Anchor }) {
   const cols = 12;
   const out = span(p, 0.9, 1);
   return (
-    <div className="dr-shot dr-grid" style={{ opacity: 1 - out }}>
+    <div className="dr-shot dr-grid" data-anchor={anchor} style={{ opacity: 1 - out }}>
       <div className="dr-grid__field">
         {Array.from({ length: cols }, (_, i) => {
           const k = reduced ? 1 : ease(span(p, 0.06 + (i / cols) * 0.4, 0.4 + (i / cols) * 0.42));
@@ -261,11 +371,11 @@ function Grid({ p, caption, reduced }: { p: number; caption: string; reduced: bo
 }
 
 /** The five stages, stepping. One at a time, with air between them. */
-function Stages({ p, caption, reduced }: { p: number; caption: string; reduced: boolean }) {
+function Stages({ p, caption, reduced, anchor }: { p: number; caption: string; reduced: boolean; anchor: Anchor }) {
   const out = span(p, 0.92, 1);
   const at = reduced ? STAGES.length : Math.floor(span(p, 0.05, 0.92) * STAGES.length);
   return (
-    <div className="dr-shot dr-stages" style={{ opacity: 1 - out }}>
+    <div className="dr-shot dr-stages" data-anchor={anchor} style={{ opacity: 1 - out }}>
       <ol className="dr-stages__list">
         {STAGES.map((s, i) => (
           <li
@@ -285,11 +395,11 @@ function Stages({ p, caption, reduced }: { p: number; caption: string; reduced: 
 }
 
 /** Contour rings resolving out of nothing. The Lab's own field, at film scale. */
-function Plate({ p, caption, reduced }: { p: number; caption: string; reduced: boolean }) {
+function Plate({ p, caption, reduced, anchor }: { p: number; caption: string; reduced: boolean; anchor: Anchor }) {
   const rings = 9;
   const out = span(p, 0.9, 1);
   return (
-    <div className="dr-shot dr-plate" style={{ opacity: 1 - out }}>
+    <div className="dr-shot dr-plate" data-anchor={anchor} style={{ opacity: 1 - out }}>
       <div className="dr-plate__field" aria-hidden="true">
         {Array.from({ length: rings }, (_, i) => {
           const k = reduced ? 1 : ease(span(p, 0.05 + (i / rings) * 0.5, 0.45 + (i / rings) * 0.45));
@@ -314,11 +424,11 @@ function Plate({ p, caption, reduced }: { p: number; caption: string; reduced: b
 }
 
 /** The realities, ticking past. Real statuses, read from the index. */
-function Roster({ p, caption }: { p: number; caption: string }) {
+function Roster({ p, caption, anchor }: { p: number; caption: string; anchor: Anchor }) {
   const out = span(p, 0.92, 1);
   const shown = Math.ceil(span(p, 0.04, 0.8) * MODES.length);
   return (
-    <div className="dr-shot dr-roster" style={{ opacity: 1 - out }}>
+    <div className="dr-shot dr-roster" data-anchor={anchor} style={{ opacity: 1 - out }}>
       <ul className="dr-roster__list">
         {MODES.slice(0, Math.max(1, shown)).map((m) => (
           <li key={m.id} data-on={m.status === 'online' ? 'true' : 'false'}>
@@ -336,10 +446,10 @@ function Roster({ p, caption }: { p: number; caption: string }) {
 }
 
 /** Silence. One registration mark, breathing. */
-function Mark({ p, reduced }: { p: number; reduced: boolean }) {
+function Mark({ p, reduced, anchor }: { p: number; reduced: boolean; anchor: Anchor }) {
   const k = reduced ? 1 : ease(span(p, 0.08, 0.5)) * (1 - span(p, 0.78, 1));
   return (
-    <div className="dr-shot dr-mark">
+    <div className="dr-shot dr-mark" data-anchor={anchor}>
       <span className="dr-mark__target" style={{ opacity: k }} aria-hidden="true">
         <span className="dr-mark__h" />
         <span className="dr-mark__v" />
@@ -349,10 +459,10 @@ function Mark({ p, reduced }: { p: number; reduced: boolean }) {
   );
 }
 
-function End({ p }: { p: number }) {
+function End({ p, anchor }: { p: number; anchor: Anchor }) {
   const k = ease(span(p, 0.02, 0.4));
   return (
-    <div className="dr-shot dr-end" style={{ opacity: k }}>
+    <div className="dr-shot dr-end" data-anchor={anchor} style={{ opacity: k }}>
       <h2 className="t-display t-display-l dr-end__title">{DIRECTOR_COPY.endTitle}</h2>
       <p className="t-mono t-mono-xs t-signal dr-end__sub">{DIRECTOR_COPY.endSub}</p>
       <p className="t-body-s t-dim dr-end__line">{DIRECTOR_COPY.endLine(onlineCount(), MODES.length)}</p>

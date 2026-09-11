@@ -24,17 +24,108 @@
   padding: calc(var(--trim) * 2.4) var(--trim) calc(var(--trim) * 2.8);
 }
 
+/* ==========================================================================
+   THE GATE
+
+   The film used to play into the whole browser window, so no shot had an edge
+   to be composed against and every composition floated in the middle of
+   whatever space was left. This is the aperture: a real frame, sized in
+   `gate.ts` and handed here as an inline width/height so one number governs
+   both the drawn frame and the lens arithmetic.
+
+   The ground inside it is lifted a step off the matte. Barely — but it is the
+   difference between a picture and a lit rectangle.
+   ========================================================================== */
+.dr-gate {
+  position: relative;
+  background: #121616;
+}
+.dr-gate__inner {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* Four corner marks — the frame line, drawn rather than boxed. A continuous
+   border would make the film a card; corners make it a gate. */
+.dr-gate__marks {
+  position: absolute;
+  inset: -1px;
+  pointer-events: none;
+  z-index: 2;
+}
+.dr-gate__marks i {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border: 0 solid var(--rule);
+}
+.dr-gate__marks i:nth-child(1) {
+  top: 0;
+  left: 0;
+  border-top-width: var(--hair);
+  border-left-width: var(--hair);
+}
+.dr-gate__marks i:nth-child(2) {
+  top: 0;
+  right: 0;
+  border-top-width: var(--hair);
+  border-right-width: var(--hair);
+}
+.dr-gate__marks i:nth-child(3) {
+  bottom: 0;
+  right: 0;
+  border-bottom-width: var(--hair);
+  border-right-width: var(--hair);
+}
+.dr-gate__marks i:nth-child(4) {
+  bottom: 0;
+  left: 0;
+  border-bottom-width: var(--hair);
+  border-left-width: var(--hair);
+}
+
+/* ==========================================================================
+   THE SHOT, AND WHERE IT SITS IN THE GATE
+
+   `place-items: center` used to be the whole composition system, which meant
+   twenty-one consecutive centred frames. A frame has thirds and a floor; the
+   anchor says which the shot is using.
+   ========================================================================== */
 .dr-shot {
-  width: 100%;
-  max-width: 1180px;
+  position: absolute;
+  inset: 0;
   display: grid;
   place-items: center;
+  align-content: center;
   gap: var(--s-4);
+  padding: clamp(20px, 3.4vw, 56px);
+}
+.dr-shot[data-anchor='left'] {
+  place-items: center start;
+  text-align: left;
+}
+.dr-shot[data-anchor='right'] {
+  place-items: center end;
+  text-align: right;
+}
+/* Stamped at the foot of the frame, the way a slate is. */
+.dr-shot[data-anchor='low'] {
+  place-items: end start;
+  align-content: end;
+  text-align: left;
 }
 
 .dr-caption {
   letter-spacing: var(--tr-mono-wide);
   text-align: center;
+}
+.dr-shot[data-anchor='left'] .dr-caption,
+.dr-shot[data-anchor='low'] .dr-caption {
+  text-align: left;
+}
+.dr-shot[data-anchor='right'] .dr-caption {
+  text-align: right;
 }
 
 /* ==========================================================================
@@ -471,6 +562,49 @@
   .dr-act {
     top: calc(var(--trim) * 0.5 + 40px);
   }
+
+  /* ---- specimens stack on a phone --------------------------------------
+     The side-by-side frame needs a gate wide enough to hold a picture and a
+     column of type. A 3:4 gate is not: the plate takes the whole width and the
+     caption is flexed down to nothing, which is exactly what happened — the
+     line vanished off the shot entirely. So the picture keeps the frame and
+     the line runs under it, which is the centred treatment the closing shot
+     already uses. */
+  .dr-specimen[data-anchor='left'],
+  .dr-specimen[data-anchor='right'] {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  .dr-specimen[data-anchor='left'] .dr-specimen__caption,
+  .dr-specimen[data-anchor='right'] .dr-specimen__caption {
+    flex: 0 0 auto;
+    max-width: 30ch;
+    margin: 0;
+    border-top: 0;
+    text-align: center;
+  }
+  /* A crop fills the phone's gate edge to edge, so the line has nowhere to go
+     but onto the picture — and bone type on a bone halftone is invisible,
+     which is exactly how it first rendered. It gets its own ground: a band at
+     the foot of the frame, the way a subtitle has always been carried. */
+  .dr-specimen[data-lens]:not([data-lens='hold']) .dr-specimen__caption {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-width: none;
+    justify-self: stretch;
+    align-self: end;
+    margin: 0;
+    padding: var(--s-5) var(--s-3) var(--s-2);
+    color: var(--figure);
+    background: linear-gradient(to top, rgba(10, 13, 13, 0.95) 46%, rgba(10, 13, 13, 0));
+  }
+  .dr-specimen__caption {
+    font-size: clamp(0.78rem, 3.4vw, 1rem);
+  }
 }
 
 /* ==========================================================================
@@ -491,6 +625,122 @@
    the composition of a specimen being examined rather than an image being
    presented. The film's only images, and they are the company's own.
    ========================================================================== */
+/* ==========================================================================
+   THE LENS — a window the magnified plate moves behind
+
+   `overflow: hidden` is the crop and the transform on the carriage is the
+   camera. The plate inside is always requested at its native size; the
+   enlargement is this `scale()`, which is the honest model — a lens magnifies,
+   the print does not change size. See `SpecimenShot` for why the film is
+   allowed to go past native here and nowhere else.
+   ========================================================================== */
+.dr-lens {
+  position: relative;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+.dr-lens__carriage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: 0;
+  /* The carriage is centred on the window and then moved by the shot; scaling
+     about its own centre keeps the maths in `SpecimenShot` a straight
+     translate in window pixels. */
+  translate: -50% -50%;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+.dr-lens__carriage .spec {
+  margin: 0;
+}
+
+/* ==========================================================================
+   A SPECIMEN SHOT IS TWO THINGS IN ONE FRAME
+
+   Picture and line, not picture with a label under it. Anchored left or right
+   the plate takes its third and the caption holds the rest of the gate, which
+   is what stops two-thirds of the frame reading as space nobody used. Centred,
+   the line runs under the picture across the full width of the gate.
+
+   The caption is still the system voice and still a specimen label — it is set
+   larger here because next to 600px of photograph a 10px string is not a
+   composition, it is a footnote.
+   ========================================================================== */
+.dr-specimen[data-anchor='left'],
+.dr-specimen[data-anchor='right'] {
+  display: flex;
+  align-items: center;
+  gap: clamp(20px, 3.6vw, 64px);
+}
+.dr-specimen[data-anchor='right'] {
+  flex-direction: row-reverse;
+}
+.dr-specimen[data-anchor='left'] > .spec,
+.dr-specimen[data-anchor='right'] > .spec,
+.dr-specimen .dr-lens {
+  flex: 0 0 auto;
+}
+
+/* Every specimen caption, at a size that can stand next to the picture. */
+.dr-specimen__caption {
+  font-size: clamp(0.9rem, 1.45vw, 1.28rem);
+  line-height: 1.45;
+}
+
+.dr-specimen[data-anchor='left'] .dr-specimen__caption,
+.dr-specimen[data-anchor='right'] .dr-specimen__caption {
+  flex: 1 1 auto;
+  max-width: 24ch;
+  /* A drawn rule over the block. The Lab's own device for "this type belongs
+     to that object", used here instead of a bracket or a bullet. */
+  border-top: var(--hair) solid var(--rule);
+  padding-top: var(--s-2);
+}
+.dr-specimen[data-anchor='right'] .dr-specimen__caption {
+  margin-left: auto;
+}
+
+/* A crop fills the gate's full height, so it drops the shot padding and the
+   caption carries its own instead. */
+.dr-specimen[data-lens]:not([data-lens='hold']) {
+  padding: 0;
+  align-items: stretch;
+}
+/* Low in the frame, where a film puts a slug — not floating at its middle. */
+.dr-specimen[data-lens]:not([data-lens='hold']) .dr-specimen__caption {
+  align-self: flex-end;
+  padding: var(--s-2) clamp(20px, 3.4vw, 56px) clamp(28px, 4vw, 64px) 0;
+}
+.dr-specimen[data-anchor='right'][data-lens]:not([data-lens='hold'])
+  .dr-specimen__caption {
+  padding: var(--s-2) 0 clamp(28px, 4vw, 64px) clamp(20px, 3.4vw, 56px);
+}
+
+/* ---- centred crops ------------------------------------------------------
+   The line runs under the picture, across the gate.
+
+   `left: 0; right: 0` is not enough on its own here: `.dr-specimen` is a grid
+   with `place-items: center`, and an absolutely positioned grid child inherits
+   that centring as its self-alignment — so the caption shrink-wrapped to its
+   own text and sat wherever the centring put it, which turned out to be hard
+   against the left edge of the gate. `justify-self: stretch` is what makes the
+   two insets mean what they say. */
+.dr-specimen[data-anchor='centre'][data-lens]:not([data-lens='hold']) {
+  justify-content: center;
+}
+.dr-specimen[data-anchor='centre'][data-lens]:not([data-lens='hold'])
+  .dr-specimen__caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: clamp(18px, 2.4vw, 34px);
+  justify-self: stretch;
+  align-self: end;
+  padding: 0;
+  text-align: center;
+}
+
 .dr-specimen {
   display: grid;
   justify-items: center;
@@ -501,6 +751,9 @@
 }
 .dr-specimen__caption {
   letter-spacing: var(--tr-mono-wide);
-  text-align: center;
+  /* Inherit, so the shot's anchor decides. Centred type in a block that is
+     itself pushed to one side of the frame is ragged on both edges and reads
+     as a caption that lost its picture. */
+  text-align: inherit;
   max-width: 40ch;
 }
