@@ -447,3 +447,44 @@
   letter-spacing: var(--tr-mono-wide);
   margin: var(--s-1) 0 0;
 }
+
+/* ==========================================================================
+   THE TWO WAYS OF BEING HERE — Phase 8.5
+
+   Inside the index head, not floating over the world. Nine district labels
+   move with the view, so no fixed corner of the territory is safe: bottom-left
+   put this straight under the index title and it was painted over. The index
+   is the reality'''s control surface anyway — it already answers where am I,
+   what can I visit and how do I leave.
+   ========================================================================== */
+.lw-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2) var(--s-3);
+  margin-top: var(--s-2);
+}
+.lw-nav__btn {
+  padding: 0.45rem 0.75rem;
+  border: var(--hair) solid var(--rule);
+  background: transparent;
+  color: var(--figure);
+  letter-spacing: var(--tr-mono-wide);
+  cursor: pointer;
+  transition:
+    border-color var(--d-1) var(--e-snap),
+    color var(--d-1) var(--e-snap);
+}
+.lw-nav__btn:hover,
+.lw-nav__btn:focus-visible {
+  border-color: var(--signal);
+}
+/* Type, not a legend plate: a boxed key at the foot of a territory reads as a
+   HUD, which is the one thing Explore is not allowed to become. */
+.lw-nav__keys {
+  flex: 1 1 24ch;
+  min-width: 0;
+  color: var(--figure-dim);
+  letter-spacing: var(--tr-mono-wide);
+  line-height: 1.6;
+}

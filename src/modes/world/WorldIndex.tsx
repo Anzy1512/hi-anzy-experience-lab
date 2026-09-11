@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { WORLD_COPY, type District } from '../../content/world';
 import { setPointerIntent } from '../../core/pointer';
 import { KeyPlan } from './KeyPlan';
@@ -30,9 +31,20 @@ interface Props {
    */
   plan: boolean;
   onSelect: (id: string | null) => void;
+  /**
+   * The way-of-moving control, supplied by the mode.
+   *
+   * It lives in the index rather than floating over the territory because the
+   * index *is* this reality's control surface — it already answers where am I,
+   * what can I visit and how do I leave, and "how do I move" is the same
+   * question. Floated bottom-left it landed exactly on the index head and was
+   * painted over; floated anywhere else it collided with a district label,
+   * because nine of those move with the view and no fixed corner is safe.
+   */
+  aside?: ReactNode;
 }
 
-export function WorldIndex({ districts, active, arrived, coarse, plan, onSelect }: Props) {
+export function WorldIndex({ districts, active, arrived, coarse, plan, onSelect, aside }: Props) {
   const hover = {
     onPointerEnter: () => setPointerIntent('discover'),
     onPointerLeave: () => setPointerIntent('default'),
@@ -43,6 +55,7 @@ export function WorldIndex({ districts, active, arrived, coarse, plan, onSelect 
       <div className="lw-index__head">
         <h2 className="t-display t-display-m lw-index__title">{WORLD_COPY.title}</h2>
         <p className="t-mono t-mono-xs t-dim lw-index__tag">{WORLD_COPY.tagline}</p>
+        {aside}
       </div>
 
       <nav className="lw-index__nav" aria-label="Territory districts">

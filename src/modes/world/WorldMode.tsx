@@ -21,6 +21,16 @@ import { groundAt } from './geography';
 import { districtTop } from './districtForms';
 import { WorldIndex } from './WorldIndex';
 import { STANDS, standAnchor, standScale, standOpacity } from './imagery';
+import {
+  advance,
+  clampPitch,
+  dolly,
+  initialStance,
+  nearestDistrict,
+  stanceFacing,
+  viewForStance,
+  type ExploreState,
+} from './explore';
 import { SpecimenPlate } from '../../components/Specimen/SpecimenPlate';
 import type { CleanupScope } from '../../core/cleanup';
 import './world.css';
@@ -173,6 +183,32 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
   const invalidateRef = useRef<(() => void) | null>(null);
   const draggingRef = useRef(false);
 
+  /* ---- explore -----------------------------------------------------------
+   *
+   * A second way of being in the territory, not a second territory. `nav` only
+   * decides which policy produces `targetRef`; everything after that — the
+   * damped loop, the fog, the projection — is the same code that serves guided
+   * travel, which is why adding this reopened none of it.
+   *
+   * Offered on a fine pointer, on a frame wide enough to hold the world at
+   * close range, with enough capability to draw it. A phone keeps guided
+   * travel and the key plan: walking a territory through a 390px portrait
+   * window with no keyboard is a worse reading of it than the map, and
+   * pretending otherwise would be a feature that exists for the feature list.
+   *
+   *  is in the gate as well as  because the two are not the
+   * same test and only one of them was enough. A desktop window dragged to
+   * phone width has a fine pointer and a keyboard, so  let it through —
+   * and below 900px the instruction line is hidden, so what arrived was a
+   * control offering a mode with no way to learn it. Measured at 390, not
+   * assumed: the control was there.
+   */
+  const canExplore = !coarse && !reduced && !narrow && quality.scaffold;
+  const [nav, setNav] = useState<'guided' | 'explore'>('guided');
+  const exploreRef = useRef<ExploreState>(initialStance());
+  const keysRef = useRef<Set<string>>(new Set());
+  const navRef = useLatest(nav);
+
   const active = useMemo(() => DISTRICTS.find((d) => d.id === activeId) ?? null, [activeId]);
   const visible = useMemo(
     () => DISTRICTS.slice(0, Math.max(5, quality.maxStructures)),
@@ -204,18 +240,49 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
   useEffect(() => {
     const stop = onFrame((dt) => {
       const v = worldState.view;
+
+      /*
+       * In Explore the target is solved from where the visitor is standing,
+       * every frame, rather than read from a station. Held keys are integrated
+       * here rather than in the key handler so movement is frame-rate
+       * independent and so a key held across a dropped frame does not teleport.
+       */
+      const exploring = navRef.current === 'explore';
+      if (exploring) {
+        /* Held here rather than cleared on entry: the drag offsets belong to
+           guided travel, and zeroing them once would let a stray pointer bias
+           accumulate a lean the visitor never asked for and cannot see the
+           cause of. In Explore the stance is the only thing that aims. */
+        worldState.lookX = 0;
+        worldState.lookY = 0;
+        const s = exploreRef.current;
+        const keys = keysRef.current;
+        const fwd = (keys.has('w') || keys.has('arrowup') ? 1 : 0) - (keys.has('s') || keys.has('arrowdown') ? 1 : 0);
+        const str = (keys.has('d') || keys.has('arrowright') ? 1 : 0) - (keys.has('a') || keys.has('arrowleft') ? 1 : 0);
+        advance(s, fwd, str, dt, keys.has('shift'));
+        targetRef.current = viewForStance(s, EXTENT, GROUND_HEIGHT);
+      }
+
       const t = targetRef.current;
-      // Directed movement: a single damped rate for every station, so travel
-      // always feels like the same vehicle.
-      const k = reduced ? 1 : damp(0.0018, dt);
+      /*
+       * Directed movement: a single damped rate for every station, so travel
+       * always feels like the same vehicle. Explore is the exception and has to
+       * be — at a walking pace the station rate reads as the world sliding
+       * after you rather than you moving through it.
+       */
+      const k = reduced ? 1 : damp(exploring ? 0.00002 : 0.0018, dt);
       v.x = lerp(v.x, t.x, k);
       v.y = lerp(v.y, t.y, k);
       v.z = lerp(v.z, t.z, k);
       v.tilt = lerp(v.tilt, t.tilt, k);
       v.turn = lerp(v.turn, t.turn, k);
 
-      // Released look eases home; held look is left exactly where the hand put it.
-      if (!draggingRef.current && (worldState.lookX !== 0 || worldState.lookY !== 0)) {
+      /* Released look eases home; held look is left exactly where the hand put
+         it. Explore has no look offset at all — the drag writes yaw and pitch
+         into the stance instead, because in Explore where you are looking *is*
+         where you are facing, and a decaying offset would quietly turn the
+         visitor back around. */
+      if (!exploring && !draggingRef.current && (worldState.lookX !== 0 || worldState.lookY !== 0)) {
         const rk = reduced ? 1 : damp(0.25, dt) * LOOK_RETURN;
         worldState.lookX = lerp(worldState.lookX, 0, rk);
         worldState.lookY = lerp(worldState.lookY, 0, rk);
@@ -231,7 +298,7 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
     });
     scope.add(stop);
     return stop;
-  }, [reduced, coarse, quality.pointerBias, scope, worldState]);
+  }, [reduced, coarse, quality.pointerBias, scope, worldState, navRef]);
 
   /* ---- drag to look ------------------------------------------------------ */
   useEffect(() => {
@@ -255,6 +322,18 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
       const dx = e.clientX - last.x;
       const dy = e.clientY - last.y;
       last = { x: e.clientX, y: e.clientY };
+      /* In Explore the drag turns the visitor, not the sheet: it writes the
+         stance's own yaw and pitch, which the loop then solves a station from.
+         Yaw wraps freely because turning all the way round in a place you are
+         standing in is not a violation of anything; pitch is clamped in
+         `explore.ts`, which is also the only place that knows the limits. */
+      if (navRef.current === 'explore') {
+        const s = exploreRef.current;
+        s.yaw += dx * scale * 1.9;
+        s.pitch = clampPitch(s.pitch - dy * scale * 1.1);
+        invalidateRef.current?.();
+        return;
+      }
       const limX = coarse ? LOOK_LIMIT_X * 0.6 : LOOK_LIMIT_X;
       const limY = coarse ? LOOK_LIMIT_Y * 0.6 : LOOK_LIMIT_Y;
       worldState.lookX = Math.max(-limX, Math.min(limX, worldState.lookX + dx * scale));
@@ -279,7 +358,7 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
       window.removeEventListener('pointercancel', up);
       draggingRef.current = false;
     };
-  }, [reduced, coarse, worldState]);
+  }, [reduced, coarse, worldState, navRef]);
 
   /* ---- entry ------------------------------------------------------------- */
   useEffect(() => {
@@ -294,8 +373,93 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
     return () => window.clearTimeout(id);
   }, [onReady, reduced]);
 
+  /* ---- explore: enter, leave, and the keys that drive it ------------------ */
+  const enterExplore = useCallback(
+    (fromId: string | null) => {
+      const s = (fromId && stanceFacing(fromId)) || initialStance();
+      exploreRef.current = s;
+      keysRef.current.clear();
+      setNav('explore');
+      setArrived(true);
+      setPointerIntent('drag');
+    },
+    [],
+  );
+
+  const leaveExplore = useCallback(() => {
+    /* Leaving keeps the place: the guided station it returns to is the district
+       the visitor was standing nearest, so stepping out of Explore does not
+       also undo where walking took them. */
+    const near = nearestDistrict(exploreRef.current);
+    keysRef.current.clear();
+    setNav('guided');
+    setPointerIntent('default');
+    travelTo(near);
+  }, [travelTo]);
+
+  useEffect(() => {
+    if (nav !== 'explore') return;
+    const keys = keysRef.current;
+
+    const down = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const k = e.key.toLowerCase();
+      if (k === 'escape') {
+        /*
+         * Capture phase, and the propagation stops here. `useEscape` in the
+         * mode host is on window in the bubble phase, so without this the one
+         * key press would leave Explore *and* the whole reality — a visitor
+         * who wanted to stop walking would find themselves back on the index.
+         * Escape now means "one step back": Explore first, the reality second.
+         */
+        e.preventDefault();
+        e.stopPropagation();
+        leaveExplore();
+        return;
+      }
+      if (k === 'r') {
+        // Orientation reset: level the horizon without moving the visitor.
+        e.preventDefault();
+        exploreRef.current.pitch = 4;
+        return;
+      }
+      if ('wasd'.includes(k) || k.startsWith('arrow') || k === 'shift') {
+        e.preventDefault();
+        keys.add(k);
+      }
+    };
+    const up = (e: KeyboardEvent) => keys.delete(e.key.toLowerCase());
+    const blur = () => keys.clear();
+
+    window.addEventListener('keydown', down, true);
+    window.addEventListener('keyup', up);
+    window.addEventListener('blur', blur);
+    return () => {
+      window.removeEventListener('keydown', down, true);
+      window.removeEventListener('keyup', up);
+      window.removeEventListener('blur', blur);
+      keys.clear();
+    };
+  }, [nav, leaveExplore]);
+
+  /* The wheel walks, rather than zooming: there is no zoom in a place you are
+     standing in, and a scroll that changed field of view would be the one
+     control that broke the projection contract. */
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || nav !== 'explore') return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      dolly(exploreRef.current, -e.deltaY * 1.15);
+      invalidateRef.current?.();
+    };
+    root.addEventListener('wheel', onWheel, { passive: false });
+    return () => root.removeEventListener('wheel', onWheel);
+  }, [nav]);
+
   /* ---- keyboard: step through districts ---------------------------------- */
   useEffect(() => {
+    if (nav === 'explore') return;
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const i = activeId ? visible.findIndex((d) => d.id === activeId) : -1;
@@ -313,7 +477,7 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [activeId, visible, travelTo]);
+  }, [activeId, visible, travelTo, nav]);
 
   const onInvalidator = useCallback((fn: () => void) => {
     invalidateRef.current = fn;
@@ -373,13 +537,43 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
         list *is* the territory, and a visitor there should still be told the
         whole of it.
       */}
+      {/*
+        The two ways of being here, offered as one control rather than a mode
+        switch with its own panel. It is not shown where it would be a lie: a
+        coarse pointer has no keys to walk with, reduced motion has asked for
+        the territory to hold still, and the lite tier is not carrying the
+        world at close range. Those visitors keep guided travel and the key
+        plan, which is a complete reading of the place and not a consolation.
+      */}
       <WorldIndex
         districts={DISTRICTS}
         active={active}
         arrived={arrived}
         coarse={coarse}
         plan={narrow || !showCanvas}
-        onSelect={travelTo}
+        /* In Explore the index becomes a way of walking to a district rather
+           than cutting to it: same list, same control, different vehicle. */
+        onSelect={nav === 'explore' ? (id) => { const s = id && stanceFacing(id); if (s) { exploreRef.current = s; setActiveId(id); } } : travelTo}
+        aside={
+          showCanvas && canExplore ? (
+            <div className="lw-nav">
+              <button
+                type="button"
+                className="lw-nav__btn t-mono t-mono-xs"
+                onClick={nav === 'guided' ? () => enterExplore(activeId) : leaveExplore}
+                onPointerEnter={() => setPointerIntent('enter')}
+                onPointerLeave={() => setPointerIntent('default')}
+              >
+                {nav === 'guided' ? WORLD_COPY.exploreEnter : WORLD_COPY.exploreLeave}
+              </button>
+              {nav === 'explore' && (
+                <p className="lw-nav__keys t-mono t-mono-xs" role="status">
+                  {WORLD_COPY.exploreKeys}
+                </p>
+              )}
+            </div>
+          ) : null
+        }
       />
     </div>
   );

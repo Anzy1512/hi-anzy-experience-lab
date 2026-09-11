@@ -276,4 +276,18 @@ export const WORLD_COPY = {
   fallbackSubject: 'This territory',
   intro:
     'A territory assembled from the sheet: contour ground from the specimen plate, districts built as stacked plates, routes drawn as rules.',
+  /*
+   * The two ways of being in the territory, named as places to stand rather
+   * than as modes. "WALK THE TERRITORY" says what happens; "MODE: EXPLORE"
+   * would say what the software is doing, which is the visitor's problem only
+   * if we make it theirs.
+   *
+   * The key line names the pointer route first. A visitor who has never held
+   * WASD can drag to look, scroll to move and click a district to arrive — the
+   * keys are an accelerator for people who already expect them, not the price
+   * of entry.
+   */
+  exploreEnter: 'WALK THE TERRITORY',
+  exploreLeave: 'BACK TO THE MAP · ESC',
+  exploreKeys: 'DRAG TO LOOK · SCROLL TO MOVE · WASD OPTIONAL · R LEVELS THE HORIZON',
 } as const;
