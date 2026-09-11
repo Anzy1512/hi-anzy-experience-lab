@@ -70,6 +70,23 @@ export function onEvent(fn: Sink | null): void {
   sink = fn;
 }
 
+/**
+ * NOTHING BELOW SHIPS UNTIL SOMETHING CALLS `onEvent`.
+ *
+ * Verified on the production build in staging: with no sink registered, the
+ * bundler can prove `sink` is always null, so it removes `emit`'s body, then
+ * every call site, then the event-name strings themselves. Searching the
+ * deployed chunks for `reality_enter` returns nothing. That is the correct
+ * outcome — an unused reporting surface should cost zero bytes — but it looks
+ * exactly like a surface that was never built, so:
+ *
+ *   **To wire a real analytics product, call `onEvent(fn)` once at startup and
+ *   rebuild.** The call sites and strings come back on their own, because
+ *   `sink` stops being provably null. There is no runtime switch and no
+ *   `window` hook in production to attach to from outside the bundle; that is
+ *   deliberate, because a global an external script can reach is a global an
+ *   external script can read.
+ */
 export function emit(name: LabEvent, payload: LabEventPayload = {}): void {
   if (!sink) return;
   try {

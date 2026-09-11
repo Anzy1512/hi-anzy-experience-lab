@@ -255,15 +255,11 @@
 
 /* The second beat of the reveal: the map arrives just after the route, so the
    eye is given an order to read them in rather than two equal claims at once.
-   The global reduced-motion block clamps durations but not delays, so this one
-   is cleared by hand — a stagger is travel, and travel is what it removes. */
+   No reduced-motion override here any more — `base.css` clamps every delay,
+   which is where it belonged: this file's private fix left the launcher's three
+   older staggers running, the last of them half a second long. */
 .launcher[data-beat='5'] .launcher__enter--quiet:not(:disabled) {
   transition-delay: 90ms;
-}
-@media (prefers-reduced-motion: reduce) {
-  .launcher[data-beat='5'] .launcher__enter--quiet:not(:disabled) {
-    transition-delay: 0ms;
-  }
 }
 
 /* crop marks growing out of the control, so it reads as part of the sheet */

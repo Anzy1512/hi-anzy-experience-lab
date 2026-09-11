@@ -136,6 +136,24 @@ button {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 120ms !important;
+    /*
+     * A DELAY IS TRAVEL TOO.
+     *
+     * Clamping only the durations left every staggered reveal intact, because
+     * a stagger is built out of delays rather than out of time on screen.
+     * Measured on the launcher with the preference actually set — not inferred
+     * from the stylesheet — the opening still unfolded in steps, the last of
+     * them half a second in: label 0.12s, statement lines 0.11s, and the
+     * index meta at 0.50s. Nothing was animating; things were simply arriving
+     * late, one after another, which is the effect the preference is asking us
+     * not to perform.
+     *
+     * Clamped here rather than per-component so the next authored stagger is
+     * covered on the day it is written. Order is still expressed — the reveal
+     * happens, all of it at once.
+     */
+    transition-delay: 0ms !important;
+    animation-delay: 0ms !important;
     scroll-behavior: auto !important;
   }
 

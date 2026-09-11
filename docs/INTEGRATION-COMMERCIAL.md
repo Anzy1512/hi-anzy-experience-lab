@@ -69,7 +69,12 @@ with the Lab's `dist/` placed at `frontend/lab/` in the build context.
         add_header Permissions-Policy     "camera=(), microphone=(), geolocation=()" always;
         add_header Content-Security-Policy "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; img-src 'self' data: blob: https://images.unsplash.com; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self'; worker-src 'self' blob:; connect-src 'self' ${CSP_CONNECT_SRC}" always;
         add_header Cache-Control          "no-cache, must-revalidate" always;
-        try_files $uri $uri/ /lab/index.html;
+        # The trailing =404 matters. Without it a `/lab/` that is missing
+        # entirely — a partial rollback, a bad image — falls back to an
+        # index.html that is not there and nginx answers 500, which reads as
+        # "the server is broken" rather than "that section is not deployed".
+        # Measured in staging: 500 before, 404 after, commercial 200 in both.
+        try_files $uri $uri/ /lab/index.html =404;
     }
 
     # Hashed and immutable, exactly like /static/.

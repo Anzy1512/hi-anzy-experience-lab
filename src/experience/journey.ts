@@ -1,4 +1,5 @@
 import { PATH, indexOfStop } from '../content/journey';
+import { emit } from '../analytics/events';
 
 /**
  * WHETHER THIS VISITOR IS ON THE CURATED PATH, AND HOW FAR.
@@ -69,7 +70,19 @@ export function arrivedAt(id: string): void {
   const at = indexOfStop(id);
   if (at !== state.reached + 1) return;
   state.reached = at;
-  if (at === PATH.length - 1) state.complete = true;
+  if (at === PATH.length - 1 && !state.complete) {
+    state.complete = true;
+    /*
+     * Reported here rather than from the return panel, which is what
+     * `commercial_return` already means. Completing the route and being shown
+     * the way out are two different facts: a visitor can finish the last stop
+     * and close the tab from inside it, and that is still a completed route.
+     * Phase 7 declared this event in the vocabulary and then never emitted it —
+     * a name in the type with no call site, which reads as coverage that is not
+     * there. Found by tracing the live stream, not by reading the file.
+     */
+    emit('curated_path_complete');
+  }
   commit();
 }
 
