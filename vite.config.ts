@@ -6,6 +6,9 @@ export default defineConfig({
   plugins: [react()],
   /* The harness may hand us a port; honour it so a busy 5173 is not fatal. */
   server: { port: Number(process.env.PORT) || 5173 },
+  /* `vite preview` doesn't inherit `server.port` — it needs its own, or a busy
+     4173 (a leftover preview process, most often) is fatal the same way. */
+  preview: { port: Number(process.env.PORT) || 4173 },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
