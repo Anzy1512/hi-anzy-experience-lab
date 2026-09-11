@@ -300,7 +300,16 @@ export const COUNTERPART: Record<string, string | null> = {
   'pop-white-flag': null,
 };
 
-/** The path a reality loads. Nothing here is bundled; these are public files. */
+/**
+ * The path a reality loads. Nothing here is bundled; these are public files.
+ *
+ * Built from `BASE_URL` rather than a bare `/brand/…` because the Lab is
+ * served from a path on the commercial origin, not from a root. Vite rewrites
+ * `base` into HTML and CSS, but a URL assembled in JavaScript is just a string
+ * to it — so a hardcoded leading slash would resolve against the origin and
+ * every specimen in the Lab would 404 the moment it shipped. `BASE_URL` always
+ * carries its trailing slash, at `/` and at `/lab/` alike.
+ */
 export function specimenSrc(id: string): string {
-  return `/brand/${id}.avif`;
+  return `${import.meta.env.BASE_URL}brand/${id}.avif`;
 }

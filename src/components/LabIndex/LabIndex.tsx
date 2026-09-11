@@ -6,6 +6,10 @@ import { isEnterable, STATUS_LABEL, type ModeDefinition } from '../../experience
 import { useExperience } from '../../experience/context';
 import { hasVisited, subscribeVisited, takeReturningFrom, visitedCount, visitTrail } from '../../experience/visited';
 import { useReducedMotion } from '../../core/hooks';
+import { journeyState, leavePath, subscribeJourney } from '../../experience/journey';
+import { PATH } from '../../content/journey';
+import { emit } from '../../analytics/events';
+import { ReturnPanel } from './ReturnPanel';
 import { setPointerIntent } from '../../core/pointer';
 import { guaranteeCompletion, rowsIn, settleImmediately } from '../../motion/primitives';
 import './labindex.css';
@@ -220,7 +224,9 @@ function CrossReferences({ visited }: { visited: string[] }) {
 }
 
 export function LabIndex() {
-  const { error } = useExperience();
+  const { error, enterMode } = useExperience();
+  const journey = useSyncExternalStore(subscribeJourney, journeyState);
+  const nextOnRoute = journey.active ? findMode(PATH[journey.reached + 1]?.id ?? '') : null;
   const reduced = useReducedMotion();
   const listRef = useRef<HTMLUListElement>(null);
   const reverseRef = useRef<HTMLUListElement>(null);
@@ -298,6 +304,39 @@ export function LabIndex() {
       {error && (
         <p className="index__error t-mono t-mono-s" role="status">
           {error}
+        </p>
+      )}
+
+      {journey.complete && <ReturnPanel />}
+
+      {/* Mid-route: the map is still the map, with one line saying the route is
+          still open and where it goes next. Not a progress bar and not a score
+          — a visitor who wandered off the path is not behind on anything. */}
+      {journey.active && !journey.complete && nextOnRoute && (
+        <p className="index__route t-mono t-mono-xs" role="status">
+          <span className="t-signal">ON A ROUTE</span>
+          <span className="index__route-sep" aria-hidden="true"> / </span>
+          <button
+            type="button"
+            className="index__route-next"
+            onClick={() => {
+              emit('recommended_next_click', { reality: nextOnRoute.id });
+              enterMode(nextOnRoute.id);
+            }}
+          >
+            NEXT: {nextOnRoute.title}
+            <span aria-hidden="true"> →</span>
+          </button>
+          <button
+            type="button"
+            className="index__route-leave t-faint"
+            onClick={() => {
+              leavePath();
+              emit('curated_path_leave');
+            }}
+          >
+            LEAVE THE ROUTE
+          </button>
         </p>
       )}
 

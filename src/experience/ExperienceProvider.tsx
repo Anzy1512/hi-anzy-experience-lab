@@ -3,6 +3,8 @@ import { CleanupScope, emergencyReset, setScrollLock } from '../core/cleanup';
 import { findMode } from '../content/lab';
 import { isEnterable, type ModePhase } from './types';
 import { markReturningFrom, markVisited } from './visited';
+import { arrivedAt } from './journey';
+import { emit } from '../analytics/events';
 import { clearTransition, runTransition, transitionFor } from './transitions';
 import { prefersReducedMotion } from '../core/capability';
 import { ExperienceContext, type ExperienceValue, type Stage } from './context';
@@ -129,6 +131,15 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
       if (loc.stage === 'mode' && loc.modeId) {
         // The map remembers where this visitor has walked, for this session.
         markVisited(loc.modeId);
+        /*
+         * And the path, if they are on one, notes whether this was its next
+         * stop. Both live here rather than in the mode host because this is the
+         * one function every arrival passes through — a deep link, a Back
+         * button and a click on an onward move all land on this line, and an
+         * arrival recorded in only two of those three is worse than none.
+         */
+        arrivedAt(loc.modeId);
+        emit('reality_enter', { reality: loc.modeId });
         closeScope();
         const next = openScope(loc.modeId);
         // Punctuation, chosen by destination. Registered on the new scope so
@@ -248,6 +259,7 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
 
   const exitMode = useCallback(() => {
     if (stage !== 'mode') return;
+    emit('reality_exit', { reality: activeIdRef.current ?? undefined });
     // Let the mode play its leave beat, then tear down unconditionally.
     setPhase('exiting');
     clearTimers();

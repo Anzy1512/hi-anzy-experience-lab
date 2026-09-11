@@ -225,6 +225,47 @@
   letter-spacing: var(--tr-mono-wide);
 }
 
+/* ---- the two doors ------------------------------------------------------
+ *
+ * A route and a map, offered at the same moment and at the same size. The
+ * second one is quieter by rule weight only — not smaller, not tucked under a
+ * "more" — because "show me everything" is not an advanced mode and must not
+ * be dressed as one. The crop marks stay on the first: it is the one the sheet
+ * is pointing at, and two sets of marks side by side read as noise.
+ */
+.launcher__doors {
+  display: flex;
+  align-items: stretch;
+  gap: var(--s-3);
+}
+.launcher__enter {
+  display: grid;
+  justify-items: start;
+  gap: 5px;
+  text-align: left;
+}
+.launcher__enter-note {
+  color: var(--figure-dim);
+  letter-spacing: var(--tr-mono-wide);
+  transition: color var(--d-2) var(--e-snap);
+}
+.launcher__enter:hover .launcher__enter-note {
+  color: var(--c-ink);
+}
+
+/* The second beat of the reveal: the map arrives just after the route, so the
+   eye is given an order to read them in rather than two equal claims at once.
+   The global reduced-motion block clamps durations but not delays, so this one
+   is cleared by hand — a stagger is travel, and travel is what it removes. */
+.launcher[data-beat='5'] .launcher__enter--quiet:not(:disabled) {
+  transition-delay: 90ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .launcher[data-beat='5'] .launcher__enter--quiet:not(:disabled) {
+    transition-delay: 0ms;
+  }
+}
+
 /* crop marks growing out of the control, so it reads as part of the sheet */
 .launcher__enter::before,
 .launcher__enter::after {
@@ -247,6 +288,18 @@
   right: -5px;
   border-left: 0;
   border-top: 0;
+}
+
+/* The map is the same control with a quieter rule and no crop marks. These sit
+   after the mark rules above on purpose: at equal specificity the later
+   declaration wins, and written before them `content: none` lost silently and
+   printed marks on both doors. */
+.launcher__enter--quiet {
+  border-color: var(--rule);
+}
+.launcher__enter--quiet::before,
+.launcher__enter--quiet::after {
+  content: none;
 }
 
 /* Hover fills; focus uses the global outline. Filling on focus too would mean
@@ -284,10 +337,14 @@
     gap: var(--s-4);
     padding-top: var(--s-5);
   }
+  /* Stacked, full width, and still left-set: centring a two-line control puts
+     the note on a different optical axis from the label above it. */
+  .launcher__doors {
+    flex-direction: column;
+  }
   .launcher__enter {
     width: 100%;
     padding: 1.05rem 1.2rem;
-    text-align: center;
   }
   .launcher__label-meta {
     display: none;

@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Wordmark, type WordmarkState } from './Wordmark';
-import { LAB } from '../../content/brand';
+import { DOORS, LAB } from '../../content/brand';
+import { ENTRY_ID } from '../../content/journey';
+import { startPath } from '../../experience/journey';
+import { emit } from '../../analytics/events';
 import { useExperience } from '../../experience/context';
 import { useReducedMotion } from '../../core/hooks';
 import { setPointerIntent } from '../../core/pointer';
@@ -26,7 +29,12 @@ import './launcher.css';
 type Beat = 0 | 1 | 2 | 3 | 4 | 5;
 
 export function Launcher() {
-  const { enterLab } = useExperience();
+  const { enterLab, enterMode } = useExperience();
+
+  /* The Lab was opened. Reported once per page, before any door is chosen. */
+  useEffect(() => {
+    emit('lab_open');
+  }, []);
   const reduced = useReducedMotion();
   const [beat, setBeat] = useState<Beat>(0);
   const [leaving, setLeaving] = useState(false);
@@ -110,13 +118,32 @@ export function Launcher() {
    * the first tab stop and the control is the next one.
    */
 
-  /* ---- leaving: the sheet is turned over -------------------------------- */
-  const handleEnter = useCallback(() => {
-    if (leaving) return;
-    setLeaving(true);
-    setPointerIntent('default');
-    window.setTimeout(enterLab, reduced ? 180 : 640);
-  }, [leaving, enterLab, reduced]);
+  /* ---- leaving: the sheet is turned over --------------------------------
+   *
+   * Two doors, one beat. The sheet turns over exactly as it always did; what
+   * changes is where it puts the visitor down.
+   *
+   * `SHOW ME` does not open the Index. It starts the path and goes straight to
+   * its first stop, because a curated route that begins by showing you the
+   * catalogue has not curated anything — the visitor is back to choosing from
+   * sixteen rows, which is the problem the door exists to solve.
+   */
+  const handleEnter = useCallback(
+    (door: 'curated' | 'free') => {
+      if (leaving) return;
+      setLeaving(true);
+      setPointerIntent('default');
+      if (door === 'curated') {
+        startPath();
+        emit('curated_path_start');
+      } else {
+        emit('free_explore');
+      }
+      const go = door === 'curated' ? () => enterMode(ENTRY_ID) : enterLab;
+      window.setTimeout(go, reduced ? 180 : 640);
+    },
+    [leaving, enterLab, enterMode, reduced],
+  );
 
   useEffect(() => () => clearTimers(), [clearTimers]);
 
@@ -169,20 +196,36 @@ export function Launcher() {
           ))}
         </div>
 
-        <button
-          ref={enterRef}
-          type="button"
-          className="launcher__enter"
-          onClick={handleEnter}
-          onPointerEnter={() => setPointerIntent('enter')}
-          onPointerLeave={() => setPointerIntent('default')}
-          onFocus={() => setPointerIntent('enter')}
-          onBlur={() => setPointerIntent('default')}
-          disabled={beat < 5 || leaving}
-          aria-label={LAB.enter}
-        >
-          <span className="launcher__enter-text t-mono">{LAB.enter}</span>
-        </button>
+        <div className="launcher__doors">
+          <button
+            ref={enterRef}
+            type="button"
+            className="launcher__enter"
+            onClick={() => handleEnter('curated')}
+            onPointerEnter={() => setPointerIntent('enter')}
+            onPointerLeave={() => setPointerIntent('default')}
+            onFocus={() => setPointerIntent('enter')}
+            onBlur={() => setPointerIntent('default')}
+            disabled={beat < 5 || leaving}
+          >
+            <span className="launcher__enter-text t-mono">{DOORS.curated}</span>
+            <span className="t-mono t-mono-xs launcher__enter-note">{DOORS.curatedNote}</span>
+          </button>
+
+          <button
+            type="button"
+            className="launcher__enter launcher__enter--quiet"
+            onClick={() => handleEnter('free')}
+            onPointerEnter={() => setPointerIntent('enter')}
+            onPointerLeave={() => setPointerIntent('default')}
+            onFocus={() => setPointerIntent('enter')}
+            onBlur={() => setPointerIntent('default')}
+            disabled={beat < 5 || leaving}
+          >
+            <span className="launcher__enter-text t-mono">{DOORS.free}</span>
+            <span className="t-mono t-mono-xs launcher__enter-note">{DOORS.freeNote}</span>
+          </button>
+        </div>
       </div>
     </main>
   );

@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useRef, type ComponentType } from 'react';
+import { Suspense, lazy, useEffect, useRef, useSyncExternalStore, type ComponentType } from 'react';
 import { useExperience } from '../experience/context';
 import { MODES } from '../content/lab';
 import type { ModeDefinition, ModeViewProps } from '../experience/types';
@@ -6,6 +6,9 @@ import { useEscape, useFocusTrap } from '../core/hooks';
 import { setPointerIntent } from '../core/pointer';
 import { XRAY_COPY } from '../content/brand';
 import { edgesFrom } from '../content/graph';
+import { PATH, indexOfStop, reasonInto } from '../content/journey';
+import { journeyState, subscribeJourney } from '../experience/journey';
+import { emit } from '../analytics/events';
 import './modehost.css';
 
 /**
@@ -67,22 +70,51 @@ function ModeFallback({ title }: { title: string }) {
  */
 function OnwardMoves({ fromId, phase }: { fromId: string; phase: string }) {
   const { enterMode } = useExperience();
+  const journey = useSyncExternalStore(subscribeJourney, journeyState);
+
+  /*
+   * On the path, the route speaks instead of the graph.
+   *
+   * A visitor walking a curated sequence and a visitor browsing the graph want
+   * different things from this corner: the first wants the next stop, the
+   * second wants to know what this reality is related to. Showing both at once
+   * offers up to three onward moves from one reality and quietly puts the route
+   * in competition with itself, so only one is ever rendered.
+   *
+   * Where the next stop is also a real graph edge, `reasonInto` returns the
+   * graph's own sentence — the two can say the same thing because they are the
+   * same fact, read from one place.
+   */
+  const onPath = journey.active && !journey.complete && indexOfStop(fromId) === journey.reached;
+  const nextIdx = journey.reached + 1;
+  const nextId = onPath ? PATH[nextIdx]?.id : undefined;
+
   const edges = edgesFrom(fromId);
-  if (edges.length === 0 || phase !== 'active') return null;
+  if (phase !== 'active') return null;
+  if (!nextId && edges.length === 0) return null;
+
+  const moves = nextId
+    ? [{ to: nextId, because: reasonInto(nextIdx) ?? '', route: true }]
+    : edges.map((e) => ({ to: e.to, because: e.because, route: false }));
+
   return (
-    <nav className="modehost__onward" aria-label="Related realities">
-      {edges.map((e) => (
+    <nav className="modehost__onward" aria-label={nextId ? 'Next on this route' : 'Related realities'}>
+      {moves.map((m) => (
         <button
-          key={e.to}
+          key={m.to}
           type="button"
           className="modehost__onward-btn t-mono t-mono-xs"
-          onClick={() => enterMode(e.to)}
+          data-route={m.route ? 'true' : undefined}
+          onClick={() => {
+            emit('recommended_next_click', { reality: m.to });
+            enterMode(m.to);
+          }}
           onPointerEnter={() => setPointerIntent('enter')}
           onPointerLeave={() => setPointerIntent('scan')}
         >
-          <span className="modehost__onward-why">{e.because}</span>
+          <span className="modehost__onward-why">{m.because}</span>
           <span className="modehost__onward-to">
-            {findModeTitle(e.to)}
+            {findModeTitle(m.to)}
             <span aria-hidden="true"> →</span>
           </span>
         </button>

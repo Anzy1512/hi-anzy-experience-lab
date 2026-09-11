@@ -21,6 +21,57 @@ export const LAB = {
   initialising: 'INITIALISING',
 } as const;
 
+/**
+ * THE TWO DOORS.
+ *
+ * `enter` above is kept and still means what it said — it is the label on the
+ * launcher's own control. These are the choice that follows it.
+ *
+ * Neither door is a downgrade of the other and the copy is written so that
+ * neither reads as one: "show me" is not a beginner's mode and "show me
+ * everything" is not the advanced one. They are a route and a map, and a
+ * visitor is trusted to know which they want.
+ *
+ * The counts are not written here. `six` and `sixteen` are read off `PATH` and
+ * `MODES` at render, because a number typed into marketing copy is a claim that
+ * goes stale the first time the product changes — this file has already had to
+ * fix exactly that once, in `INDEX_COPY.reverse`.
+ */
+export const DOORS = {
+  curated: 'SHOW ME',
+  curatedNote: 'A ROUTE THROUGH THE LAB, IN ORDER.',
+  free: 'SHOW ME EVERYTHING',
+  freeNote: 'THE FULL INDEX, AS A MAP.',
+} as const;
+
+/**
+ * THE RETURN.
+ *
+ * Offered once, at the end of the path, and never as an interruption.
+ *
+ * The brief for this was "do not ruin it with CONTACT US NOW", and the reason
+ * that would ruin it is not that it is loud — it is that it changes what the
+ * preceding twenty minutes were for. A visitor who has just been shown a
+ * company thinking in public will read a hard ask as the reveal that the
+ * thinking was bait. So the line does not ask for anything. It states what
+ * just happened and offers the obvious next move, which the visitor is free
+ * to decline by pressing Escape like everywhere else in the Lab.
+ */
+export const RETURN_COPY = {
+  eyebrow: 'END OF THE ROUTE',
+  line: 'You have seen the system explain itself.',
+  sub: 'It does the same thing with a real problem, and that version has a client in the room.',
+  /** Stays inside the Lab. The rehearsal before the real one. */
+  simulate: 'GIVE IT A PROBLEM',
+  simulateNote: 'AGENCY SIMULATOR — A DETERMINISTIC MODEL, NOT A PITCH.',
+  /** Leaves for the commercial site. */
+  commercial: 'TALK TO HI ANZY',
+  commercialNote: 'BACK TO THE SITE.',
+  /** Neither, thanks. */
+  stay: 'KEEP EXPLORING',
+  stayNote: 'THE REST OF THE INDEX.',
+} as const;
+
 export const INDEX_COPY = {
   eyebrow: 'REALITY INDEX',
   /**

@@ -427,3 +427,121 @@
     display: none;
   }
 }
+
+/* ==========================================================================
+   THE ROUTE — Phase 7
+
+   The Index does not change shape for a visitor on the curated path. It gains
+   one line saying the route is still open and one panel when it is finished,
+   and neither is a progress meter: a visitor who wandered off the route is not
+   behind on anything, so there is no percentage, no counter, and nothing that
+   can be "completed" except the route itself.
+   ========================================================================== */
+.index__route {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--s-2);
+  margin: 0 0 var(--s-4);
+  padding: var(--s-2) 0;
+  border-top: var(--hair) solid var(--rule);
+  border-bottom: var(--hair) solid var(--rule);
+  letter-spacing: var(--tr-mono-wide);
+}
+.index__route-sep {
+  color: var(--figure-faint);
+}
+.index__route-next {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--figure);
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+  transition: color var(--d-1) var(--e-snap);
+}
+.index__route-next:hover {
+  color: var(--signal);
+}
+/* Pushed to the far end: leaving the route is always available and never the
+   thing the eye lands on first. */
+.index__route-leave {
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--figure-dim);
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+  transition: color var(--d-1) var(--e-snap);
+}
+.index__route-leave:hover {
+  color: var(--figure);
+}
+
+/* ---- the return --------------------------------------------------------- */
+.index__return {
+  margin: 0 0 var(--s-5);
+  padding: var(--s-4) 0 var(--s-4);
+  border-top: 2px solid var(--signal);
+  border-bottom: var(--hair) solid var(--rule);
+}
+.index__return-eyebrow {
+  margin: 0 0 var(--s-3);
+  letter-spacing: var(--tr-mono-wide);
+}
+.index__return-line {
+  margin: 0 0 var(--s-2);
+}
+.index__return-sub {
+  margin: 0 0 var(--s-4);
+  max-width: 54ch;
+  color: var(--figure-dim);
+}
+.index__return-moves {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}
+/* Three moves, one weight. Only the border says which one the sheet expects,
+   and none of them is bigger, louder or pre-selected — `KEEP EXPLORING` has to
+   be a real option or the other two are not offers. */
+.index__return-btn {
+  display: grid;
+  gap: 4px;
+  padding: 0.75rem 1rem;
+  border: var(--hair) solid var(--rule);
+  background: transparent;
+  color: var(--figure);
+  text-align: left;
+  text-decoration: none;
+  letter-spacing: var(--tr-mono-wide);
+  cursor: pointer;
+  transition:
+    border-color var(--d-1) var(--e-snap),
+    color var(--d-1) var(--e-snap);
+}
+.index__return-btn[data-weight='signal'] {
+  border-color: var(--figure-dim);
+}
+.index__return-btn:hover,
+.index__return-btn:focus-visible {
+  border-color: var(--signal);
+}
+.index__return-btn-note {
+  color: var(--figure-dim);
+}
+
+@media (max-width: 700px) {
+  .index__return-moves {
+    flex-direction: column;
+  }
+  .index__return-btn {
+    width: 100%;
+  }
+  .index__route-leave {
+    margin-left: 0;
+  }
+}

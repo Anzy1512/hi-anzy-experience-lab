@@ -271,3 +271,19 @@
 .modehost[data-mode='x-ray'] .modehost__onward-btn:focus-visible {
   border-left-color: var(--signal);
 }
+
+/* The route's move, as opposed to the graph's. The graph offers a relationship
+   and this offers a next step, so it is marked once — by the signal on its own
+   rule — and otherwise left identical. A second visual language for the same
+   control in the same corner would read as two different kinds of button. */
+.modehost__onward-btn[data-route='true'] {
+  border-right-color: var(--signal);
+}
+/* Agency Simulator and X-Ray hang their graph on the left rule instead, and
+   Agency Simulator is a stop on the route — so the marker has to follow the
+   rule that mode actually draws, or the one reality where the route matters
+   most is the one place it goes unmarked. */
+.modehost[data-mode='agency-simulator'] .modehost__onward-btn[data-route='true'],
+.modehost[data-mode='x-ray'] .modehost__onward-btn[data-route='true'] {
+  border-left-color: var(--signal);
+}

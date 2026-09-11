@@ -4,6 +4,19 @@ import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig({
   plugins: [react()],
+  /*
+   * WHERE THE LAB IS MOUNTED.
+   *
+   * The Lab ships as its own static build behind a path on the commercial
+   * origin (see docs/ADR-001-lab-integration.md), so every asset URL it emits
+   * has to carry that prefix. `LAB_BASE=/lab/ npm run build` produces the
+   * deployable; unset, it stays at `/` so local dev and preview are unchanged.
+   *
+   * Vite rewrites `base` into index.html and into CSS `url()`. It cannot
+   * rewrite a URL assembled in JavaScript, so anything building a public path
+   * by hand reads `import.meta.env.BASE_URL` instead — see `specimenSrc`.
+   */
+  base: process.env.LAB_BASE || '/',
   /* The harness may hand us a port; honour it so a busy 5173 is not fatal. */
   server: { port: Number(process.env.PORT) || 5173 },
   /* `vite preview` doesn't inherit `server.port` — it needs its own, or a busy
