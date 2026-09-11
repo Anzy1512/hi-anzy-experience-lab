@@ -257,3 +257,64 @@
     transition-duration: 120ms;
   }
 }
+
+/* ==========================================================================
+   TYPE MATTER — Phase 8.5
+
+   The instrument's one input, sitting inside the band it controls rather than
+   floating over the field. A text box above a particle demo is a form with a
+   toy behind it; here it is the control for the state being read, and it is
+   only present while that state is.
+   ========================================================================== */
+.mx-type {
+  /* The band is `pointer-events: none` because everything else in it is a
+     readout, and the canvas underneath wants the pointer for the force field.
+     This is the first interactive thing to live here, so it has to take the
+     pointer back — without this the field focuses but FORM cannot be clicked
+     at all, and the click lands on the particle field instead. */
+  pointer-events: auto;
+  display: grid;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+  padding-top: var(--s-3);
+  border-top: var(--hair) solid var(--rule);
+  max-width: 52ch;
+}
+.mx-type__label {
+  letter-spacing: var(--tr-mono-wide);
+}
+.mx-type__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  align-items: stretch;
+}
+/* A ruled field, not a rounded box: this instrument is set on paper stock and
+   a pill input would be the one control that came from somewhere else. */
+.mx-type__input {
+  flex: 1 1 16ch;
+  min-width: 0;
+  padding: 0.45rem 0.6rem;
+  border: var(--hair) solid var(--rule);
+  background: transparent;
+  color: var(--figure);
+  letter-spacing: var(--tr-mono-wide);
+  text-transform: uppercase;
+}
+.mx-type__input::placeholder {
+  color: var(--figure-dim);
+}
+.mx-type__input:focus-visible {
+  border-color: var(--signal);
+}
+.mx-type__status {
+  color: var(--figure-dim);
+  line-height: 1.6;
+  min-height: 1.6em;
+}
+
+@media (max-width: 700px) {
+  .mx-type__row {
+    flex-direction: column;
+  }
+}

@@ -66,13 +66,67 @@ export interface TargetOptions {
 
 /* -------------------------------------------------------------------------- */
 /* TYPE — sampled from real letterforms, not an approximation of them          */
+/*                                                                            */
+/* Draws to an offscreen canvas and samples opaque pixels, so the matter forms */
+/* the actual typeface the Lab is set in rather than a shape resembling it.    */
+/* Phase 8.5 generalised the string: the wordmark is the default, not the only */
+/* thing this can set.                                                         */
 /* -------------------------------------------------------------------------- */
+
+/** The longest phrase the instrument will set, and how it may be broken. */
+export const TEXT_MAX = 24;
+const MAX_LINES = 2;
+
 /**
- * Draws HI ANZY to an offscreen canvas and samples opaque pixels. The matter
- * therefore forms the actual typeface the Lab is set in, rather than a shape
- * that resembles it.
+ * What the instrument is willing to set.
+ *
+ * Control characters are removed rather than escaped, the string is capped, and
+ * the result is upper-cased because the display face is. Nothing here is ever
+ * inserted into the document — it is drawn to an offscreen canvas and read back
+ * as pixels — so there is no markup path to sanitise against. The cap exists for
+ * legibility, not safety: past two dozen characters at this spread the matter is
+ * setting type too small for a hundred and sixty thousand particles to resolve.
  */
-function sampleGlyphs(count: number, spread: number): Float32Array {
+export function sanitiseText(raw: string): string {
+  return Array.from(raw)
+    .filter((ch) => {
+      const c = ch.codePointAt(0) ?? 0;
+      return c >= 0x20 && c !== 0x7f;
+    })
+    .join('')
+    .slice(0, TEXT_MAX)
+    .toUpperCase();
+}
+
+/** Break a phrase into at most two lines, on a space, near the middle. */
+function layoutLines(text: string): string[] {
+  const t = text.trim();
+  if (t.length <= 9 || !t.includes(' ')) return [t];
+  const mid = Math.floor(t.length / 2);
+  let split = -1;
+  for (let i = 0; i < t.length; i++) {
+    if (t[i] !== ' ') continue;
+    if (split === -1 || Math.abs(i - mid) < Math.abs(split - mid)) split = i;
+  }
+  if (split <= 0) return [t];
+  return [t.slice(0, split), t.slice(split + 1)].filter(Boolean).slice(0, MAX_LINES);
+}
+
+/**
+ * Rasterise text and sample its opaque pixels.
+ *
+ * This is the whole of TYPE MATTER, and it is the same function that has always
+ * drawn the wordmark — the state that proved matter could resolve into real
+ * letterforms was already doing this, for one fixed string. Generalising it is
+ * what turns a demonstration into an instrument: the visitor's own phrase goes
+ * through the identical path, so their words are made of the Lab's typeface at
+ * the Lab's density, not pasted over it.
+ *
+ * No network, no model, no API. A canvas, an alpha channel, and a deterministic
+ * pick per particle — which is also why the same phrase always forms the same
+ * way, and why it costs a single rasterisation rather than a per-frame anything.
+ */
+function sampleText(text: string, count: number, spread: number): Float32Array {
   const out = new Float32Array(count * 3);
   const W = 512;
   const H = 160;
@@ -83,11 +137,28 @@ function sampleGlyphs(count: number, spread: number): Float32Array {
 
   let points: Array<[number, number]> = [];
   if (ctx) {
+    const lines = layoutLines(text);
     ctx.fillStyle = '#fff';
-    ctx.font = '700 118px Rajdhani, Oswald, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('HI ANZY', W / 2, H / 2);
+
+    /*
+     * Fit rather than assume. The wordmark was set at a fixed 118px because it
+     * is always seven characters; a phrase the visitor chose is not, and a
+     * fixed size either overflows the canvas — clipping the ends of their
+     * words, which reads as a bug in their typing — or wastes most of it.
+     */
+    const longest = lines.reduce((a, b) => (a.length >= b.length ? a : b), '');
+    let size = 128;
+    ctx.font = `700 ${size}px Rajdhani, Oswald, sans-serif`;
+    const measured = ctx.measureText(longest).width || 1;
+    size = Math.max(28, Math.min(size, (size * (W * 0.9)) / measured, (H * 0.86) / lines.length));
+    ctx.font = `700 ${Math.round(size)}px Rajdhani, Oswald, sans-serif`;
+
+    const lead = size * 0.96;
+    const top = H / 2 - ((lines.length - 1) * lead) / 2;
+    lines.forEach((line, i) => ctx.fillText(line, W / 2, top + i * lead));
+
     const data = ctx.getImageData(0, 0, W, H).data;
     for (let y = 0; y < H; y += 2) {
       for (let x = 0; x < W; x += 2) {
@@ -95,8 +166,12 @@ function sampleGlyphs(count: number, spread: number): Float32Array {
       }
     }
   }
-  // If the font never resolved there is nothing to sample; fall back to a plane
-  // rather than emitting a pile of particles at the origin.
+  /*
+   * Nothing resolved: the font never loaded, or the phrase was entirely glyphs
+   * this face has no outline for. Falling back to a plane keeps the matter
+   * somewhere legible instead of emitting a pile at the origin — and the mode
+   * says so in its readout rather than pretending the formation worked.
+   */
   if (points.length === 0) points = [[0, 0]];
 
   for (let i = 0; i < count; i++) {
@@ -107,6 +182,48 @@ function sampleGlyphs(count: number, spread: number): Float32Array {
     out[i * 3 + 2] = (rnd(i, 14) - 0.5) * spread * 0.02;
   }
   return out;
+}
+
+/** Whether a phrase would actually rasterise to anything this face can draw. */
+export function textResolves(text: string): boolean {
+  const t = sanitiseText(text).trim();
+  if (!t) return false;
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 96;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return false;
+  ctx.fillStyle = '#fff';
+  ctx.font = '700 64px Rajdhani, Oswald, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(t, 128, 48);
+  const data = ctx.getImageData(0, 0, 256, 96).data;
+  for (let i = 3; i < data.length; i += 4) if (data[i] > 128) return true;
+  return false;
+}
+
+/**
+ * The phrase the `type` formation is currently setting.
+ *
+ * Module-level rather than React state because `buildTargets` is called from
+ * the render loop's own code path and must not take a prop through four
+ * components to learn one string. Reset to the wordmark on mode entry, so the
+ * reality always opens on what it has always opened on.
+ */
+let typedText = 'HI ANZY';
+
+export function setTypedText(text: string): void {
+  const clean = sanitiseText(text).trim();
+  typedText = clean || 'HI ANZY';
+}
+
+export function getTypedText(): string {
+  return typedText;
+}
+
+export function resetTypedText(): void {
+  typedText = 'HI ANZY';
 }
 
 /* -------------------------------------------------------------------------- */
@@ -143,7 +260,7 @@ export function buildTargets(state: MatterState, { count, spread }: TargetOption
     }
 
     case 'type':
-      return sampleGlyphs(count, spread);
+      return sampleText(typedText, count, spread);
 
     case 'structure': {
       // Six planes at increasing depth — the Compiler's corridor, in matter.

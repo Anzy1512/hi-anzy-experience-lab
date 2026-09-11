@@ -13,8 +13,14 @@ import {
   STATE_LABEL,
   STATE_NOTE,
   STATE_ORDER,
+  TEXT_MAX,
+  resetTypedText,
+  sanitiseText,
+  setTypedText,
+  textResolves,
   type MatterState,
 } from './targets';
+import { MATTER_COPY } from '../../content/matter';
 import './matter.css';
 
 /**
@@ -64,6 +70,19 @@ export default function MatterMode({ onReady, scope }: ModeViewProps) {
   const progressRef = useRef(1);
   const forceRef = useRef({ x: 0, y: 0, sign: 0 });
   const rootRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  /* ---- type matter --------------------------------------------------------
+   *
+   * `draft` is what is in the field; `typed` is what the matter is actually
+   * set in. They are separate so the formation does not re-rasterise on every
+   * keystroke — a hundred and sixty thousand targets rebuilt per character is
+   * a long task per letter, and it would also mean the visitor watching their
+   * own half-finished word assemble and collapse.
+   */
+  const [draft, setDraft] = useState('');
+  const [typed, setTyped] = useState('HI ANZY');
+  const [typeStatus, setTypeStatus] = useState<string>(MATTER_COPY.typeReady);
 
   const active = quality.webgl && count > 0 && !glFailed;
 
@@ -102,6 +121,66 @@ export default function MatterMode({ onReady, scope }: ModeViewProps) {
   );
   const stateRef = useRef<MatterState>('dust');
 
+  /**
+   * Set the visitor's phrase, then release the matter and let it re-form.
+   *
+   * `goTo('type')` from `type` would be a no-op transition, so the formation is
+   * restarted by hand: the targets are rebuilt from the new string and progress
+   * is reset, which is what makes the old word visibly come apart before the
+   * new one assembles rather than snapping between them.
+   */
+  /**
+   * Release the matter, change what it is going to be, then let it re-form.
+   *
+   * Going straight from `type` to `type` cannot work: both formations would be
+   * built from the *new* string, so the old word would not come apart — it
+   * would cut. Passing through `dust` is the honest version of the same move
+   * and the one the material already knows how to make: the phrase disperses
+   * into unformed matter, the targets are recomputed while it is scattered,
+   * and it gathers into the new one.
+   */
+  const reformAs = useCallback(
+    (apply: () => void) => {
+      apply();
+      goTo('dust');
+      const id = window.setTimeout(() => goTo('type'), reduced ? 60 : 620);
+      scope.add(() => window.clearTimeout(id));
+    },
+    [goTo, reduced, scope],
+  );
+
+  const commitText = useCallback(() => {
+    const clean = sanitiseText(draft).trim();
+    if (!clean) return;
+    if (!textResolves(clean)) {
+      setTypeStatus(MATTER_COPY.typeUnsupported);
+      return;
+    }
+    reformAs(() => {
+      setTypedText(clean);
+      setTyped(clean);
+      setTypeStatus(`${MATTER_COPY.typeSetPrefix} ${clean}`);
+    });
+  }, [draft, reformAs]);
+
+  const restoreWordmark = useCallback(() => {
+    reformAs(() => {
+      resetTypedText();
+      setTyped('HI ANZY');
+      setDraft('');
+      setTypeStatus(MATTER_COPY.typeRestored);
+    });
+    inputRef.current?.focus();
+  }, [reformAs]);
+
+  /* The wordmark is what this reality opens on, every time. A phrase typed in a
+     previous visit surviving into a new one would make the mode's own opening
+     statement depend on something the visitor no longer remembers doing. */
+  useEffect(() => {
+    resetTypedText();
+    return () => resetTypedText();
+  }, []);
+
   /* ---- entry --------------------------------------------------------------- */
   useEffect(() => {
     setPointerIntent('default');
@@ -126,6 +205,16 @@ export default function MatterMode({ onReady, scope }: ModeViewProps) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+      /*
+       * The shortcuts stop at the edge of the text field. 1-6 select a state
+       * and A/R/O set the force, which means that before TYPE MATTER existed
+       * every one of those keys was free — and the moment a visitor types the
+       * letter A into their own phrase, the mode would have yanked the matter
+       * toward the pointer. A control surface that fights the input it just
+       * offered is worse than no input.
+       */
+      const el = document.activeElement;
+      if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) return;
       const n = Number(e.key);
       if (n >= 1 && n <= STATE_ORDER.length) {
         e.preventDefault();
@@ -206,7 +295,63 @@ export default function MatterMode({ onReady, scope }: ModeViewProps) {
           <p className="t-mono t-mono-xs mx-now" role="status">
             <span className="t-signal">{STATE_LABEL[state]}</span>
           </p>
-          <p className="t-body-s t-dim mx-note">{STATE_NOTE[state]}</p>
+          <p className="t-body-s t-dim mx-note">
+            {state === 'type' && typed !== 'HI ANZY' ? MATTER_COPY.typedNote : STATE_NOTE[state]}
+          </p>
+
+          {/*
+            The instrument's one input, and it belongs to TYPE rather than
+            floating above the mode: a text field over a particle demo is a form
+            with a toy behind it. Here it is the control for the state it
+            changes, and it appears only when that state is the one being read.
+          */}
+          {state === 'type' && (
+            <form
+              className="mx-type"
+              onSubmit={(e) => {
+                e.preventDefault();
+                commitText();
+              }}
+            >
+              <label className="t-mono t-mono-xs t-dim mx-type__label" htmlFor="mx-type-input">
+                {MATTER_COPY.typeLabel}
+              </label>
+              <div className="mx-type__row">
+                <input
+                  id="mx-type-input"
+                  ref={inputRef}
+                  className="t-mono t-mono-xs mx-type__input"
+                  type="text"
+                  value={draft}
+                  maxLength={TEXT_MAX}
+                  autoComplete="off"
+                  spellCheck={false}
+                  placeholder="HI ANZY"
+                  aria-describedby="mx-type-status"
+                  onChange={(e) => setDraft(e.target.value)}
+                />
+                <button type="submit" className="mx-btn t-mono t-mono-xs" disabled={!draft.trim()}>
+                  {MATTER_COPY.typeSet}
+                </button>
+                {typed !== 'HI ANZY' && (
+                  <button
+                    type="button"
+                    className="mx-btn t-mono t-mono-xs"
+                    onClick={restoreWordmark}
+                  >
+                    {MATTER_COPY.typeReset}
+                  </button>
+                )}
+              </div>
+              {/* The status is the whole accessibility story for a change that
+                  happens in WebGL: a screen reader cannot see a hundred and
+                  sixty thousand particles rearrange, so the instrument says
+                  what it just set, or why it could not. */}
+              <p id="mx-type-status" className="t-mono t-mono-xs mx-type__status" role="status">
+                {typeStatus}
+              </p>
+            </form>
+          )}
         </div>
 
         <dl className="mx-readout">
