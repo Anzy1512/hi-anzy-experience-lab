@@ -6,6 +6,7 @@ import { useDisposable } from '../../spatial/disposal';
 import { DISTRICTS, type District } from '../../content/world';
 import { groundAt } from './geography';
 import { buildDistrict, type PlateSink } from './districtForms';
+import { penFor, plain, type Box } from './pens';
 import { DATUM, buildDatum } from './landmarks';
 import type { SpatialQuality } from '../../spatial/quality';
 
@@ -59,41 +60,15 @@ interface Props {
 }
 
 /*
- * HOW A DISTRICT IS DRAWN.
+ * HOW A DISTRICT IS DRAWN — see `pens.ts`.
  *
- * A section drawing distinguishes materials by hatch and line weight, never by
- * hue — the outline carries the strong weight and the hatch is the thinnest
- * line on the sheet. That is the whole convention, and it is what stops nine
- * differently-shaped districts reading as one thing.
- *
- *   value   how bright the outline sits in the bone range
- *   hatch   0 draws nothing inside a plate; higher draws more infill lines,
- *           always fainter than the outline that contains them
- *   rise    how much of the value is earned by height rather than given
- *
- * No entry here carries a colour. The Lab has one accent and it means signal.
+ * The value/hatch table that used to live here has become a table of pens: a
+ * material no longer just sets how bright and how dense its lines are, it sets
+ * how they are *made*. Graphite over-runs its corners, halftone breaks its own
+ * outline into countable marks, archive leaves measured gaps in it, ink fills
+ * with poché. Nine materials, nine techniques, and still not one colour
+ * between them.
  */
-const DRAW: Record<string, { value: number; hatch: number; rise: number }> = {
-  // Provisional construction line. Dim, and deliberately unfinished-looking.
-  GRAPHITE: { value: 0.3, hatch: 0, rise: 0.3 },
-  // The brightest stock in the territory. Sheets, so the infill is sparse and
-  // reads as the face of a plate rather than as texture.
-  PAPER: { value: 0.52, hatch: 2, rise: 0.4 },
-  // The thinnest mark the display holds. Dense infill at low value: a lattice.
-  RULE: { value: 0.34, hatch: 5, rise: 0.34 },
-  // Heavy and accumulative. Strong outline, heavy poché.
-  INK: { value: 0.44, hatch: 4, rise: 0.46 },
-  // Evidence that something moved through, fainter than what made it.
-  TRACE: { value: 0.26, hatch: 1, rise: 0.5 },
-  // Countable marks: a tone at distance, a grid of decisions up close.
-  HALFTONE: { value: 0.36, hatch: 3, rise: 0.36 },
-  // Preserved, labelled, incomplete. Mid value, gaps left in the infill.
-  ARCHIVE: { value: 0.4, hatch: 2, rise: 0.3 },
-  // Not yet in register. Dim, and drawn as if the plate missed its mark.
-  REGISTRATION: { value: 0.26, hatch: 1, rise: 0.2 },
-  // An absence with a thickness. Outline only, and barely that.
-  CUT: { value: 0.18, hatch: 0, rise: 0.1 },
-};
 
 export function Territory({ quality, extent, groundHeight, activeId }: Props) {
   const routesMat = useRef<THREE.LineBasicMaterial>(null);
@@ -174,19 +149,30 @@ export function Territory({ quality, extent, groundHeight, activeId }: Props) {
     const c = new THREE.Color();
 
     const visible = DISTRICTS.slice(0, Math.max(5, quality.maxStructures));
+    /*
+     * Whether the territory is drawn with its pens or with one line.
+     *
+     * Every technique multiplies the segment count — halftone turns an edge
+     * into a dozen marks, poché fills a plate with thirty runs. `scaffold` is
+     * already the dial for "this tier can afford connective drawing", so the
+     * lite tier reuses it and keeps the topology, which is what carried a
+     * district's identity before any of this existed.
+     */
+    const fine = quality.scaffold;
 
     for (const dist of visible) {
       const base = groundAt(dist.x, dist.z, extent, groundHeight);
       const top = Math.max(1, (dist.plates - 1) * dist.rise);
 
       /*
-       * Each district builds its own silhouette (districtForms.ts) and is drawn
-       * in its own material. Brightness still rises with height so a tall
-       * structure reads as tall in outline, but how much of the value is given
-       * and how much is earned by height now differs per material — graphite
-       * stays provisional all the way up, ink gains weight as it accumulates.
+       * Each district builds its own silhouette (districtForms.ts) and is
+       * drawn with its own pen (pens.ts). Brightness still rises with height
+       * so a tall structure reads as tall in outline, but how much of the
+       * value is given and how much is earned by height differs per material —
+       * graphite stays provisional all the way up, ink gains weight as it
+       * accumulates — and now so does the mark itself.
        */
-      const draw = DRAW[dist.material] ?? DRAW.PAPER;
+      const draw = fine ? penFor(dist.material) : plain(penFor(dist.material));
 
       const emit = (
         a: readonly [number, number, number],
@@ -212,18 +198,17 @@ export function Territory({ quality, extent, groundHeight, activeId }: Props) {
             const b = points[(i + 1) % points.length];
             // An open two-point run is a line, not a closed outline.
             if (points.length === 2 && i === 1) break;
-            emit(a, b, 1);
+            draw.stroke(a, b, emit);
           }
 
           /*
-           * HATCH — the material, drawn inside the outline it belongs to.
-           *
-           * Parallel runs across the plate's own span, at a fraction of the
-           * outline's value because a hatch that competes with its outline has
+           * The material, drawn inside the outline it belongs to — poché,
+           * cross-hatch, dots, or nothing at all. Always at a fraction of the
+           * outline's value, because infill that competes with its outline has
            * stopped being secondary information and become noise. Closed
            * plates only: an open two-point run has no inside.
            */
-          if (draw.hatch > 0 && points.length > 2) {
+          if (draw.fill && points.length > 2) {
             let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
             let y = 0;
             for (const p of points) {
@@ -234,11 +219,8 @@ export function Territory({ quality, extent, groundHeight, activeId }: Props) {
               y += p[1];
             }
             y /= points.length;
-            for (let h = 1; h <= draw.hatch; h += 1) {
-              const f = h / (draw.hatch + 1);
-              const z = minZ + (maxZ - minZ) * f;
-              emit([minX, y, z] as const, [maxX, y, z] as const, 0.42);
-            }
+            const box: Box = { minX, maxX, minZ, maxZ, y };
+            draw.fill(box, emit);
           }
         },
       };
@@ -317,7 +299,7 @@ export function Territory({ quality, extent, groundHeight, activeId }: Props) {
       routes: geo(routePos),
       datum: geo(datumPos),
     };
-  }, [quality.maxStructures, extent, groundHeight]);
+  }, [quality.maxStructures, quality.scaffold, extent, groundHeight]);
 
   useDisposable(ground, plates, beacons, routes, datum);
 
