@@ -20,6 +20,9 @@ import { Territory } from './Territory';
 import { groundAt } from './geography';
 import { districtTop } from './districtForms';
 import { WorldIndex } from './WorldIndex';
+import { STANDS, standAnchor, standScale, standOpacity } from './imagery';
+import { SpecimenPlate } from '../../components/Specimen/SpecimenPlate';
+import type { CleanupScope } from '../../core/cleanup';
 import './world.css';
 
 /**
@@ -341,6 +344,9 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
               onLabelPositions={(m) => {
                 labelPositions.current = m;
               }}
+              onStandPositions={(m) => {
+                standPositions.current = m;
+              }}
             />
           </SpatialCanvas>
           <WorldLabels
@@ -350,6 +356,9 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
             positions={labelPositions}
             onSelect={travelTo}
           />
+          {quality.scaffold && (
+            <WorldSpecimens visible={visible} reduced={reduced} scope={scope} positions={standPositions} />
+          )}
         </div>
       ) : (
         <p className="lw-fallback t-mono t-mono-xs" role="status">
@@ -381,6 +390,11 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
 /* -------------------------------------------------------------------------- */
 type LabelMap = Map<string, { x: number; y: number; z: number }>;
 const labelPositions: { current: LabelMap } = { current: new Map() };
+
+/** Screen position, projected depth and distance-derived scale/opacity for
+    each district that has a stand — see `imagery.ts`. */
+type StandMap = Map<string, { x: number; y: number; z: number; scale: number; opacity: number }>;
+const standPositions: { current: StandMap } = { current: new Map() };
 
 /**
  * On a wide screen these are full district names standing in the air above the
@@ -478,6 +492,82 @@ function WorldLabels({
 }
 
 /* -------------------------------------------------------------------------- */
+/* stands: the company's own collages, projected to screen space               */
+/* -------------------------------------------------------------------------- */
+/**
+ * Every stand is a real `SpecimenPlate` — a real `<img>` with real alt text —
+ * positioned the same way `WorldLabels` positions district names: the scene's
+ * own `useFrame` projects a world point to screen space every frame, and this
+ * component writes the result straight to the DOM, bypassing React state so a
+ * moving camera never triggers a render. `tilt={{ rx: 0, ry: 0 }}` is supplied
+ * fixed rather than omitted, so the plate does not also subscribe to pointer
+ * parallax on top of the world's own camera motion — one signal, not two
+ * fighting each other, and one fewer `onFrame` subscriber per stand.
+ *
+ * Distance drives both `scale` and `opacity`, written together in one
+ * `transform`/`style` pair per frame; see `imagery.ts` for the curve and why
+ * it never lets a stand grow past native size.
+ */
+function WorldSpecimens({
+  visible,
+  reduced,
+  scope,
+  positions,
+}: {
+  visible: District[];
+  reduced: boolean;
+  scope: CleanupScope;
+  positions: { current: StandMap };
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const stands = useMemo(() => visible.filter((d) => STANDS[d.id]), [visible]);
+
+  useEffect(() => {
+    const stop = onFrame(() => {
+      const root = ref.current;
+      if (!root) return;
+      for (const d of stands) {
+        const el = root.querySelector<HTMLElement>(`[data-stand="${d.id}"]`);
+        const p = positions.current.get(d.id);
+        if (!el || !p) continue;
+        // Behind the camera: park it rather than let it flash across the frame.
+        if (p.z > 1) {
+          el.style.opacity = '0';
+          continue;
+        }
+        el.style.transform = `translate3d(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px, 0) scale(${p.scale.toFixed(3)})`;
+        el.style.opacity = p.opacity.toFixed(2);
+      }
+    });
+    return stop;
+  }, [stands, positions]);
+
+  if (stands.length === 0) return null;
+
+  return (
+    <div className="lw-stands" ref={ref}>
+      {stands.map((d) => {
+        const stand = STANDS[d.id];
+        return (
+          <div className="lw-stand" key={d.id} data-stand={d.id}>
+            <div className="lw-stand__body">
+              <SpecimenPlate
+                id={stand.specimen}
+                reduced={reduced}
+                scope={scope}
+                tilt={{ rx: 0, ry: 0 }}
+                separation={0.7}
+              />
+              <p className="t-mono t-mono-xs lw-stand__line">{stand.line}</p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /* the scene                                                                   */
 /* -------------------------------------------------------------------------- */
 function WorldScene({
@@ -487,6 +577,7 @@ function WorldScene({
   visible,
   narrow,
   onLabelPositions,
+  onStandPositions,
 }: {
   worldState: WorldState;
   quality: SpatialQuality;
@@ -494,15 +585,18 @@ function WorldScene({
   visible: District[];
   narrow: boolean;
   onLabelPositions: (m: LabelMap) => void;
+  onStandPositions: (m: StandMap) => void;
 }) {
   const groupRef = useRef<THREE.Group>(null);
   const { camera, size } = useThree();
   const projected = useRef<LabelMap>(new Map());
+  const projectedStands = useRef<StandMap>(new Map());
   const vec = useMemo(() => new THREE.Vector3(), []);
 
   useEffect(() => {
     onLabelPositions(projected.current);
-  }, [onLabelPositions]);
+    onStandPositions(projectedStands.current);
+  }, [onLabelPositions, onStandPositions]);
 
   useFrame(() => {
     const g = groupRef.current;
@@ -523,6 +617,45 @@ function WorldScene({
         x: (vec.x * 0.5 + 0.5) * size.width,
         y: (-vec.y * 0.5 + 0.5) * size.height,
         z: vec.z,
+      });
+    }
+
+    // Project each district's stand, where one exists — see `imagery.ts`.
+    for (const d of visible) {
+      const stand = STANDS[d.id];
+      if (!stand) continue;
+      const anchor = standAnchor(d, stand, EXTENT, GROUND_HEIGHT);
+      vec.set(anchor.x, anchor.y, anchor.z);
+      g.localToWorld(vec);
+      // Captured before `.project()` below, which overwrites `vec` in place
+      // with clip-space coordinates — there is no distance left to read after.
+      const dist = camera.position.distanceTo(vec);
+      vec.project(camera);
+      const raw = standScale(dist);
+      /*
+       * A ceiling for every stand that is not the travel target.
+       *
+       * "The camera never moves; the world does" turns travel into a rotation
+       * of the whole group, not a pure translation — and a rotation can swing
+       * a district that is nowhere near where the visitor is standing to a
+       * world position that happens to sit close to the camera. Measured: with
+       * distance alone, arriving at IMKAAN put DESIGN, PRODUCTION, GROWTH and
+       * CULTURE — none of them anywhere near IMKAAN — at full native scale,
+       * because the rotation that framed IMKAAN happened to carry their local
+       * points near the lens. Distance is honest about foreshortening but
+       * blind to *why* something is close, and "the view rotated past it" is
+       * not the same claim as "you travelled here." Only the stand you have
+       * actually arrived at is allowed to read at full richness; every other
+       * one is capped low regardless of what the raw geometry says, so a
+       * coincidence of rotation can dim a stand but never falsely spotlight it.
+       */
+      const scale = d.id === activeId ? raw : Math.min(raw, 0.22);
+      projectedStands.current.set(d.id, {
+        x: (vec.x * 0.5 + 0.5) * size.width,
+        y: (-vec.y * 0.5 + 0.5) * size.height,
+        z: vec.z,
+        scale,
+        opacity: standOpacity(scale),
       });
     }
   });

@@ -98,6 +98,69 @@
 }
 
 /* ==========================================================================
+   STANDS — the company's own collages, standing in the territory
+
+   Same technique as the labels above: a zero-size DOM anchor positioned by
+   `translate3d` written straight from the scene's own `useFrame`, one layer
+   further from the camera than the navigation labels so a label always wins
+   where the two would ever overlap. See `imagery.ts` for why there are five
+   of these and not nine, and for the distance curve driving `scale`/`opacity`.
+   ========================================================================== */
+.lw-stands {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.lw-stand {
+  position: absolute;
+  left: 0;
+  top: 0;
+  /* A point, not a box — the visible content is its child, offset by CSS
+     alone so this element never has to know the plate's own pixel size. */
+  width: 0;
+  height: 0;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.lw-stand__body {
+  position: absolute;
+  left: 0;
+  top: 0;
+  /* The anchor is the plate's own foot on the ground: shift left by half the
+     rendered width and up by the full rendered height, so scaling the parent
+     shrinks the plate toward the point it is standing on rather than toward
+     its own centre — an object receding into the distance, not a sticker
+     shrinking in place. */
+  transform: translate(-50%, -100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  /* `.spec` root is `position: relative`, which is what a static translate on
+     its parent needs to hold still against. */
+}
+
+.lw-stand__line {
+  max-width: 22ch;
+  padding: 0 4px;
+  text-align: center;
+  letter-spacing: var(--tr-mono-wide);
+  line-height: 1.5;
+  color: var(--figure-dim);
+  white-space: normal;
+  /* A drop shadow rather than a background plate: at the scale most stands
+     render, a boxed caption would be a bigger rectangle than the photograph
+     it labels. This keeps the ground legible underneath while still lifting
+     the mono type off it. */
+  text-shadow:
+    0 1px 3px rgba(10, 13, 13, 0.9),
+    0 0 10px rgba(10, 13, 13, 0.7);
+}
+
+/* ==========================================================================
    THE INDEX — orientation, and the whole experience without WebGL
    ========================================================================== */
 .lw-index {
