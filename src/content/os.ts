@@ -23,11 +23,71 @@ export type AppId =
   | 'system'
   | 'terminal';
 
+/**
+ * THE STOCK A SHEET IS PRINTED ON.
+ *
+ * ── WHY THIS EXISTS ─────────────────────────────────────────────────────────
+ *
+ * Seven applications were seven identical bone rectangles with different words
+ * inside. That is the failure mode of every OS pastiche: the window is the
+ * product and the content is a payload. A print workshop's bench is the
+ * opposite — you can tell what a sheet is from across the room, because a
+ * tracing overlay, a mounted proof, a piece of engineering grid and a docket
+ * roll are visibly different materials before you read a single word.
+ *
+ * ── THE RULE THIS OBEYS ─────────────────────────────────────────────────────
+ *
+ * Phase 6.5's research produced a standing rule: **materials are distinguished
+ * by pattern and weight, never by hue.** So there are no colour themes here.
+ * Every stock below is the company's own bone; what differs is what has been
+ * ruled, screened, punched, cut or laminated onto it, and how heavy it is.
+ *
+ * Seven applications, seven stocks, each chosen because it is the material that
+ * kind of document is actually made on:
+ */
+export type SheetStock =
+  /** Translucent. The bench reads through it. A strategy is an overlay drawn
+      on top of the business that already exists — which is what tracing paper
+      is for, and why STRATEGY.app is the only sheet you can see the desk
+      through. */
+  | 'tracing'
+  /** Heavy board with an aperture cut in it and a bevelled edge. How a piece of
+      finished work is actually presented. DESIGN.app is the only sheet holding
+      a specimen, so it is the only one that needs a mount. */
+  | 'mount'
+  /** Engineering grid, ruled at the line height. A specification is drawn on
+      squared paper before it is anything else. */
+  | 'grid'
+  /** A printed dot screen. A directory is a printed object — sixteen headings
+      set small and dense, the way a trade directory actually sets them. */
+  | 'screen'
+  /** Punched for a register bar: five stages as five leaves on one spine. */
+  | 'leaf'
+  /** Uncoated, unruled, unscreened. SYSTEM.app reports what this session
+      measured, and an instrument's own readout earns no stock character — the
+      plainness is the argument. */
+  | 'plain'
+  /** Continuous roll, perforated down one edge, torn off at the bottom. A
+      terminal is a printout, not a window. */
+  | 'docket';
+
 export interface OsApp {
   id: AppId;
   /** Process name, as the system refers to it. */
   name: string;
   line: string;
+  /** What the sheet is made of. See `SheetStock`. */
+  stock: SheetStock;
+  /**
+   * A specimen from the company's own collage library, where one is genuinely
+   * about what the application does.
+   *
+   * Two of seven. Imagery that appears on every sheet is wallpaper; imagery
+   * that appears on two is evidence. The other five are documents, and a
+   * document with a picture stapled to it for balance is worse than one
+   * without.
+   */
+  specimen?: string;
   /** Which realities this app can hand off to, if any. */
   opens?: string;
   status: 'resident' | 'future';
@@ -38,25 +98,76 @@ export const APPS: OsApp[] = [
     id: 'strategy',
     name: 'STRATEGY.app',
     line: 'Business audit, positioning, roadmaps.',
+    stock: 'tracing',
     status: 'resident',
   },
-  { id: 'design', name: 'DESIGN.app', line: 'Brand, identity, experience, design systems.', status: 'resident' },
+  {
+    id: 'design',
+    name: 'DESIGN.app',
+    line: 'Brand, identity, experience, design systems.',
+    stock: 'mount',
+    /* A figure with one hand raised to where a chin would be, and a Rubik's
+       cube where the head is not. A design system is a combinatorial object
+       somebody is in the middle of solving — that is the sheet's own subject,
+       not an illustration of it. */
+    specimen: 'char-fixer',
+    status: 'resident',
+  },
   {
     id: 'technology',
     name: 'TECHNOLOGY.app',
     line: 'Web, commerce, cloud, integration, automation.',
+    stock: 'grid',
     status: 'resident',
   },
   {
     id: 'network',
     name: 'NETWORK.app',
     line: 'Creators, PR, media, events, partnerships.',
+    stock: 'screen',
+    /* Two figures walking arm in arm, scissored out of whatever they were
+       photographed in. A network is people cut from their own contexts and
+       brought into one — the CUT state is the point, which is why this is the
+       cut-out and not the mounted plate. */
+    specimen: 'pop-camera-duo',
     status: 'resident',
   },
-  { id: 'method', name: 'METHOD.app', line: 'How the work actually proceeds.', status: 'resident' },
-  { id: 'system', name: 'SYSTEM.app', line: 'Processes, realities, resources.', status: 'resident' },
-  { id: 'terminal', name: 'TERMINAL', line: 'Direct instruction.', status: 'resident' },
+  {
+    id: 'method',
+    name: 'METHOD.app',
+    line: 'How the work actually proceeds.',
+    stock: 'leaf',
+    status: 'resident',
+  },
+  {
+    id: 'system',
+    name: 'SYSTEM.app',
+    line: 'Processes, realities, resources.',
+    stock: 'plain',
+    status: 'resident',
+  },
+  {
+    id: 'terminal',
+    name: 'TERMINAL',
+    line: 'Direct instruction.',
+    stock: 'docket',
+    status: 'resident',
+  },
 ];
+
+/**
+ * Which real service category each capability sheet reads from.
+ *
+ * Held here rather than inside the rendering layer, so the sheets and the
+ * terminal's `method`/`list` output cannot drift apart about which category is
+ * which.
+ */
+export const APP_SERVICE: Record<'strategy' | 'design' | 'technology' | 'network', string> = {
+  strategy: 'business-audit-strategy',
+  design: 'brand-experience',
+  technology: 'digital-technology-automation',
+  network: 'media-creators-experiences',
+};
 
 /** Named but not implemented. Listed as processes that are not running. */
 export const FUTURE_PROCESSES = [
@@ -87,9 +198,9 @@ function sheetFor(slug: string): string[][] {
 }
 
 export const APP_BODY: Record<Exclude<AppId, 'terminal' | 'system'>, string[][]> = {
-  strategy: sheetFor('business-audit-strategy'),
-  design: sheetFor('brand-experience'),
-  technology: sheetFor('digital-technology-automation'),
+  strategy: sheetFor(APP_SERVICE.strategy),
+  design: sheetFor(APP_SERVICE.design),
+  technology: sheetFor(APP_SERVICE.technology),
   /*
    * NETWORK.app is the one sheet that outgrew its category.
    *
@@ -101,7 +212,7 @@ export const APP_BODY: Record<Exclude<AppId, 'terminal' | 'system'>, string[][]>
    * capabilities, and the canonical source is careful about the difference.
    */
   network: [
-    ...sheetFor('media-creators-experiences'),
+    ...sheetFor(APP_SERVICE.network),
     ...Object.entries(NETWORK_CAPABILITIES).map(([discipline, subs]) => [
       discipline.toUpperCase(),
       subs.join(' · '),

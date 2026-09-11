@@ -1,9 +1,31 @@
 /* ==========================================================================
    ANZY.OS — RUN HI ANZY
 
-   An ink desk with paper sheets on it. The desk is the bench you work at; the
-   sheets are the work. Nothing here borrows a real operating system's chrome:
-   no dock, no menu bar, no traffic lights, no wallpaper, no glass.
+   An ink bench with paper sheets on it. The bench is the surface you work at;
+   the sheets are the work. Nothing here borrows a real operating system's
+   chrome: no dock, no menu bar, no traffic lights, no wallpaper, no glass.
+
+   ── WHAT PHASE 6.5 CHANGED ─────────────────────────────────────────────────
+
+   The concept survived intact; the execution was a dark rectangle with a faint
+   uniform grid and seven identical bone rectangles on it. Three things now
+   carry the idea instead of describing it:
+
+   1. THE BENCH HAS A DATUM. A drafting surface is not an even grid — it has an
+      origin, a measure running off that origin, a coarse field beyond, and a
+      lamp. You can tell which corner the work is squared to.
+
+   2. SHEETS ARE MADE OF SOMETHING. Seven applications, seven stocks: tracing,
+      mount board, engineering grid, printed screen, punched leaf, plain and a
+      docket roll. Distinguished by pattern and weight, never by hue — the
+      standing rule from Phase 6.5's research, applied to paper for the first
+      time.
+
+   3. THE STACK HAS DEPTH AND A REGISTER. Sheets sit at real Z inside a
+      perspective that matches `spatial/projection.ts`, and every sheet is
+      punched for a register bar. The one you are working on is seated square
+      on the pins; the ones behind are off them by a fraction of a degree.
+      Focusing a sheet is a registration event, not a fade.
    ========================================================================== */
 
 .os {
@@ -16,16 +38,29 @@
   grid-template-rows: minmax(0, 1fr);
 }
 
-/* The bench surface. A drafting grid at the edge of visibility — it exists to
-   say "measured surface", and must never be the first thing you notice. */
+/* ---- THE BENCH SURFACE ---------------------------------------------------
+   A cutting mat's two grids — a minor field at 32px and a major at 96px — and
+   a lamp above the working area so the sheets have a reason to cast the
+   shadows they cast. Both are at the edge of visibility on purpose: this is
+   the surface, and a surface you notice before the work on it is a failure. */
 .os::before {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
   background-image:
-    repeating-linear-gradient(to right, var(--rule-faint) 0 1px, transparent 1px 96px),
-    repeating-linear-gradient(to bottom, var(--rule-faint) 0 1px, transparent 1px 96px);
+    /* the lamp: a soft lift over the bench, off-centre so it is a light and
+       not a vignette */
+    radial-gradient(
+      118% 92% at 62% 6%,
+      color-mix(in srgb, var(--c-ink) 78%, transparent) 0%,
+      transparent 68%
+    ),
+    repeating-linear-gradient(to right, var(--rule) 0 1px, transparent 1px 96px),
+    repeating-linear-gradient(to bottom, var(--rule) 0 1px, transparent 1px 96px),
+    repeating-linear-gradient(to right, var(--rule-faint) 0 1px, transparent 1px 32px),
+    repeating-linear-gradient(to bottom, var(--rule-faint) 0 1px, transparent 1px 32px);
+  opacity: 0.72;
 }
 
 /* ==========================================================================
@@ -39,11 +74,13 @@
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--rule) transparent;
-  opacity: 0;
-  transition: opacity var(--d-3) var(--e-glide);
+  /* The list is printed, not faded in. A mask running down the rail is the
+     only reveal a printed list is entitled to. */
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path var(--d-4) var(--e-glide);
 }
 .os[data-armed='true'] .os-rail {
-  opacity: 1;
+  clip-path: inset(0 0 0 0);
 }
 
 .os-rail__head {
@@ -72,6 +109,28 @@
   letter-spacing: var(--tr-mono-wide);
 }
 
+/*
+ * THE BENCH'S OWN STRINGS ARE NOT FURNITURE EITHER.
+ *
+ * Same audit as the sheets, run against the desk instead of the paper: the
+ * ink material's `--figure-faint` is rgba(224 216 193 / 0.3), which over the
+ * bench measures **2.23:1** at 10px. "RESIDENT PROCESSES", the sheet count and
+ * "TYPE A COMMAND · DRAG A SHEET BY ITS HEAD" are how a visitor learns what
+ * this mode is and how to operate it — none of them is decoration, and none of
+ * them was readable.
+ *
+ * Fixed here rather than in `tokens.css` because the token is shared by every
+ * ink mode in the Lab and re-weighting it is a product-wide change with its
+ * own audit. That audit is a real outstanding finding and is reported as one;
+ * this is the part of it that belongs to Anzy.OS.
+ */
+.os-rail__label,
+.os-rail__state,
+.os-rail__state span,
+.os-cmd__hint {
+  color: var(--figure-dim);
+}
+
 .os-rail__list {
   list-style: none;
   margin: 0;
@@ -98,7 +157,8 @@
   background: var(--rule-faint);
 }
 .os-proc__n {
-  color: var(--figure-faint);
+  /* Same 2.23:1 finding as the labels above. */
+  color: var(--figure-dim);
   padding-top: 0.2em;
 }
 .os-proc__name {
@@ -133,10 +193,65 @@
 
 /* ==========================================================================
    THE DESK
+
+   A perspective container at the same distance `spatial/projection.ts` uses,
+   so a sheet at z and a mesh at z would agree about what depth looks like.
+   `transform-style` stays flat: the sheets are leaves, and a preserve-3d
+   context would sort them by position and take z-index away from the stack.
    ========================================================================== */
 .os-desk {
   position: relative;
   z-index: 1;
+  perspective: 1400px;
+  perspective-origin: 46% 28%;
+}
+
+/* ---- THE DATUM ----------------------------------------------------------
+   Where the bench is squared from. A dense measure along the top and the left
+   of the working area, ticked every 8px and struck every 40px, running out of
+   a register corner at the origin. This is the drafting furniture the old
+   uniform grid was standing in for. */
+.os-desk::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 52px;
+  width: 100%;
+  height: 13px;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to bottom, var(--rule) 0 1px, transparent 1px),
+    repeating-linear-gradient(to right, var(--figure-faint) 0 1px, transparent 1px 40px),
+    repeating-linear-gradient(to right, var(--rule) 0 1px, transparent 1px 8px);
+  background-size:
+    100% 100%,
+    100% 9px,
+    100% 5px;
+  background-position:
+    0 0,
+    0 0,
+    0 0;
+  background-repeat: no-repeat, repeat-x, repeat-x;
+  opacity: 0.8;
+}
+.os-desk::after {
+  content: '';
+  position: absolute;
+  left: 22px;
+  top: 52px;
+  width: 13px;
+  height: calc(100% - 120px);
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, var(--rule) 0 1px, transparent 1px),
+    repeating-linear-gradient(to bottom, var(--figure-faint) 0 1px, transparent 1px 40px),
+    repeating-linear-gradient(to bottom, var(--rule) 0 1px, transparent 1px 8px);
+  background-size:
+    100% 100%,
+    9px 100%,
+    5px 100%;
+  background-repeat: no-repeat, repeat-y, repeat-y;
+  opacity: 0.8;
 }
 
 /* ==========================================================================
@@ -144,31 +259,190 @@
 
    The paper material is re-declared locally: the same semantic tokens the
    launcher uses, scoped to this element, so everything inside styles itself.
+   The rgba() values are the canonical ink (35 42 42) — they had been left at
+   the deck-derived (25 29 28) when Phase 6 corrected the palette everywhere
+   else, which made every rule on every sheet fractionally too cool.
    ========================================================================== */
 .os-sheet {
   --ground: var(--c-bone);
   --ground-deep: var(--c-bone-deep);
   --figure: var(--c-ink);
-  --figure-dim: #5d605a;
-  --figure-faint: rgba(25, 29, 28, 0.34);
-  --rule: rgba(25, 29, 28, 0.22);
-  --rule-faint: rgba(25, 29, 28, 0.1);
+  /*
+   * INK SET HEAVIER, FOR THE SAME REASON THE ORANGE IS.
+   *
+   * Measured on the bench: `--figure-faint` at 0.34 composites to #9D9D8D on
+   * bone, which is **1.92:1** at 10px. That is every label, every schedule
+   * caption, every foot line in the OS — including SYSTEM.app's "NOTHING
+   * BELOW IS STORED OR SENT", which is an honesty statement nobody could
+   * read. It is the same failure tokens.css already names for the brand
+   * orange on this stock, and it takes the same answer: light stock cannot
+   * carry light ink at reading size, so the ink goes down heavier.
+   *
+   * The three-step hierarchy survives — 10.3 : 5.8 : 4.5 — it just starts
+   * from a floor that passes. Faint is now reserved for furniture that
+   * repeats something legible beside it (ordinals, the plate number); every
+   * line that states a fact is set in dim or darker.
+   */
+  --figure-dim: #50544e;
+  --figure-faint: rgba(35, 42, 42, 0.72);
+  --rule: rgba(35, 42, 42, 0.22);
+  --rule-faint: rgba(35, 42, 42, 0.1);
+  /* On bone stock the brand orange is 1.69:1 and unreadable — the same reason
+     tokens.css prints it heavier on the launcher. */
+  --signal-text: #9c3d0b;
 
   position: absolute;
-  background: var(--ground);
+  background-color: var(--ground);
   color: var(--figure);
-  border: var(--hair) solid rgba(25, 29, 28, 0.5);
   display: flex;
   flex-direction: column;
-  /* Paper on a bench sits above the bench. One soft contact shadow, not a
-     floating card. */
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.38);
-  opacity: 0.9;
-  transition: opacity var(--d-2) var(--e-snap);
+
+  /*
+   * DEPTH AND REGISTER.
+   *
+   * Composed from custom properties rather than written whole, because the
+   * drag handler writes `--sh-dx/--sh-dy` straight to the element and a drag
+   * that set `transform` outright would flatten the stack every time a sheet
+   * was picked up. The pivot is the register punch, not the centre: a sheet
+   * that has slipped off a register bar swings about the pin that is still
+   * holding it.
+   */
+  transform: translate3d(var(--sh-dx, 0px), var(--sh-dy, 0px), var(--sh-z, 0px))
+    rotate(var(--sh-rot, 0deg));
+  transform-origin: 34px 13px;
+  transition:
+    transform var(--d-3) var(--e-weight),
+    box-shadow var(--d-3) var(--e-weight);
+
+  /*
+   * THICKNESS AND CONTACT.
+   *
+   * Four shadows where there was one. Two insets give the cut edge its
+   * thickness — lit along the top, in shadow along the bottom, which is what
+   * an actual sheet's edge does under a lamp coming from above. Two casts give
+   * it a position: a tight dark contact where the paper meets what is under
+   * it, and a wide soft ambient that says how far off the bench it is.
+   */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 253, 246, 0.34),
+    inset 0 -1px 0 rgba(35, 42, 42, 0.28),
+    inset 0 0 0 var(--hair) rgba(35, 42, 42, 0.42),
+    0 2px 3px -1px rgba(0, 0, 0, 0.6),
+    0 10px 26px -8px rgba(0, 0, 0, 0.5);
 }
+/*
+ * SEATED, AND NOT SEATED.
+ *
+ * The unfocused sheets are deliberately NOT dimmed. They were, at first, and
+ * it was wrong for a reason worth recording: this bench lays sheets out side
+ * by side, so the sheet that is not focused is usually not underneath
+ * anything — dimming it made a sheet sitting in plain light look like a sheet
+ * in shadow. What separates them is the register: the seated sheet is square,
+ * higher off the bench, and showing its pins. Everything else is exactly as
+ * bright as it should be, because it is exactly as lit.
+ */
 .os-sheet[data-top='true'] {
-  opacity: 1;
-  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.46);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 253, 246, 0.4),
+    inset 0 -1px 0 rgba(35, 42, 42, 0.3),
+    inset 0 0 0 var(--hair) rgba(35, 42, 42, 0.5),
+    0 3px 4px -2px rgba(0, 0, 0, 0.62),
+    0 22px 52px -12px rgba(0, 0, 0, 0.58);
+}
+/* Held by the pointer: no easing, or the sheet lags behind the hand. */
+.os-sheet[data-drag='true'] {
+  transition: none;
+}
+
+/*
+ * LAID DOWN, NOT FADED UP.
+ *
+ * A sheet arrives the way a sheet arrives: held above the bench, off square,
+ * and set down from its head edge. The reveal is a mask running down the
+ * sheet — which is what laying paper flat actually looks like — rather than an
+ * opacity ramp, and the shadow contracts as it lands.
+ *
+ * No fill mode: when the animation ends the element reverts to its own rules,
+ * which is the same transform it has just animated to, so nothing jumps and
+ * nothing stays clipped.
+ */
+@keyframes os-sheet-lay {
+  from {
+    clip-path: inset(0 0 100% 0);
+    transform: translate3d(0, -10px, 62px) rotate(-1.5deg);
+  }
+  64% {
+    clip-path: inset(0 0 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    transform: translate3d(var(--sh-dx, 0px), var(--sh-dy, 0px), var(--sh-z, 0px))
+      rotate(var(--sh-rot, 0deg));
+  }
+}
+.os-sheet {
+  animation: os-sheet-lay var(--d-3) var(--e-weight);
+}
+
+/* ---- the register punch -------------------------------------------------
+   Two holes, because one is a hole and two are a registration: you cannot
+   locate a sheet on a single pin. Punched through the stock, so what shows is
+   whatever the sheet is lying on. */
+.os-sheet__punch {
+  display: flex;
+  gap: 7px;
+  flex: 0 0 auto;
+  align-self: center;
+  margin-right: 1px;
+}
+/*
+ * A HOLE AND A SLOT, NOT TWO DOTS.
+ *
+ * The first cut was two matched circles at the head's left edge, which at a
+ * glance is exactly the macOS traffic light this file opens by refusing. A
+ * register punch is not a matched pair: the first hole is the datum and the
+ * second is elongated, so the sheet can move with humidity and stay located on
+ * one axis. Drawing the real thing makes the mark unmistakable and costs a
+ * border-radius.
+ */
+.os-sheet__punch i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(10, 13, 13, 0.62);
+  box-shadow:
+    inset 0 1px 1px rgba(0, 0, 0, 0.7),
+    0 1px 0 rgba(255, 253, 246, 0.35);
+}
+.os-sheet__punch i:last-child {
+  width: 11px;
+  border-radius: 3px;
+}
+/* Seated on the pins. The mark is the pin showing through the hole, so it only
+   appears on the sheet that is actually in register. */
+.os-sheet[data-top='true'] .os-sheet__punch i {
+  background: var(--signal-text);
+  box-shadow:
+    inset 0 -1px 1px rgba(0, 0, 0, 0.45),
+    0 1px 0 rgba(255, 253, 246, 0.35);
+}
+
+/* ---- trim ticks ---------------------------------------------------------
+   Where the stock was cut to size. Two, at the foot, extending past the edge —
+   a full box would be a frame around a picture. */
+.os-sheet__trim {
+  position: absolute;
+  left: -6px;
+  right: -6px;
+  bottom: 0;
+  height: var(--hair);
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    var(--figure-faint) 0 14px,
+    transparent 14px calc(100% - 14px),
+    var(--figure-faint) calc(100% - 14px) 100%
+  );
 }
 
 .os-sheet__head {
@@ -177,7 +451,6 @@
   gap: var(--s-2);
   padding: var(--s-2) var(--s-2) var(--s-2) var(--s-3);
   border-bottom: var(--hair) solid var(--rule-faint);
-  background: var(--ground);
   flex: 0 0 auto;
   touch-action: none;
 }
@@ -229,7 +502,97 @@
 }
 
 /* ==========================================================================
-   APPLICATION CONTENT
+   THE STOCKS
+
+   Seven applications, seven materials. Pattern and weight only: there is not
+   one hue in this block, because the moment an application is identified by
+   its colour it has stopped being a document and started being a tab.
+   ========================================================================== */
+
+/* TRACING — STRATEGY.app. Translucent: the bench reads through it, because a
+   strategy is an overlay drawn on top of the business that already exists.
+   The ink is set heavier to pay for the lighter effective ground, which is the
+   same argument tokens.css makes about printing the orange heavier on paper. */
+.os-sheet[data-stock='tracing'] {
+  background-color: color-mix(in srgb, var(--c-bone) 82%, transparent);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(35, 42, 42, 0.045) 0 1px,
+    transparent 1px 4px
+  );
+  /* Measured against the tracing sheet's own effective ground, which is the
+     bench showing through at 82%: the base sheet's values land a step short
+     here because the stock is lighter than bone. */
+  --figure-dim: #3b3e39;
+  --figure-faint: rgba(35, 42, 42, 0.82);
+  --rule: rgba(35, 42, 42, 0.3);
+  --rule-faint: rgba(35, 42, 42, 0.15);
+}
+
+/* MOUNT BOARD — DESIGN.app. Heavier and brighter than the working stock, which
+   is what a mount is: the canonical --white-d, used at its actual job. */
+.os-sheet[data-stock='mount'] {
+  background-color: var(--c-bone-lit);
+  --ground: var(--c-bone-lit);
+  --rule: rgba(35, 42, 42, 0.26);
+}
+
+/* ENGINEERING GRID — TECHNOLOGY.app. A specification is drawn on squared paper
+   before it is anything else. 16px minor, 80px major, under the type. */
+.os-sheet[data-stock='grid'] {
+  background-image:
+    repeating-linear-gradient(to right, rgba(35, 42, 42, 0.075) 0 1px, transparent 1px 80px),
+    repeating-linear-gradient(to bottom, rgba(35, 42, 42, 0.075) 0 1px, transparent 1px 80px),
+    repeating-linear-gradient(to right, rgba(35, 42, 42, 0.04) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(to bottom, rgba(35, 42, 42, 0.04) 0 1px, transparent 1px 16px);
+  background-position: 0 40px;
+}
+
+/* PRINTED SCREEN — NETWORK.app. A directory is a printed object. The dot pitch
+   is the canonical HalftoneBackdrop's cell, and the alpha is inside its stated
+   2–5% so it stays texture and never becomes noise. */
+.os-sheet[data-stock='screen'] {
+  background-image: radial-gradient(
+    circle at center,
+    rgba(35, 42, 42, 0.18) 0.7px,
+    transparent 0.9px
+  );
+  background-size: 5px 5px;
+}
+
+/* PUNCHED LEAF — METHOD.app. Five stages on one register spine, so the stock
+   carries the spine: a ruled margin the leaves hang off. */
+.os-sheet[data-stock='leaf'] {
+  background-image: linear-gradient(
+    to right,
+    transparent 0 43px,
+    rgba(35, 42, 42, 0.2) 43px 44px,
+    transparent 44px
+  );
+}
+
+/* PLAIN — SYSTEM.app. Uncoated, unruled, unscreened, and that is the argument:
+   an instrument's own readout earns no stock character. */
+
+/* DOCKET — TERMINAL. A printout, not a window. Perforated down the left edge
+   and tearable along the foot. */
+.os-sheet[data-stock='docket'] {
+  background-image: radial-gradient(
+    circle at 11px center,
+    rgba(10, 13, 13, 0.5) 2.1px,
+    transparent 2.4px
+  );
+  background-size: 100% 15px;
+  background-repeat: repeat-y;
+  padding-left: 22px;
+}
+.os-sheet[data-stock='docket'] .os-sheet__head {
+  margin-left: -22px;
+  padding-left: 30px;
+}
+
+/* ==========================================================================
+   APPLICATION CONTENT — SHARED FURNITURE
    ========================================================================== */
 .os-app {
   padding: var(--s-3);
@@ -302,37 +665,374 @@
   letter-spacing: var(--tr-mono-wide);
 }
 .os-list li[data-on='true'] .os-list__status {
-  color: var(--signal-hot);
+  color: var(--signal-text);
 }
 
-.os-groups {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+/* ==========================================================================
+   STRATEGY.app — drawn on the overlay
+
+   The widest leading and the largest measure of white in the OS. Construction
+   numbers hang in the margin beside a drawn rule, which is what a thing being
+   worked out looks like as against a thing being published.
+   ========================================================================== */
+.os-trace {
+  padding: var(--s-4) var(--s-3) var(--s-4) var(--s-4);
 }
-.os-groups li {
+.os-trace__label {
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--figure-dim);
+}
+.os-trace__copy {
+  margin: var(--s-3) 0 var(--s-5);
+  line-height: 1.55;
+  max-width: 30ch;
+}
+.os-trace__list {
+  list-style: none;
+  margin: 0 0 var(--s-4);
+  padding: 0 0 0 var(--s-4);
+  border-left: var(--hair) solid var(--rule);
+}
+.os-trace__list li {
   display: grid;
   grid-template-columns: 3ch minmax(0, 1fr);
   column-gap: var(--s-2);
-  row-gap: 3px;
-  padding: var(--s-2) 0;
+  align-items: baseline;
+  padding: 7px 0;
+  position: relative;
+}
+/* Each item is ticked off the margin rule. A drawn mark, not a bullet. */
+.os-trace__list li::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--s-4) * -1);
+  top: 1.05em;
+  width: 9px;
+  height: var(--hair);
+  background: var(--rule);
+}
+.os-trace__n {
+  color: var(--figure-faint);
+}
+.os-trace__k {
+  letter-spacing: 0.01em;
+}
+.os-trace__foot {
+  letter-spacing: var(--tr-mono-wide);
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule);
+}
+
+/* ==========================================================================
+   DESIGN.app — the mount
+
+   An aperture cut in the board with the plate behind it on a dark backing.
+   The bevel is the cut edge of the board's own core: in shadow along the top
+   where it faces down and away from the lamp, lit along the foot where it
+   faces up into it. This is the only place in the OS where the stock is cut
+   through, which is why it is the only application allowed a picture.
+   ========================================================================== */
+.os-mount {
+  padding: var(--s-3) var(--s-3) var(--s-4);
+}
+.os-mount__window {
+  /* The aperture is cut to the work, and the board provides the margin — not
+     the other way round. Cut wider than the plate it leaves black bands down
+     both sides of the picture, which is a hole with something small in it
+     rather than a mount. */
+  width: max-content;
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: var(--s-2);
+  margin: 0 auto var(--s-2);
+  background: #14191a;
+  /*
+   * The bevel is opaque, and it has to be.
+   *
+   * The first version used rgba() ink and bone over the dark recess, which
+   * composited to within a step or two of the recess itself: a 4px border
+   * nobody could see. A cut bevel is not a tint on the hole — it is the
+   * board's own core, exposed. So these are the board's colour under the
+   * lamp: in shadow along the top where the cut faces down and away, lit
+   * along the foot where it faces up into the light, mid down the sides.
+   */
+  border-top: 4px solid #8d8879;
+  border-bottom: 4px solid #f6f3e9;
+  border-left: 4px solid #c0bbaa;
+  border-right: 4px solid #c0bbaa;
+  box-shadow: inset 0 8px 18px -6px rgba(0, 0, 0, 0.85);
+}
+/*
+ * BLENDING IS A PROPERTY OF THE SURFACE, NOT OF THE DOCUMENT.
+ *
+ * `specimen.css` keys the blend to `[data-material]`, which is right for a
+ * mode that is one material all the way through. Anzy.OS is not: it is a dark
+ * document carrying bone sheets, so the two plates in it need opposite
+ * answers. In the aperture the plate is a lit sheet over a dark backing board
+ * and keeps its own value — which is what the ink rule already does, and is
+ * recorded here so the next person does not "fix" it.
+ */
+.os-mount__plate .spec__img {
+  mix-blend-mode: normal;
+}
+.os-mount__accession {
+  letter-spacing: var(--tr-mono-wide);
+  text-align: center;
+  padding-bottom: var(--s-3);
+}
+.os-mount__copy {
+  margin: 0 0 var(--s-3);
+  line-height: 1.5;
+}
+.os-mount__set {
+  list-style: none;
+  margin: 0 0 var(--s-3);
+  padding: 0;
+  columns: 2;
+  column-gap: var(--s-3);
+  column-rule: var(--hair) solid var(--rule-faint);
+}
+.os-mount__set li {
+  break-inside: avoid;
+  padding: 3px 0;
+  color: var(--figure-dim);
+}
+.os-mount__foot {
+  letter-spacing: var(--tr-mono-wide);
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule);
+}
+
+/* ==========================================================================
+   TECHNOLOGY.app — the schedule
+
+   The tightest sheet in the OS. A ruled table with dotted leaders, set small,
+   on grid that shows through it. Nothing here is decorative: a schedule of
+   work is a document that exists to be read down a column.
+   ========================================================================== */
+.os-sched {
+  padding: var(--s-3);
+}
+.os-sched__copy {
+  margin: 0 0 var(--s-3);
+  line-height: 1.45;
+  color: var(--figure-dim);
+}
+.os-sched__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.os-sched__caption {
+  caption-side: top;
+  text-align: left;
+  letter-spacing: var(--tr-mono-wide);
+  padding-bottom: 5px;
+  border-bottom: var(--hair) solid var(--rule);
+}
+.os-sched__table tr {
+  border-bottom: var(--hair) solid var(--rule-faint);
+}
+.os-sched__table td {
+  padding: 5px 0;
+  vertical-align: baseline;
+}
+.os-sched__n {
+  color: var(--figure-faint);
+  width: 3ch;
+  padding-right: var(--s-2) !important;
+}
+.os-sched__k {
+  line-height: 1.3;
+  width: 100%;
+}
+.os-sched__foot {
+  letter-spacing: var(--tr-mono-wide);
+  padding-top: var(--s-2);
+}
+
+/* ==========================================================================
+   NETWORK.app — the directory
+
+   The densest sheet in the OS, set the way a trade directory is set: two
+   columns, sixteen headings, the smallest type in the product, on a printed
+   screen. The cut-out at the head is the argument rather than the illustration
+   — a network is people scissored out of their own contexts and brought into
+   one, which is what the CUT family of the company's own library *is*.
+   ========================================================================== */
+.os-dir {
+  padding: var(--s-3);
+}
+.os-dir__head {
+  display: flex;
+  gap: var(--s-3);
+  align-items: flex-start;
+  margin-bottom: var(--s-3);
+}
+.os-dir__plate {
+  flex: 0 0 auto;
+}
+/* On bone stock the scan's own white ground and the sheet are the same
+   material, so they merge. The opposite call from the aperture, twelve
+   centimetres away, and both are correct — see the note on `.os-mount__plate`. */
+.os-dir__plate .spec__img {
+  mix-blend-mode: multiply;
+}
+/*
+ * THE SHEET IS THE GROUND.
+ *
+ * `SPECIMEN_PLATE` draws its own halftone card behind the figure, which is
+ * right for a mounted plate and wrong for this one: the first render put the
+ * company's cut-out onto a little printed card with trim corners, which is a
+ * *mounting* — the precise opposite of the CUT state the head is arguing for.
+ * Dropping it does not cost the separation, it relocates it. The three planes
+ * are now the sheet, the figure lifted off it on its own plane with its own
+ * edge shadow, and the pointer. Which is what a cut-out lying on a page is.
+ */
+.os-dir__plate .spec__ground {
+  display: none;
+}
+.os-dir__copy {
+  margin: 0;
+  line-height: 1.45;
+  color: var(--figure-dim);
+}
+.os-dir__label {
+  letter-spacing: var(--tr-mono-wide);
+  padding-bottom: 5px;
+  border-bottom: var(--hair) solid var(--rule);
+  margin-bottom: var(--s-2);
+}
+.os-dir__cols {
+  list-style: none;
+  margin: 0 0 var(--s-3);
+  padding: 0;
+  columns: 2;
+  column-gap: var(--s-3);
+  column-rule: var(--hair) solid var(--rule-faint);
+}
+.os-dir__cols li {
+  break-inside: avoid;
+  display: grid;
+  grid-template-columns: 2.6ch minmax(0, 1fr);
+  column-gap: 5px;
+  padding: 4px 0 5px;
   border-top: var(--hair) solid var(--rule-faint);
 }
-.os-groups li:first-child {
+.os-dir__cols li:first-child {
+  border-top: 0;
+}
+.os-dir__n {
+  color: var(--figure-faint);
+}
+.os-dir__k {
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--figure);
+}
+.os-dir__v {
+  grid-column: 2;
+  font-family: var(--f-body);
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--figure-dim);
+}
+.os-dir__foot {
+  letter-spacing: var(--tr-mono-wide);
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule);
+}
+
+/* ==========================================================================
+   METHOD.app — five leaves on one spine
+
+   The largest and most spaced sheet, and the only one using the display voice
+   in its body: the five stages are headings, not rows. Each leaf carries its
+   own register mark against the spine, so the set reads as five plates in
+   register rather than as a list with rules between the items.
+   ========================================================================== */
+.os-leaves {
+  padding: var(--s-3) var(--s-3) var(--s-4) 0;
+}
+.os-leaf {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  padding: var(--s-3) 0;
+  border-top: var(--hair) solid var(--rule-faint);
+}
+.os-leaf:first-child {
   border-top: 0;
   padding-top: 0;
 }
-.os-groups__n {
+.os-leaf__spine {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding-top: 0.5em;
   color: var(--figure-faint);
-  padding-top: 0.15em;
 }
-.os-groups__k {
-  letter-spacing: var(--tr-mono-wide);
+/* The register mark: a cross, which is the one piece of press furniture that
+   means "this plate and that plate came off the same sheet". */
+.os-leaf__reg {
+  position: absolute;
+  top: 2.4em;
+  left: 50%;
+  width: 11px;
+  height: 11px;
+  transform: translateX(-50%);
 }
-.os-groups__v {
-  grid-column: 2;
-  line-height: 1.5;
+.os-leaf__reg::before,
+.os-leaf__reg::after {
+  content: '';
+  position: absolute;
+  background: var(--rule);
+}
+.os-leaf__reg::before {
+  left: 0;
+  right: 0;
+  top: 5px;
+  height: var(--hair);
+}
+.os-leaf__reg::after {
+  top: 0;
+  bottom: 0;
+  left: 5px;
+  width: var(--hair);
+}
+.os-leaf__body {
+  min-width: 0;
+}
+.os-leaf__label {
+  margin: 0;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+.os-leaf__title {
+  margin: 0.35em 0 var(--s-2);
+  line-height: 1.4;
+  color: var(--figure);
+}
+.os-leaf__outputs {
+  list-style: none;
+  margin: 0 0 var(--s-2);
+  padding: 0;
+}
+.os-leaf__outputs li {
+  position: relative;
+  padding: 3px 0 3px var(--s-3);
   color: var(--figure-dim);
+  line-height: 1.45;
+}
+.os-leaf__outputs li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.82em;
+  width: 7px;
+  height: var(--hair);
+  background: var(--rule);
+}
+.os-leaf__dur {
+  letter-spacing: var(--tr-mono-wide);
 }
 
 /* ==========================================================================
@@ -362,7 +1062,16 @@
   margin-top: 0;
 }
 .os-term__caret {
-  color: var(--signal-hot);
+  color: var(--signal-text);
+}
+/* The tear-off. A docket ends at a perforation, not at a border. */
+.os-sheet[data-stock='docket'] .os-sheet__trim {
+  left: 0;
+  right: 0;
+  bottom: 5px;
+  height: 0;
+  background: none;
+  border-bottom: var(--hair) dashed var(--rule);
 }
 
 /* ==========================================================================
@@ -380,11 +1089,12 @@
   padding: var(--s-3) var(--trim);
   border-top: var(--hair) solid var(--rule);
   background: var(--ground);
-  opacity: 0;
-  transition: opacity var(--d-3) var(--e-glide);
+  /* Fed in from below, the way a ticket is. Not an opacity ramp. */
+  transform: translateY(100%);
+  transition: transform var(--d-4) var(--e-weight);
 }
 .os[data-armed='true'] .os-cmd {
-  opacity: 1;
+  transform: translateY(0);
 }
 .os-cmd__prompt {
   color: var(--figure-dim);
@@ -479,8 +1189,17 @@
     padding-bottom: var(--s-3);
   }
 
+  /* Perspective off. It establishes a containing block for `position: fixed`,
+     which is how the full-screen sheet below is positioned — leaving it on
+     pins every mobile sheet to the desk cell instead of the viewport. The
+     datum comes off with it: a bench you cannot see is not being squared to. */
   .os-desk {
     position: static;
+    perspective: none;
+  }
+  .os-desk::before,
+  .os-desk::after {
+    display: none;
   }
 
   /* One sheet at a time, filling the screen, with its own way back. */
@@ -497,13 +1216,19 @@
        release it here. Without this the panel stops partway down the screen
        and the rail shows through the gap. */
     max-height: none !important;
-    border: 0;
     box-shadow: none;
-    opacity: 1;
+    /* A full-screen sheet is not on a pile, so it is not off register and not
+       in depth. The stock survives; the stack does not. */
+    transform: none;
+    animation: none;
     z-index: 4 !important;
     padding-bottom: 72px;
   }
   .os-sheet[data-top='false'] {
+    display: none;
+  }
+  .os-sheet__trim,
+  .os-sheet__punch {
     display: none;
   }
   /* An app stack, not floating windows: opening a process replaces the list
@@ -528,13 +1253,38 @@
   .os-term__scroll {
     max-height: none;
   }
+  /* The docket keeps its perforation but loses the inset that made room for it
+     — at full width the strip would sit under the mode host's own margin. */
+  .os-sheet[data-stock='docket'] {
+    padding-left: 0;
+    background-image: none;
+  }
+  .os-sheet[data-stock='docket'] .os-sheet__head {
+    margin-left: 0;
+    padding-left: var(--trim);
+  }
+  /* Two columns at 390px is four words a line. The directory and the mount's
+     capability set both run single-column on a phone. */
+  .os-dir__cols,
+  .os-mount__set {
+    columns: 1;
+  }
+  .os-leaves {
+    padding-right: var(--trim);
+    padding-left: 0;
+  }
 
+  /* The ticket sits above the full-screen sheet and paints its own ink, or a
+     bone panel covering the viewport takes the one control that is always in
+     the same place with it. */
   .os-cmd {
     position: fixed;
     z-index: 5;
     padding: var(--s-2) var(--trim);
     background: var(--c-ink);
   }
+  /* The pointer hint names two things a phone cannot do, and at 390 it ate the
+     whole ticket — the input was left with no room to be an input. */
   .os-cmd__hint {
     display: none;
   }
@@ -542,6 +1292,11 @@
 
 /* ==========================================================================
    REDUCED MOTION — the layers, materials and hierarchy all stay
+
+   Every stock, every shadow, the depth of the stack and the register slip are
+   all still here. What goes is travel: sheets are already laid, the rail is
+   already printed and the ticket is already in. The bench loses none of its
+   information, which is the whole test.
    ========================================================================== */
 @media (prefers-reduced-motion: reduce) {
   .os-rail,
@@ -549,6 +1304,15 @@
   .os-sheet,
   .os-proc__dot {
     transition-duration: 1ms;
+  }
+  .os-sheet {
+    animation: none;
+  }
+  .os-rail {
+    clip-path: inset(0 0 0 0);
+  }
+  .os-cmd {
+    transform: translateY(0);
   }
 }
 

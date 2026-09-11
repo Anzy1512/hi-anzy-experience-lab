@@ -167,6 +167,58 @@
   flex-wrap: wrap;
   gap: 2px clamp(2px, 0.5vw, 8px);
 }
+
+/* ==========================================================================
+   THE KEY PLAN
+
+   Orthographic, drawn, and not a minimap: see `KeyPlan.tsx` for why the phone
+   gets one and the wide screen does not. Weight carries everything here, as
+   everywhere else — the sealed square is a hole, the unbuilt marker is dashed,
+   and the one you are standing in is the only thing allowed the accent.
+   ========================================================================== */
+.lw-plan {
+  display: block;
+  width: 100%;
+  height: 112px;
+  margin: var(--s-1) 0 var(--s-2);
+}
+.lw-plan__frame {
+  fill: rgba(10, 13, 13, 0.72);
+  stroke: var(--rule);
+  stroke-width: 8;
+}
+.lw-plan__route {
+  fill: none;
+  stroke: var(--signal);
+  stroke-width: 7;
+  opacity: 0.36;
+}
+.lw-plan__datum {
+  fill: none;
+  stroke: var(--figure);
+  stroke-width: 9;
+  opacity: 0.85;
+}
+.lw-plan__mark rect,
+.lw-plan__mark circle {
+  fill: none;
+  stroke: var(--figure);
+  stroke-width: 16;
+  opacity: 0.72;
+}
+/* Named and not built: drawn, and drawn as provisional. */
+.lw-plan__mark[data-status='forming'] rect {
+  stroke-dasharray: 34 26;
+}
+.lw-plan__mark[data-status='sealed'] circle {
+  stroke-dasharray: 22 30;
+}
+.lw-plan__mark[data-on='true'] rect,
+.lw-plan__mark[data-on='true'] circle {
+  stroke: var(--signal);
+  stroke-width: 18;
+}
+
 .lw-stop {
   display: flex;
   align-items: baseline;
@@ -229,7 +281,19 @@
    ========================================================================== */
 @media (max-width: 900px) {
   .lw-index {
-    grid-template-columns: 1fr;
+    /*
+     * `minmax(0, 1fr)`, not `1fr`.
+     *
+     * Measured at 390: the index row was laying out **1060px wide inside a
+     * 390px screen**. `1fr` is `minmax(auto, 1fr)`, and the `auto` floor is the
+     * max-content width of the widest item — which here is the district strip,
+     * ten chips set `flex-wrap: nowrap`. Because `.lw-index` is fixed with a
+     * right inset, nothing scrolled to reveal the overflow: the readout's own
+     * sentence simply ran off the edge of the phone and could not be reached.
+     * Zeroing the floor is what lets the strip scroll inside its track instead
+     * of dragging the whole row out past the screen.
+     */
+    grid-template-columns: minmax(0, 1fr);
     row-gap: var(--s-2);
     bottom: calc(var(--trim) * 0.4);
   }
@@ -271,10 +335,39 @@
   .lw::after {
     height: 300px;
   }
-  /* On a phone the floating labels would sit on top of the territory they
-     name; the index below carries every district instead. */
-  .lw-labels {
+
+  /* ==========================================================================
+     A KEYED SURVEY PLAN
+
+     These were hidden outright, on the correct observation that district names
+     at phone scale print on top of the territory they name — and the wrong
+     conclusion, which was to leave the plan unnamed. A visitor then had nine
+     wireframe structures and a list, and no way to connect one to the other
+     except by matching shapes.
+
+     A printed survey has always solved this by putting plate numbers on the
+     plan and a key underneath it, and the key was already built: the index
+     strip below this reads "D1 STRATEGY · D2 DESIGN". So the phone keeps the
+     labels and drops the names — two characters sit *in* the territory without
+     covering it — and the name comes back on the one district you are
+     travelling to, which is the only one you need read out.
+     ========================================================================== */
+  .lw-labels[data-narrow='true'] .lw-label {
+    padding: 6px 7px;
+  }
+  .lw-labels[data-narrow='true'] .lw-label__name {
     display: none;
+  }
+  .lw-labels[data-narrow='true'] .lw-label__idx {
+    color: var(--figure);
+  }
+  .lw-labels[data-narrow='true'] .lw-label[data-on='true'] .lw-label__name {
+    display: block;
+    font-size: 1.05rem;
+  }
+  .lw-labels[data-narrow='true'] .lw-label[data-status='forming'],
+  .lw-labels[data-narrow='true'] .lw-label[data-status='sealed'] {
+    opacity: 0.7;
   }
 }
 

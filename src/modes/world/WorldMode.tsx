@@ -2,7 +2,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { ModeViewProps } from '../../experience/types';
-import { useCapability, useCoarsePointer, useReducedMotion } from '../../core/hooks';
+import {
+  useCapability,
+  useCoarsePointer,
+  useLatest,
+  useMediaQuery,
+  useReducedMotion,
+} from '../../core/hooks';
 import { onFrame } from '../../core/raf';
 import { pointer, setPointerIntent } from '../../core/pointer';
 import { spatialFallbackReason } from '../../content/brand';
@@ -53,15 +59,64 @@ interface View {
   scale: number;
 }
 
-const OVERVIEW: View = { x: 0, y: -260, z: -2100, tilt: 46, turn: 0, scale: 1 };
+/**
+ * THE OVERVIEW STATION, FITTED TO THE SHAPE OF THE SCREEN.
+ *
+ * ── DESKTOP: A HORIZON. PHONE: A PLAN. ──────────────────────────────────────
+ *
+ * One fixed station used to serve both, and on a 390-wide screen it was not an
+ * overview at all: the survey spans ±1450 units and a portrait viewport holds
+ * roughly a third of that at this distance, so a visitor arriving on a phone
+ * landed *inside* the territory looking at two and a half districts with no way
+ * to know there were nine. Pulling straight back is not the fix either — the
+ * distance needed to fit a landscape horizon into a portrait frame is far
+ * enough to put the whole world inside the fog.
+ *
+ * The answer is that the two screens want different *readings* of the same
+ * place. A wide screen holds a horizon, which is what the 46° station gives.
+ * A tall screen cannot, but it holds a **plan** better than a wide one does —
+ * the territory is roughly square in plan — so the phone tips the land toward
+ * the viewer and reads it as a map. Same world, same station type, same code
+ * path; the angle is the thing that changes.
+ */
+function overviewFor(narrow: boolean): View {
+  return narrow
+    ? { x: 0, y: -40, z: -4200, tilt: 64, turn: 0, scale: 1 }
+    : { x: 0, y: -260, z: -2100, tilt: 46, turn: 0, scale: 1 };
+}
 
-function viewForDistrict(d: District): View {
+/**
+ * Fog, scaled to how far away the world is being held.
+ *
+ * The haze is a depth cue measured in world units from the camera, so a station
+ * that stands two and a half times further off needs its fog moved with it or
+ * the cue stops being a cue and becomes a curtain: at the phone's station the
+ * fixed 1800–6200 band put the middle of the survey three quarters of the way
+ * into the fog and the far half of it out of sight entirely. Same effect, same
+ * colour, same job — measured from where the viewer actually is.
+ */
+function fogFor(narrow: boolean): [number, number] {
+  return narrow ? [3800, 10400] : [1800, 6200];
+}
+
+function viewForDistrict(d: District, narrow: boolean): View {
   return {
     // Bring the district to the middle of the sheet and stand close to it.
     x: -d.x * 0.86,
-    y: -groundAt(d.x, d.z, EXTENT, GROUND_HEIGHT) - districtTop(d) * 0.45 - 130,
-    z: -d.z * 0.86 - 780,
-    tilt: 26,
+    /* On a phone the index takes the bottom two fifths of the screen, so the
+       station lifts the world clear of it — otherwise the district you have
+       just travelled to arrives underneath its own readout. Found by looking:
+       300 left it under the index, 720 pushed its name into the mode chrome at
+       the top, and the band between the two is about 250 screen pixels wide. */
+    y:
+      -groundAt(d.x, d.z, EXTENT, GROUND_HEIGHT) -
+      districtTop(d) * (narrow ? 0.62 : 0.45) -
+      130 +
+      (narrow ? 600 : 0),
+    /* A phone stands further off: the same district at the same distance fills
+       a portrait frame edge to edge and stops being a place you are looking at. */
+    z: -d.z * 0.86 - (narrow ? 1080 : 780),
+    tilt: narrow ? 34 : 26,
     turn: 0,
     scale: 1,
   };
@@ -94,6 +149,9 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
   const reduced = useReducedMotion();
   const coarse = useCoarsePointer();
   const quality = useMemo(() => spatialQuality(capability), [capability]);
+  /* Not `coarse`: what changes the station is the *shape* of the frame, not the
+     input device. A narrow desktop window wants the plan reading too. */
+  const narrow = useMediaQuery('(max-width: 900px)');
 
   const rootRef = useRef<HTMLDivElement>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -101,9 +159,9 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
   const [glFailed, setGlFailed] = useState(false);
   const [armed, setArmed] = useState(false);
 
-  const targetRef = useRef<View>(OVERVIEW);
+  const targetRef = useRef<View>(overviewFor(narrow));
   const [worldState] = useState<WorldState>(() => ({
-    view: { ...OVERVIEW },
+    view: { ...overviewFor(narrow) },
     biasX: 0,
     biasY: 0,
     lookX: 0,
@@ -124,11 +182,20 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
       setActiveId(id);
       setArrived(false);
       const d = id ? DISTRICTS.find((x) => x.id === id) : null;
-      targetRef.current = d ? viewForDistrict(d) : OVERVIEW;
+      targetRef.current = d ? viewForDistrict(d, narrow) : overviewFor(narrow);
       window.setTimeout(() => setArrived(true), reduced ? 120 : 1500);
     },
-    [reduced],
+    [reduced, narrow],
   );
+
+  /* A rotated phone, or a window dragged narrow, re-fits the station it is
+     currently holding. The view loop eases to it like any other travel. */
+  const activeIdRef = useLatest(activeId);
+  useEffect(() => {
+    const id = activeIdRef.current;
+    const d = id ? DISTRICTS.find((x) => x.id === id) : null;
+    targetRef.current = d ? viewForDistrict(d, narrow) : overviewFor(narrow);
+  }, [narrow, activeIdRef]);
 
   /* ---- the view loop ----------------------------------------------------- */
   useEffect(() => {
@@ -270,6 +337,7 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
               quality={quality}
               activeId={activeId}
               visible={visible}
+              narrow={narrow}
               onLabelPositions={(m) => {
                 labelPositions.current = m;
               }}
@@ -278,6 +346,7 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
           <WorldLabels
             visible={visible}
             activeId={activeId}
+            narrow={narrow}
             positions={labelPositions}
             onSelect={travelTo}
           />
@@ -300,6 +369,7 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
         active={active}
         arrived={arrived}
         coarse={coarse}
+        plan={narrow || !showCanvas}
         onSelect={travelTo}
       />
     </div>
@@ -312,14 +382,30 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
 type LabelMap = Map<string, { x: number; y: number; z: number }>;
 const labelPositions: { current: LabelMap } = { current: new Map() };
 
+/**
+ * On a wide screen these are full district names standing in the air above the
+ * territory. On a phone they are the survey's own plate numbers and nothing
+ * else — D1, D2, M1 — with the name appearing only on the district you are
+ * travelling to.
+ *
+ * They used to be hidden outright on a phone, on the grounds that names at that
+ * size sit on top of the thing they name. True of names; not true of a two
+ * character index, and the difference matters: without them the plan was
+ * unnamed geometry, and the visitor had to match shapes against a list to know
+ * what they were looking at. A printed survey solves this the same way — numbers
+ * on the plan, a key beneath it — and the key was already there, because the
+ * index strip below reads "D1 STRATEGY · D2 DESIGN".
+ */
 function WorldLabels({
   visible,
   activeId,
+  narrow,
   positions,
   onSelect,
 }: {
   visible: District[];
   activeId: string | null;
+  narrow: boolean;
   positions: { current: LabelMap };
   onSelect: (id: string) => void;
 }) {
@@ -369,7 +455,7 @@ function WorldLabels({
   }, [visible, positions]);
 
   return (
-    <div className="lw-labels" ref={ref}>
+    <div className="lw-labels" ref={ref} data-narrow={narrow ? 'true' : 'false'}>
       {visible.map((d) => (
         <button
           key={d.id}
@@ -399,12 +485,14 @@ function WorldScene({
   quality,
   activeId,
   visible,
+  narrow,
   onLabelPositions,
 }: {
   worldState: WorldState;
   quality: SpatialQuality;
   activeId: string | null;
   visible: District[];
+  narrow: boolean;
   onLabelPositions: (m: LabelMap) => void;
 }) {
   const groupRef = useRef<THREE.Group>(null);
@@ -447,7 +535,7 @@ function WorldScene({
         district you are standing in front of. Fog is the cheapest honest depth
         cue there is, and line materials respect it for free.
       */}
-      {quality.atmosphere && <fog attach="fog" args={['#16191a', 1800, 6200]} />}
+      {quality.atmosphere && <fog attach="fog" args={['#16191a', ...fogFor(narrow)]} />}
       <group ref={groupRef}>
         <Territory
           quality={quality}

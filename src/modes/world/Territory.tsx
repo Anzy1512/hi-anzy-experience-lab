@@ -6,6 +6,7 @@ import { useDisposable } from '../../spatial/disposal';
 import { DISTRICTS, type District } from '../../content/world';
 import { groundAt } from './geography';
 import { buildDistrict, type PlateSink } from './districtForms';
+import { DATUM, buildDatum } from './landmarks';
 import type { SpatialQuality } from '../../spatial/quality';
 
 /**
@@ -18,6 +19,7 @@ import type { SpatialQuality } from '../../spatial/quality';
  *   DISTRICTS stacked plates — the compiler's separated page layers, standing
  *   ROUTES    orange rules running district to district along the ground
  *   BEACONS   registration targets, one per district
+ *   DATUM     the monument the whole survey is squared from — see landmarks.ts
  *
  * A district's character is its architecture, not its decoration: STRATEGY is
  * tall and almost perfectly in register, DESIGN shears as it stacks, TECHNOLOGY
@@ -29,6 +31,9 @@ import type { SpatialQuality } from '../../spatial/quality';
  */
 
 const BONE = '#e4ddca';
+/* The lifted stock. The districts are drawn between 0.18 and 0.52 of the bone
+   range; the monument sits above all of them, which is the whole point of it. */
+const DATUM_BONE = '#f7f5ee';
 const SIGNAL = '#f2911b';
 const LEVELS = 11;
 
@@ -160,11 +165,12 @@ export function Territory({ quality, extent, groundHeight, activeId }: Props) {
 
 
   /* ---- districts: stacked plates ---------------------------------------- */
-  const { plates, beacons, routes } = useMemo(() => {
+  const { plates, beacons, routes, datum } = useMemo(() => {
     const platePos: number[] = [];
     const plateCol: number[] = [];
     const beaconPos: number[] = [];
     const routePos: number[] = [];
+    const datumPos: number[] = [];
     const c = new THREE.Color();
 
     const visible = DISTRICTS.slice(0, Math.max(5, quality.maxStructures));
@@ -271,6 +277,33 @@ export function Territory({ quality, extent, groundHeight, activeId }: Props) {
       }
     }
 
+    /*
+     * THE SURVEY DATUM.
+     *
+     * The one object in the territory that is not a district, drawn into its
+     * own buffer because it is not a district: it has no material entry, no
+     * height-derived value and no status, and giving it one would make it look
+     * like a tenth place. It is a monument. See `landmarks.ts` for why the
+     * territory needs exactly one and why it is this.
+     */
+    {
+      const dy = groundAt(DATUM.x, DATUM.z, extent, groundHeight);
+      const sink: PlateSink = {
+        poly: (points) => {
+          for (let i = 0; i < points.length; i++) {
+            if (points.length === 2 && i === 1) break;
+            const a = points[i];
+            const b = points[(i + 1) % points.length];
+            datumPos.push(
+              DATUM.x + a[0], dy + a[1], DATUM.z + a[2],
+              DATUM.x + b[0], dy + b[1], DATUM.z + b[2],
+            );
+          }
+        },
+      };
+      buildDatum(sink);
+    }
+
     const geo = (arr: number[], colors?: number[]) => {
       const g = new THREE.BufferGeometry();
       g.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3));
@@ -282,10 +315,11 @@ export function Territory({ quality, extent, groundHeight, activeId }: Props) {
       plates: geo(platePos, plateCol),
       beacons: geo(beaconPos),
       routes: geo(routePos),
+      datum: geo(datumPos),
     };
   }, [quality.maxStructures, extent, groundHeight]);
 
-  useDisposable(ground, plates, beacons, routes);
+  useDisposable(ground, plates, beacons, routes, datum);
 
   useFrame(() => {
     // The routes carry the only moving light in the world: a slow signal pass.
@@ -304,6 +338,15 @@ export function Territory({ quality, extent, groundHeight, activeId }: Props) {
       </lineSegments>
       <lineSegments geometry={beacons}>
         <lineBasicMaterial color={BONE} transparent opacity={0.3} />
+      </lineSegments>
+      {/*
+        The datum, drawn at the brightest bone in the territory and at full
+        opacity. Nothing else here is allowed to be this bright — that is how
+        this product says "most important" without reaching for the accent, and
+        orange stays what it has always been.
+      */}
+      <lineSegments geometry={datum}>
+        <lineBasicMaterial color={DATUM_BONE} transparent opacity={0.92} />
       </lineSegments>
       {/* Orange stays signal: these are the routes between capabilities. */}
       <lineSegments geometry={routes}>

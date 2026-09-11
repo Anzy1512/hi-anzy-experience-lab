@@ -34,14 +34,24 @@ import './os.css';
  * point of building it last: this is the only mode that can operate the Lab.
  */
 
+/**
+ * Sheet widths, which are a measure and not a layout convenience.
+ *
+ * Six of seven used to be 430 or 470, so every application arrived at the same
+ * size and the bench read as a window manager. A schedule set on grid wants a
+ * narrow measure; a two-column directory wants a wide one; a mount wants
+ * whatever the plate needs plus its margins. The numbers are also chosen so
+ * that the two sheets the OS opens for you — SYSTEM and TERMINAL — still sit
+ * side by side on a 1440 bench rather than starting the session on a pile.
+ */
 const WIDTH: Record<AppId, number> = {
-  terminal: 540,
-  system: 470,
-  strategy: 430,
-  design: 430,
-  technology: 430,
-  network: 430,
-  method: 470,
+  terminal: 540, // a docket roll: fixed measure, monospaced
+  system: 456, // an instrument readout
+  strategy: 408, // a tracing overlay: the narrowest, most open sheet
+  design: 456, // mount board: plate width plus its margins
+  technology: 400, // a ruled schedule: the tightest measure in the OS
+  network: 516, // a two-column printed directory
+  method: 520, // five leaves, the most spaced sheet
 };
 
 const PLATE: Record<AppId, string> = {
@@ -128,7 +138,14 @@ export default function OsMode({ onReady, scope }: ModeViewProps) {
     return () => window.clearInterval(id);
   }, [scope]);
 
-  /* ---- sheets ------------------------------------------------------------ */
+  /* ---- sheets ------------------------------------------------------------
+     `pos` holds only the sheets actually on the bench, so the placement logic
+     can read it straight out of the `setPos` updater and be right even when
+     two sheets open in the same tick. `parked` is where a sheet was when it
+     was taken off — the desk remembering where you put things, which is a
+     separate fact from what is on it now. */
+  const parked = useRef<Record<string, Pos>>({});
+
   const focusSheet = useCallback((id: AppId) => {
     setOpen((o) => (o[o.length - 1] === id ? o : [...o.filter((x) => x !== id), id]));
   }, []);
@@ -153,6 +170,13 @@ export default function OsMode({ onReady, scope }: ModeViewProps) {
         const left = 44;
         const right = w0 - 40;
         const top = 112;
+        /*
+         * `p` is exactly what is on the bench, so this needs no other source
+         * of truth. It used to hold every position the desk had ever handed
+         * out, closed sheets included, which meant a bench you had cleared
+         * still read as full and the next sheet opened onto the cascade pile
+         * over nothing at all.
+         */
         const placed = Object.entries(p) as [AppId, Pos][];
 
         // Shelf packing along one row: the next free slot starts where the
@@ -163,11 +187,19 @@ export default function OsMode({ onReady, scope }: ModeViewProps) {
         // is content-driven, so a row-two slot chosen from x alone lands on top
         // of a tall row-one sheet while claiming to sit beside it.
         const row = placed.filter(([, t]) => Math.abs(t.y - top) < 48);
+        const free = (x: number) =>
+          x + w <= right && !row.some(([tid, t]) => x < t.x + WIDTH[tid] + 8 && t.x < x + w + 8);
+
+        // Where this sheet was when it was last taken off the bench, if that
+        // slot is still clear. The desk remembers.
+        const mine = parked.current[id];
+        if (mine && Math.abs(mine.y - top) < 48 && free(mine.x)) {
+          return { ...p, [id]: mine };
+        }
+
         const xs = [left, ...row.map(([tid, t]) => t.x + WIDTH[tid] + GUTTER)].sort((a, b) => a - b);
         for (const x of xs) {
-          if (x + w > right) continue;
-          const clash = row.some(([tid, t]) => x < t.x + WIDTH[tid] + 8 && t.x < x + w + 8);
-          if (!clash) return { ...p, [id]: { x, y: top } };
+          if (free(x)) return { ...p, [id]: { x, y: top } };
         }
 
         // Bench full: the sheet goes on the pile, offset far enough that it
@@ -184,8 +216,16 @@ export default function OsMode({ onReady, scope }: ModeViewProps) {
     [capability.viewport.w, focusSheet],
   );
 
+  /** Taken off the bench, and its slot remembered for when it comes back. */
   const closeSheet = useCallback((id: AppId) => {
     setOpen((o) => o.filter((x) => x !== id));
+    setPos((p) => {
+      if (!p[id]) return p;
+      parked.current[id] = p[id];
+      const next = { ...p };
+      delete next[id];
+      return next;
+    });
   }, []);
 
   /** A dragged sheet stays on the bench: never over the rail, never off the
@@ -328,11 +368,18 @@ export default function OsMode({ onReady, scope }: ModeViewProps) {
         </ul>
       </nav>
 
-      {/* ---- the desk ------------------------------------------------------- */}
+      {/* ---- the desk -------------------------------------------------------
+           The bench is drawn in three registers by os.css: a datum measure at
+           the back, the sheets in the middle at real depth, and the job ticket
+           in front. Sheets render in APPS order and stack with z-index, never
+           by reordering the DOM — a keyed child that moves in the tree can
+           restart its own CSS animation, which would mean a sheet re-laying
+           itself every time you picked up another one. */}
       <div className="os-desk">
-        {open.map((id, i) => {
-          const app = APPS.find((a) => a.id === id);
-          if (!app) return null;
+        {APPS.map((app) => {
+          const i = open.indexOf(app.id);
+          if (i < 0) return null;
+          const id = app.id;
           return (
             <Sheet
               key={id}
@@ -345,6 +392,8 @@ export default function OsMode({ onReady, scope }: ModeViewProps) {
               maxH={Math.max(200, capability.viewport.h - (pos[id]?.y ?? 120) - 126)}
               z={10 + i}
               top={id === topId}
+              depth={open.length - 1 - i}
+              stock={app.stock}
               draggable={draggable}
               onFocus={() => focusSheet(id)}
               onClose={() => closeSheet(id)}
@@ -366,7 +415,12 @@ export default function OsMode({ onReady, scope }: ModeViewProps) {
                   sheets={open.length}
                 />
               ) : (
-                <ServiceBody id={id} />
+                <ServiceBody
+                  id={id}
+                  specimenId={app.specimen}
+                  reduced={reduced}
+                  scope={scope}
+                />
               )}
             </Sheet>
           );

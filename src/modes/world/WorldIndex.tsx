@@ -1,5 +1,6 @@
 import { WORLD_COPY, type District } from '../../content/world';
 import { setPointerIntent } from '../../core/pointer';
+import { KeyPlan } from './KeyPlan';
 
 /**
  * THE TERRITORY INDEX — orientation, not a minimap.
@@ -20,10 +21,18 @@ interface Props {
   active: District | null;
   arrived: boolean;
   coarse: boolean;
+  /**
+   * Whether to draw the key plan.
+   *
+   * True when the establishing view cannot itself be the map: on a narrow
+   * frame, where the projection contract will not fit the survey, and on any
+   * frame with no WebGL at all. See `KeyPlan` for the arithmetic.
+   */
+  plan: boolean;
   onSelect: (id: string | null) => void;
 }
 
-export function WorldIndex({ districts, active, arrived, coarse, onSelect }: Props) {
+export function WorldIndex({ districts, active, arrived, coarse, plan, onSelect }: Props) {
   const hover = {
     onPointerEnter: () => setPointerIntent('discover'),
     onPointerLeave: () => setPointerIntent('default'),
@@ -38,6 +47,7 @@ export function WorldIndex({ districts, active, arrived, coarse, onSelect }: Pro
 
       <nav className="lw-index__nav" aria-label="Territory districts">
         <p className="t-mono t-mono-xs t-faint lw-index__label">{WORLD_COPY.mapLabel}</p>
+        {plan && <KeyPlan active={active} />}
         <ul className="lw-index__list">
           <li>
             <button

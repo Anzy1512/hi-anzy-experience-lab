@@ -177,6 +177,36 @@ const BUILDERS: Record<District['form'], Builder> = {
       rect(sink, 0, i * d.rise, 0, d.w * (1 - i * 0.18), d.d * (1 - i * 0.18));
     }
   },
+
+  /**
+   * THE UNKNOWN — a hole, and the thickness of the stock it was cut from.
+   *
+   * This was a `stub`: one shrinking plate, which is what a small building
+   * looks like, and the district is explicitly "left blank on purpose". A thing
+   * that is deliberately not there should not be drawn as a short version of a
+   * thing that is. CUT is the Lab's material for exactly this — "an edge where
+   * material has been removed; the absence has a thickness" — and the only
+   * honest architecture for a sealed survey square is an aperture: the stock,
+   * the cut in it, the bevel of the cut, and nothing inside.
+   */
+  aperture: (d, sink) => {
+    const r = d.w * 0.3;
+    const y = d.rise;
+    // The stock, lying on the land.
+    rect(sink, 0, y, 0, d.w, d.d);
+    // The cut through it, and the same cut on the underside — a bevelled edge,
+    // which is the only way a flat material shows it has a thickness.
+    ngon(sink, 0, y, 0, r, 20);
+    ngon(sink, 0, y - 16, 0, r * 0.88, 20);
+    // The thickness itself, drawn at four points of the cut.
+    for (let i = 0; i < 4; i++) {
+      const a = (i / 4) * Math.PI * 2 + Math.PI / 8;
+      sink.poly([
+        [Math.cos(a) * r, y, Math.sin(a) * r],
+        [Math.cos(a) * r * 0.88, y - 16, Math.sin(a) * r * 0.88],
+      ]);
+    }
+  },
 };
 
 export function buildDistrict(d: District, sink: PlateSink): void {

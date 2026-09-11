@@ -37,6 +37,7 @@ export type DistrictForm =
   | 'radial'   // plates rotate as they stack
   | 'scatter'  // irregular offsets and sizes
   | 'ring'     // an amphitheatre rather than a stack
+  | 'aperture' // a hole cut in the stock, and nothing behind it
   | 'stub';    // barely there
 
 export interface District {
@@ -251,7 +252,10 @@ export const DISTRICTS: District[] = [
     plates: 1,
     rise: 24,
     shear: 0,
-    form: 'stub',
+    /* Not a short building. A cut: the stock, the hole in it, the bevel of the
+       hole, and nothing inside. A district that is deliberately blank has to be
+       drawn as an absence or the claim is not true. */
+    form: 'aperture',
     /* Sealed. Cut is an edge where material has been removed and the absence has a thickness — an aperture with nothing yet behind it. */
     material: 'CUT',
     status: 'sealed',
