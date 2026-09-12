@@ -53,11 +53,25 @@ const CORNERS = [
   [0, 1],
 ];
 
+/** The visitor's position in territory coordinates, read once per frame. */
+export interface Focus {
+  x: number;
+  z: number;
+}
+
 interface Props {
   quality: SpatialQuality;
   extent: number;
   groundHeight: number;
   activeId: string | null;
+  /**
+   * Where the visitor is, for the near layer to be measured from.
+   *
+   * A ref rather than a prop value because this changes every frame while
+   * walking, and re-rendering the territory sixty times a second to move a
+   * number is exactly what the mode host was built to avoid.
+   */
+  focusRef?: { current: Focus | null };
 }
 
 /*
@@ -71,8 +85,13 @@ interface Props {
  * between them.
  */
 
-export function Territory({ quality, extent, groundHeight, activeId }: Props) {
+/** Where a district's near layer turns on, and where it turns back off. */
+const DETAIL_IN = 1150;
+const DETAIL_OUT = 1500;
+
+export function Territory({ quality, extent, groundHeight, activeId, focusRef }: Props) {
   const routesMat = useRef<THREE.LineBasicMaterial>(null);
+  const detailRefs = useRef<Map<string, THREE.LineSegments>>(new Map());
 
   /* ---- ground: isolines of the specimen's own field ---------------------- */
   const ground = useMemo(() => {
@@ -141,9 +160,23 @@ export function Territory({ quality, extent, groundHeight, activeId }: Props) {
 
 
   /* ---- districts: stacked plates ---------------------------------------- */
-  const { plates, beacons, routes, datum } = useMemo(() => {
+  const { plates, beacons, routes, datum, details } = useMemo(() => {
     const platePos: number[] = [];
     const plateCol: number[] = [];
+    /*
+     * THE NEAR LAYER.
+     *
+     * Hatch, poché and the second impression of a misregistered print are the
+     * bulk of the segments in this territory and none of them can be read from
+     * the overview station — at 3,500 units a 44-unit poché pitch is under a
+     * pixel, so the cost was being paid to draw grey. They go into one buffer
+     * per district instead, shown by distance, which is the whole of the
+     * macro/meso policy: the same marks, drawn when there is somebody near
+     * enough to see them.
+     */
+    const detailOf = new Map<string, { pos: number[]; col: number[] }>();
+    let detailSink: { pos: number[]; col: number[] } | null = null;
+    let inDetail = false;
     const beaconPos: number[] = [];
     const routePos: number[] = [];
     const datumPos: number[] = [];
@@ -179,8 +212,15 @@ export function Territory({ quality, extent, groundHeight, activeId }: Props) {
         a: readonly [number, number, number],
         b: readonly [number, number, number],
         lumScale: number,
+        detail?: boolean,
       ) => {
-        platePos.push(
+        /* A segment is near-layer if the pen said so or if we are inside a
+           fill — marking fills here rather than in nine pens means a new
+           technique cannot forget to declare itself. */
+        const near = (detail || inDetail) && detailSink;
+        const pos = near ? detailSink!.pos : platePos;
+        const col = near ? detailSink!.col : plateCol;
+        pos.push(
           dist.x + a[0], base + a[1], dist.z + a[2],
           dist.x + b[0], base + b[1], dist.z + b[2],
         );
@@ -188,9 +228,12 @@ export function Territory({ quality, extent, groundHeight, activeId }: Props) {
           const t = Math.min(1, p[1] / top);
           const lum = (draw.value + t * draw.rise) * lumScale;
           c.setRGB(lum * 1.03, lum * 0.99, lum * 0.88);
-          plateCol.push(c.r, c.g, c.b);
+          col.push(c.r, c.g, c.b);
         }
       };
+
+      detailSink = { pos: [], col: [] };
+      detailOf.set(dist.id, detailSink);
 
       const sink: PlateSink = {
         /*
@@ -228,7 +271,9 @@ export function Territory({ quality, extent, groundHeight, activeId }: Props) {
             }
             y /= points.length;
             const box: Box = { minX, maxX, minZ, maxZ, y };
+            inDetail = true;
             draw.fill(box, emit);
+            inDetail = false;
           }
         },
       };
@@ -312,15 +357,57 @@ export function Territory({ quality, extent, groundHeight, activeId }: Props) {
       beacons: geo(beaconPos),
       routes: geo(routePos),
       datum: geo(datumPos),
+      details: [...detailOf.entries()]
+        .filter(([, v]) => v.pos.length > 0)
+        .map(([id, v]) => {
+          const d = DISTRICTS.find((x) => x.id === id)!;
+          return { id, x: d.x, z: d.z, geometry: geo(v.pos, v.col) };
+        }),
     };
   }, [quality.maxStructures, quality.scaffold, extent, groundHeight]);
 
   useDisposable(ground, plates, beacons, routes, datum);
+  useDisposable(...details.map((d) => d.geometry));
 
+  /*
+   * MACRO → MESO, decided once per frame from where the visitor actually is.
+   *
+   * `focus` is the visitor's own position in territory coordinates when they
+   * are walking, and the district they are looking at when they are not. A
+   * district's near layer is shown inside `DETAIL_IN` and hidden outside
+   * `DETAIL_OUT`; the two are apart on purpose, because a single threshold
+   * makes a district flicker its own hatch on and off while somebody stands
+   * at exactly that distance.
+   */
   useFrame(() => {
-    // The routes carry the only moving light in the world: a slow signal pass.
     if (routesMat.current) {
       routesMat.current.opacity = activeId ? 0.5 : 0.32;
+    }
+
+    const f = focusRef?.current;
+    for (const d of details) {
+      const mesh = detailRefs.current.get(d.id);
+      if (!mesh) continue;
+      if (!f) {
+        mesh.visible = false;
+        continue;
+      }
+      const dist = Math.hypot(f.x - d.x, f.z - d.z);
+      mesh.visible = mesh.visible ? dist < DETAIL_OUT : dist < DETAIL_IN;
+
+      /*
+       * HI ANZY AI: the misregistration resolves as you approach.
+       *
+       * "Misalignment is the state; alignment is the event." The second
+       * impression lives in this buffer, so bringing the whole layer back into
+       * register is one vector — and letting it go again when you leave is the
+       * same vector, which is the honest version: the reconciliation is
+       * something your presence causes, not something that was already done.
+       */
+      if (d.id === 'anzy-ai') {
+        const t = Math.max(0, Math.min(1, 1 - (dist - 260) / 900));
+        mesh.position.set(-9 * t, 0, -6 * t);
+      }
     }
   });
 
@@ -332,6 +419,23 @@ export function Territory({ quality, extent, groundHeight, activeId }: Props) {
       <lineSegments geometry={plates}>
         <lineBasicMaterial vertexColors transparent opacity={0.9} />
       </lineSegments>
+
+      {/* The near layer: one mesh per district, hidden until somebody is close
+          enough to read it. At the overview station every one of these is off,
+          which is where the saving is. */}
+      {details.map((d) => (
+        <lineSegments
+          key={d.id}
+          geometry={d.geometry}
+          visible={false}
+          ref={(m) => {
+            if (m) detailRefs.current.set(d.id, m);
+            else detailRefs.current.delete(d.id);
+          }}
+        >
+          <lineBasicMaterial vertexColors transparent opacity={0.9} />
+        </lineSegments>
+      ))}
       <lineSegments geometry={beacons}>
         <lineBasicMaterial color={BONE} transparent opacity={0.3} />
       </lineSegments>

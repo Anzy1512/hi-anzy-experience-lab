@@ -68,7 +68,43 @@ export interface Stand {
   angle: number;
   /** Clearance beyond the district's own half-extent, in territory units. */
   clear: number;
+  /**
+   * How far off the ground the plate's foot stands, in territory units.
+   *
+   * ── EVIDENCE → COMPOSITION → ENVIRONMENT ─────────────────────────────────
+   *
+   * Every stand used to sit on the land at a plaque's height, which made all
+   * five the same kind of object: a specimen beside a building. Three of them
+   * now belong to their district's landmark instead, and lifting a plate is
+   * the whole of what that takes — a picture hung on a wall is architecture,
+   * the same picture leaning against the wall is still a picture.
+   *
+   *   CULTURE   lifted onto the perforated wall, so the halftone landmark is
+   *             the thing the image is printed on and the two read as one
+   *             printed surface rather than a screen with a photo near it.
+   *   IMKAAN    lifted into the rack, at the height of the middle shelf: the
+   *             image becomes a record in storage, which is what an archive
+   *             district should be showing rather than describing.
+   *   DESIGN    lifted between the folded sheets, so the collage sits inside
+   *             the fold as one of the planes rather than beside it.
+   *
+   * PRODUCTION and GROWTH stay on the ground on purpose. Not everything should
+   * become environment; a territory where every image is architecture has no
+   * scale left to make the point with, and those two are still doing the job
+   * they were placed to do.
+   */
+  lift?: number;
 }
+
+/*
+ * The three lifted stands are placed *on* their landmark's own plane rather
+ * than in front of it: CULTURE's wall stands at d.d, IMKAAN's rack at 1.15·d.d
+ * and DESIGN's fold at 1.05·d.d, so each `clear` is that distance minus the
+ * district's own half-extent. Measured first at a round number and corrected
+ * by looking — at clear 210 the CULTURE plate sat between the camera and its
+ * own wall on the guided station and filled two thirds of the frame, which is
+ * a poster in the way rather than a poster on a building.
+ */
 
 /**
  * Angles and clearances were placed once by formula — pointing each stand away
@@ -78,11 +114,14 @@ export interface Stand {
  * plate leaned into the frame.
  */
 export const STANDS: Record<string, Stand> = {
+  /* Into the fold. The folded sheet stands at −z, and the plate sits inside
+     it as one of the planes rather than leaning on the outside of it. */
   design: {
     specimen: 'char-fixer',
-    line: 'A COMBINATORIAL OBJECT, MID-SOLUTION.',
-    angle: 152,
-    clear: 50,
+    line: 'A PLANE IN THE FOLD, MID-SOLUTION.',
+    angle: -90,
+    clear: 176,
+    lift: 120,
   },
   production: {
     specimen: 'pop-camera-duo',
@@ -96,17 +135,24 @@ export const STANDS: Record<string, Stand> = {
     angle: 82,
     clear: 45,
   },
+  /* Onto the wall. The landmark stands at +z from the district centre, so the
+     stand is aimed at it rather than away from the map, and lifted to the
+     second of the wall's four rules. */
   culture: {
     specimen: 'char-expressionist',
-    line: 'SPEAKING TO PEOPLE WHO ARE NOT BEING SOLD TO.',
-    angle: 145,
-    clear: 45,
+    line: 'PRINTED ON THE WALL, NOT HUNG BESIDE IT.',
+    angle: 90,
+    clear: 140,
+    lift: 190,
   },
+  /* Into the rack. The archive landmark is at −z, and the middle shelf is
+     about a third of the way up it. */
   imkaan: {
     specimen: 'pop-hands-a',
-    line: 'TWO HANDS, HOLDING ONE ANOTHER UP.',
-    angle: -52,
-    clear: 40,
+    line: 'ONE RECORD, STILL ON THE SHELF.',
+    angle: -90,
+    clear: 195,
+    lift: 150,
   },
 };
 
@@ -129,7 +175,10 @@ export function standAnchor(
   const z = d.z + Math.sin(rad) * half;
   // A hair off the terrain — the same lift the registration beacons use — so
   // the plate's own foot never clips into the ground it is standing on.
-  const y = groundAt(x, z, extent, groundHeight) + 3;
+  /* `lift` is what turns a specimen into a surface: see `Stand.lift`. Three
+     is the hair off the terrain the registration beacons use, so a stand that
+     is not lifted still never clips into the ground it stands on. */
+  const y = groundAt(x, z, extent, groundHeight) + 3 + (stand.lift ?? 0);
   return { x, y, z };
 }
 

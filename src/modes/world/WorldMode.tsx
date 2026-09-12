@@ -208,6 +208,10 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
   const exploreRef = useRef<ExploreState>(initialStance());
   const keysRef = useRef<Set<string>>(new Set());
   const navRef = useLatest(nav);
+  /* Where the visitor is, in territory coordinates, for the near layer to be
+     measured from. Written in the frame loop and read there — it never goes
+     through React, because it changes every frame while walking. */
+  const focusRef = useRef<{ x: number; z: number } | null>(null);
 
   const active = useMemo(() => DISTRICTS.find((d) => d.id === activeId) ?? null, [activeId]);
   const visible = useMemo(
@@ -263,6 +267,17 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
         const str = (keys.has('d') || keys.has('arrowright') ? 1 : 0) - (keys.has('a') || keys.has('arrowleft') ? 1 : 0);
         advance(s, fwd, str, dt, keys.has('shift'), deep);
         targetRef.current = viewForStance(s, EXTENT, GROUND_HEIGHT, deep);
+        focusRef.current = { x: s.px, z: s.pz };
+      }
+
+      if (!walking) {
+        /* Guided: the near layer belongs to the district the visitor has
+           travelled to. At the overview there is no near — which is the whole
+           point, and is why the establishing shot is the cheapest frame in
+           the mode rather than the most expensive. */
+        const id = activeIdRef.current;
+        const d = id ? DISTRICTS.find((x) => x.id === id) : null;
+        focusRef.current = d ? { x: d.x, z: d.z } : null;
       }
 
       const t = targetRef.current;
@@ -300,7 +315,7 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
     });
     scope.add(stop);
     return stop;
-  }, [reduced, coarse, quality.pointerBias, scope, worldState, navRef]);
+  }, [reduced, coarse, quality.pointerBias, scope, worldState, navRef, activeIdRef]);
 
   /* ---- drag to look ------------------------------------------------------ */
   useEffect(() => {
@@ -516,6 +531,7 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
               activeId={activeId}
               visible={visible}
               narrow={narrow}
+              focusRef={focusRef}
               onLabelPositions={(m) => {
                 labelPositions.current = m;
               }}
@@ -532,7 +548,13 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
             onSelect={travelTo}
           />
           {quality.scaffold && (
-            <WorldSpecimens visible={visible} reduced={reduced} scope={scope} positions={standPositions} />
+            <WorldSpecimens
+              visible={visible}
+              reduced={reduced}
+              scope={scope}
+              positions={standPositions}
+              focusRef={focusRef}
+            />
           )}
         </div>
       ) : (
@@ -727,6 +749,16 @@ function WorldLabels({
 /* stands: the company's own collages, projected to screen space               */
 /* -------------------------------------------------------------------------- */
 /**
+ * How near the visitor must be, in territory units, before a stand's image is
+ * worth fetching. Chosen from the geometry rather than by feel: a stand is
+ * 215–386 units from its own district's focus and no less than 561 from any
+ * other, so 460 sits inside that gap with margin on both sides. Because the
+ * focus jumps to the target the moment travel *starts* rather than when it
+ * lands, the fetch also gets the whole of the journey as lead time.
+ */
+const WAKE_NEAR = 460;
+
+/**
  * Every stand is a real `SpecimenPlate` — a real `<img>` with real alt text —
  * positioned the same way `WorldLabels` positions district names: the scene's
  * own `useFrame` projects a world point to screen space every frame, and this
@@ -745,19 +777,86 @@ function WorldSpecimens({
   reduced,
   scope,
   positions,
+  focusRef,
 }: {
   visible: District[];
   reduced: boolean;
   scope: CleanupScope;
   positions: { current: StandMap };
+  focusRef: { current: { x: number; z: number } | null };
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const stands = useMemo(() => visible.filter((d) => STANDS[d.id]), [visible]);
+  /* Ground position of every stand, in territory coordinates. Only x/z are
+     read, so terrain height never enters the wake decision. */
+  const anchors = useMemo(
+    () =>
+      new Map(
+        stands.map((d) => {
+          const a = standAnchor(d, STANDS[d.id], EXTENT, GROUND_HEIGHT);
+          return [d.id, { x: a.x, z: a.z }] as const;
+        }),
+      ),
+    [stands],
+  );
+
+  /*
+   * WHICH STANDS ARE WORTH FETCHING YET.
+   *
+   * A stand at the overview station is a mark rather than a picture, but it is
+   * still an `<img>` inside the viewport, so `loading="lazy"` saves nothing and
+   * all five AVIFs were fetched on entry. Measured: five brand requests before
+   * the visitor had approached anything.
+   *
+   * ── WHY NOT DISTANCE FROM THE CAMERA ──────────────────────────────────────
+   *
+   * The obvious gate — fetch when the stand is close to the lens — is wrong
+   * here, for the same reason the scale cap below it is capped at all. "The
+   * camera never moves; the world does", so travelling is a rotation of the
+   * whole group, and a rotation swings districts the visitor is nowhere near
+   * straight past the lens. Measured, arriving at DESIGN: its own stand sits
+   * 2581 units from the camera while CULTURE's — right across the survey —
+   * sits at 1783. The stand you travelled to is further away than three you
+   * did not. Camera distance cannot tell "you came here" from "the view
+   * happened to sweep past", and neither can opacity, which is derived from
+   * the capped scale and therefore never falls below 0.37 anywhere in the
+   * territory.
+   *
+   * ── WHAT IS ACTUALLY BEING ASKED ──────────────────────────────────────────
+   *
+   * The question is not how near the lens a stand is, it is where the visitor
+   * *is* — and `focusRef` is already exactly that, in territory coordinates:
+   * the walked stance in Explore, the district travelled to in guided, and
+   * null at the overview, which is why the establishing shot costs nothing.
+   * It is the same signal the near-detail layer keys off, so presence is one
+   * idea in this mode rather than two that can disagree. In that space the
+   * separation is real: a stand is 215–386 units from its own district's
+   * focus, and the nearest foreign stand from any focus is 561.
+   *
+   * One-way on purpose — a stand that has been approached stays mounted,
+   * because re-fetching an image every time somebody walks back and forth is a
+   * worse trade than holding one decoded AVIF.
+   */
+  const [woken, setWoken] = useState<Set<string>>(() => new Set());
+  const wokenRef = useLatest(woken);
 
   useEffect(() => {
     const stop = onFrame(() => {
       const root = ref.current;
       if (!root) return;
+      /* Wake anything the visitor has come close enough to to be worth bytes. */
+      const focus = focusRef.current;
+      let next: Set<string> | null = null;
+      for (const d of stands) {
+        if (wokenRef.current.has(d.id)) continue;
+        const a = anchors.get(d.id);
+        if (!focus || !a) continue;
+        if (Math.hypot(focus.x - a.x, focus.z - a.z) < WAKE_NEAR) {
+          next = next ?? new Set(wokenRef.current);
+          next.add(d.id);
+        }
+      }
+      if (next) setWoken(next);
       for (const d of stands) {
         const el = root.querySelector<HTMLElement>(`[data-stand="${d.id}"]`);
         const p = positions.current.get(d.id);
@@ -772,7 +871,7 @@ function WorldSpecimens({
       }
     });
     return stop;
-  }, [stands, positions]);
+  }, [stands, positions, wokenRef, anchors, focusRef]);
 
   if (stands.length === 0) return null;
 
@@ -783,13 +882,15 @@ function WorldSpecimens({
         return (
           <div className="lw-stand" key={d.id} data-stand={d.id}>
             <div className="lw-stand__body">
-              <SpecimenPlate
-                id={stand.specimen}
-                reduced={reduced}
-                scope={scope}
-                tilt={{ rx: 0, ry: 0 }}
-                separation={0.7}
-              />
+              {woken.has(d.id) && (
+                <SpecimenPlate
+                  id={stand.specimen}
+                  reduced={reduced}
+                  scope={scope}
+                  tilt={{ rx: 0, ry: 0 }}
+                  separation={0.7}
+                />
+              )}
               <p className="t-mono t-mono-xs lw-stand__line">{stand.line}</p>
             </div>
           </div>
@@ -808,6 +909,7 @@ function WorldScene({
   activeId,
   visible,
   narrow,
+  focusRef,
   onLabelPositions,
   onStandPositions,
 }: {
@@ -816,6 +918,7 @@ function WorldScene({
   activeId: string | null;
   visible: District[];
   narrow: boolean;
+  focusRef: { current: { x: number; z: number } | null };
   onLabelPositions: (m: LabelMap) => void;
   onStandPositions: (m: StandMap) => void;
 }) {
@@ -907,6 +1010,7 @@ function WorldScene({
           extent={EXTENT}
           groundHeight={GROUND_HEIGHT}
           activeId={activeId}
+          focusRef={focusRef}
         />
       </group>
     </>

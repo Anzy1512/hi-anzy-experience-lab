@@ -58,8 +58,18 @@
 
 export type Pt = readonly [number, number, number];
 
-/** Push one drawn segment. `lum` scales the material's own value. */
-export type Emit = (a: Pt, b: Pt, lum: number) => void;
+/**
+ * Push one drawn segment. `lum` scales the material's own value.
+ *
+ * `detail` marks a segment as belonging to the district's **near layer** —
+ * material that is worth drawing when a visitor is close enough to read it and
+ * worth nothing from the overview station. Hatch, poché and the second
+ * impression of a misregistered print are all detail; outlines, structure and
+ * landmarks are not, because those are what a district is recognised by from
+ * across the territory. See `Territory`, which keeps the two in separate
+ * buffers and shows the near one by distance.
+ */
+export type Emit = (a: Pt, b: Pt, lum: number, detail?: boolean) => void;
 
 /** The extent of a closed plate, in district-local space. */
 export interface Box {
@@ -351,7 +361,11 @@ export const PENS: Record<string, Pen> = {
     rise: 0.2,
     stroke: (a, b, emit) => {
       emit(a, b, 1);
-      emit([a[0] + 7, a[1], a[2] + 5], [b[0] + 7, b[1], b[2] + 5], 0.5);
+      /* The second impression is detail, which is what lets it move: it lives
+         in its own buffer, so approaching HI ANZY AI can slide it toward
+         register and leaving can let it drift again. Misalignment is the
+         state; alignment is the event. */
+      emit([a[0] + 7, a[1], a[2] + 5], [b[0] + 7, b[1], b[2] + 5], 0.5, true);
     },
     fill: (box, emit) => hatch(box, emit, 120, 0.28),
     /* The same member, printed twice, out of true. Misalignment is the state;
@@ -359,7 +373,7 @@ export const PENS: Record<string, Pen> = {
        legible from any approach rather than only in elevation. */
     riser: (x, z, y0, y1, emit) => {
       post(x, z, y0, y1, emit, 1);
-      post(x + 9, z + 6, y0, y1, emit, 0.45);
+      emit([x + 9, y0, z + 6], [x + 9, y1, z + 6], 0.45, true);
     },
   },
 
