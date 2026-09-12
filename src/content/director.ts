@@ -114,7 +114,7 @@ export const ACTS = [
  * deliberate — Act V is three centred shots because it is the act that says
  * ENTER, and by then a centred frame has become an event rather than a habit.
  */
-export const SHOTS: Shot[] = [
+export const SHOTS_LONG: Shot[] = [
   /* ---- ACT I — SIGNAL --------------------------------------------------- */
   /* A slate is stamped at the foot of the frame, not floated in the middle. */
   { kind: 'slate', act: 0, dur: 3.4, caption: 'HA/XL — DIRECTOR', still: true, anchor: 'low' },
@@ -251,17 +251,155 @@ export const SHOTS: Shot[] = [
   { kind: 'end', act: 5, dur: 6.5, still: true },
 ];
 
-/** Cumulative start time of each shot, and the total running time. */
-export const CUES: number[] = (() => {
+/* -------------------------------------------------------------------------- */
+/* THE PRIMARY CUT                                                             */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * THE CUT THAT SHIPS — fourteen shots, about sixty seconds.
+ *
+ * The long edit above runs 1:51 across twenty-two shots, and length was its
+ * real problem: not one of those shots is bad, but a film that asks for two
+ * minutes has to *need* two minutes, and this one restates itself three times
+ * to fill them. "A COMPANY IS NOT A LIST OF SERVICES" says what "MOST BRANDS
+ * ARE ASSEMBLED FROM PARTS THAT NEVER MET" has already said, better. Two of the
+ * three `mark` shots are punctuation with nothing between them to punctuate.
+ * Both `grid` shots make the same argument at different captions.
+ *
+ * ── WHAT SURVIVED, AND ON WHAT TEST ─────────────────────────────────────────
+ *
+ * Every shot has to answer three questions the instant it appears: what am I
+ * looking at, why is it here, and what changed from the last frame. Anything
+ * that could only answer the first was cut.
+ *
+ * All four specimens survived, and they are the reason the cut works. They are
+ * photographs the company owns, each one carrying an argument no line of type
+ * on black can make: two figures walking in step with cameras for heads; a
+ * figure with an unsolved cube where its head should be; a clock and a wristwatch
+ * measuring the same thing at two scales; a hat tethered to a balloon. The
+ * `pop-clock-watch` shot in particular *is* the thesis — the camera travels from
+ * the clock to the watch and finds the repetition rather than asserting it.
+ *
+ * The method survives whole, because it is the one piece of canonical content in
+ * the film. `stages` loses two seconds, not a stage.
+ *
+ * ── THE SHAPE ───────────────────────────────────────────────────────────────
+ *
+ *   IDENTITY   the wordmark, and the claim
+ *   HUMAN      two people, one direction
+ *   PROBLEM    parts that never met, and the thing still unsolved
+ *   MEASURE    look before you build
+ *   METHOD     the five stages, named
+ *   SYSTEM     the field resolved, rendered many ways
+ *   WORLD      enter
+ *   POSSIBILITY  tethered, and still rising
+ */
+export const SHOTS_PRIMARY: Shot[] = [
+  /* ---- IDENTITY --------------------------------------------------------- */
+  { kind: 'wordmark', act: 0, dur: 4.0, anchor: 'centre' },
+  {
+    kind: 'statement',
+    act: 0,
+    dur: 3.4,
+    lines: ['ONE COMPANY.', 'MULTIPLE REALITIES.'],
+    still: true,
+    anchor: 'left',
+  },
+  /* ---- HUMAN ------------------------------------------------------------- */
+  {
+    kind: 'specimen',
+    act: 0,
+    dur: 4.6,
+    specimen: 'char-walkers',
+    caption: 'TWO WAYS OF LOOKING · ONE DIRECTION',
+    lens: 'hold',
+    anchor: 'right',
+  },
+
+  /* ---- PROBLEM ----------------------------------------------------------- */
+  {
+    kind: 'statement',
+    act: 1,
+    dur: 4.2,
+    lines: ['MOST BRANDS ARE ASSEMBLED', 'FROM PARTS THAT NEVER MET.'],
+    anchor: 'left',
+  },
+  { kind: 'scatter', act: 1, dur: 4.6, caption: 'FOUR AGENCIES. FOUR ANSWERS. ONE COMPANY.' },
+  {
+    kind: 'specimen',
+    act: 1,
+    dur: 5.0,
+    specimen: 'pop-cube-thinker',
+    caption: 'SOLVABLE. NOT YET SOLVED.',
+    lens: 'close',
+    focus: 0.27,
+    anchor: 'left',
+  },
+
+  /* ---- MEASURE ----------------------------------------------------------- */
+  { kind: 'grid', act: 2, dur: 4.2, caption: 'MEASURE FIRST' },
+  /* The thesis shot. The camera finds the repetition instead of claiming it. */
+  {
+    kind: 'specimen',
+    act: 2,
+    dur: 5.4,
+    specimen: 'pop-clock-watch',
+    caption: 'THE SAME MEASURE, TWICE',
+    lens: 'down',
+    focus: 0.34,
+    focusTo: 0.71,
+    anchor: 'right',
+  },
+
+  /* ---- METHOD ------------------------------------------------------------ */
+  { kind: 'stages', act: 2, dur: 6.6, caption: 'THE METHOD', anchor: 'left' },
+
+  /* ---- SYSTEM ------------------------------------------------------------ */
+  { kind: 'plate', act: 3, dur: 4.4, caption: 'ONE FIELD, RESOLVED' },
+  { kind: 'roster', act: 3, dur: 5.0, caption: 'THE SAME SYSTEM, RENDERED MANY WAYS', anchor: 'left' },
+
+  /* ---- WORLD ------------------------------------------------------------- */
+  { kind: 'statement', act: 4, dur: 3.8, lines: ['ENTER', 'HI ANZY.'] },
+
+  /* ---- POSSIBILITY -------------------------------------------------------- */
+  {
+    kind: 'specimen',
+    act: 5,
+    dur: 5.2,
+    specimen: 'pop-hat-balloon',
+    caption: 'TETHERED, AND STILL RISING',
+    lens: 'up',
+    focus: 0.55,
+    focusTo: 0.13,
+  },
+  { kind: 'end', act: 5, dur: 5.0, still: true },
+];
+
+export interface Edit {
+  shots: Shot[];
+  /** Cumulative start time of each shot. */
+  cues: number[];
+  runtime: number;
+}
+
+/** Derive the cue sheet for a cut. Both cuts go through this; neither is special. */
+export function makeEdit(shots: Shot[]): Edit {
   let t = 0;
-  return SHOTS.map((s) => {
+  const cues = shots.map((s) => {
     const start = t;
     t += s.dur;
     return start;
   });
-})();
+  return { shots, cues, runtime: t };
+}
 
-export const RUNTIME = SHOTS.reduce((a, s) => a + s.dur, 0);
+export const PRIMARY_EDIT = makeEdit(SHOTS_PRIMARY);
+export const LONG_EDIT = makeEdit(SHOTS_LONG);
+
+/** The cut a visitor gets unless they ask for the other one. */
+export const SHOTS = SHOTS_PRIMARY;
+export const CUES = PRIMARY_EDIT.cues;
+export const RUNTIME = PRIMARY_EDIT.runtime;
 
 /** The disconnected fragments of Act II. Service language, nothing claimed. */
 export const FRAGMENTS = ['STRATEGY', 'DESIGN', 'TECHNOLOGY', 'CULTURE'];
@@ -278,6 +416,8 @@ export const DIRECTOR_COPY = {
   soundNote:
     'The film is written to work in silence. Sound is a layer, never the story, and nothing plays until you choose.',
   begin: 'BEGIN',
+  cutPrimary: 'THE CUT',
+  cutLong: 'THE LONG EDIT',
   skip: 'SKIP',
   pause: 'PAUSE',
   resume: 'RESUME',

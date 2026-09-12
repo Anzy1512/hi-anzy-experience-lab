@@ -4,7 +4,12 @@ import { useExperience } from '../../experience/context';
 import { useCapability, useReducedMotion } from '../../core/hooks';
 import { onFrame } from '../../core/raf';
 import { setPointerIntent } from '../../core/pointer';
-import { ACTS, CUES, DIRECTOR_COPY, RUNTIME, SHOTS } from '../../content/director';
+import {
+  ACTS,
+  DIRECTOR_COPY,
+  LONG_EDIT,
+  PRIMARY_EDIT,
+} from '../../content/director';
 import { MODES, onlineCount } from '../../content/lab';
 import { specimenSrc } from '../../content/specimens';
 import { useAudio } from '../../audio/useAudio';
@@ -57,6 +62,20 @@ export default function DirectorMode({ onReady, onExit, scope }: ModeViewProps) 
   const gate = useMemo(() => gateFor(capability.viewport), [capability.viewport]);
   const { enterMode } = useExperience();
 
+  /*
+   * WHICH CUT.
+   *
+   * The primary cut is what a visitor gets. The long edit is not deleted — it
+   * is a real piece of work and every shot in it is good — but a film that asks
+   * for 1:51 has to need 1:51, and this one restated itself to fill the time.
+   * It stays reachable from the offer card for anyone who wants it, chosen
+   * before the film starts rather than switchable mid-run: changing the edit
+   * under a running clock would land the visitor at an arbitrary point in a
+   * different film.
+   */
+  const [cut, setCut] = useState<'primary' | 'long'>('primary');
+  const { shots, cues, runtime } = cut === 'long' ? LONG_EDIT : PRIMARY_EDIT;
+
   const [stage, setStage] = useState<Stage>('offer');
   const [t, setT] = useState(0);
   const [wantSound, setWantSound] = useState(false);
@@ -82,18 +101,18 @@ export default function DirectorMode({ onReady, onExit, scope }: ModeViewProps) 
   useEffect(() => {
     const stop = onFrame(() => {
       if (!running.current) return;
-      clock.current = Math.min(RUNTIME, base.current + (performance.now() - since.current) / 1000);
+      clock.current = Math.min(runtime, base.current + (performance.now() - since.current) / 1000);
       // React hears about the clock in tenths; the shots interpolate the rest.
       const rounded = Math.round(clock.current * 10) / 10;
       setT((prev) => (prev === rounded ? prev : rounded));
-      if (clock.current >= RUNTIME) {
+      if (clock.current >= runtime) {
         running.current = false;
         setStage('done');
       }
     });
     scope.add(stop);
     return stop;
-  }, [scope]);
+  }, [scope, runtime]);
 
   useEffect(() => {
     setPointerIntent('default');
@@ -133,11 +152,11 @@ export default function DirectorMode({ onReady, onExit, scope }: ModeViewProps) 
 
   const skip = useCallback(() => {
     running.current = false;
-    base.current = RUNTIME;
-    clock.current = RUNTIME;
-    setT(RUNTIME);
+    base.current = runtime;
+    clock.current = runtime;
+    setT(runtime);
     setStage('done');
-  }, []);
+  }, [runtime]);
 
   const replay = useCallback(() => {
     clock.current = 0;
@@ -170,10 +189,10 @@ export default function DirectorMode({ onReady, onExit, scope }: ModeViewProps) 
   /* ---- which shot ---------------------------------------------------------- */
   const { index, p } = useMemo(() => {
     let i = 0;
-    for (let n = 0; n < SHOTS.length; n++) if (t >= CUES[n]) i = n;
-    const local = (t - CUES[i]) / SHOTS[i].dur;
+    for (let n = 0; n < shots.length; n++) if (t >= cues[n]) i = n;
+    const local = (t - cues[i]) / shots[i].dur;
     return { index: i, p: Math.max(0, Math.min(1, local)) };
-  }, [t]);
+  }, [t, cues, shots]);
 
   /*
    * ---- the next plate, fetched while the current one is on screen --------
@@ -195,9 +214,9 @@ export default function DirectorMode({ onReady, onExit, scope }: ModeViewProps) 
   useEffect(() => {
     if (stage !== 'playing') return;
     let next: string | undefined;
-    for (let n = index + 1; n < SHOTS.length; n++) {
-      if (SHOTS[n].specimen) {
-        next = SHOTS[n].specimen;
+    for (let n = index + 1; n < shots.length; n++) {
+      if (shots[n].specimen) {
+        next = shots[n].specimen;
         break;
       }
     }
@@ -209,25 +228,25 @@ export default function DirectorMode({ onReady, onExit, scope }: ModeViewProps) 
     return () => {
       img = null;
     };
-  }, [index, stage]);
+  }, [index, stage, shots]);
 
   /* ---- the score: one cue per shot, and nothing if sound was declined ---- */
   useEffect(() => {
     if (!scene || lastCue.current === index) return;
     lastCue.current = index;
-    const kind = SHOTS[index].kind;
+    const kind = shots[index].kind;
     const family = CUE_FAMILY[kind] ?? 'STRUCTURE';
-    const base = 0.28 + (SHOTS[index].act / 6) * 0.5;
+    const base = 0.28 + (shots[index].act / 6) * 0.5;
     play(scene, family, degree(base), { level: 0.5, pan: (index % 3) * 0.28 - 0.28 });
     // Statements get a second, quieter strike a beat later — the line landing.
     if (kind === 'statement') {
       play(scene, 'SIGNAL', degree(base + 0.2), { level: 0.22, when: 0.42, distance: 0.4 });
     }
-  }, [index, scene]);
+  }, [index, scene, shots]);
 
-  const shot = SHOTS[index];
+  const shot = shots[index];
   const act = shot.act;
-  const progress = RUNTIME > 0 ? t / RUNTIME : 0;
+  const progress = runtime > 0 ? t / runtime : 0;
   const playing = stage === 'playing' || stage === 'paused';
 
   return (
@@ -273,14 +292,14 @@ export default function DirectorMode({ onReady, onExit, scope }: ModeViewProps) 
               </button>
             )}
             <span className="t-mono t-mono-xs t-faint dr-time">
-              {fmt(t)} / {fmt(RUNTIME)}
+              {fmt(t)} / {fmt(runtime)}
             </span>
           </div>
 
           <div className="dr-progress" aria-hidden="true">
             <span className="dr-progress__fill" style={{ transform: `scaleX(${progress})` }} />
-            {CUES.map((c) => (
-              <span key={c} className="dr-progress__cue" style={{ left: `${(c / RUNTIME) * 100}%` }} />
+            {cues.map((c) => (
+              <span key={c} className="dr-progress__cue" style={{ left: `${(c / runtime) * 100}%` }} />
             ))}
           </div>
         </>
@@ -292,8 +311,37 @@ export default function DirectorMode({ onReady, onExit, scope }: ModeViewProps) 
           <p className="t-mono t-mono-xs t-signal dr-offer__eyebrow">{DIRECTOR_COPY.title}</p>
           <h2 className="t-display t-display-l dr-offer__title">{DIRECTOR_COPY.tagline}</h2>
           <p className="t-mono t-mono-xs t-faint dr-offer__runtime">
-            {DIRECTOR_COPY.runtime} {fmt(RUNTIME)} · {ACTS.length} ACTS
+            {DIRECTOR_COPY.runtime} {fmt(runtime)} · {shots.length} SHOTS
           </p>
+
+          {/*
+            THE CUT, CHOSEN BEFORE THE CLOCK STARTS.
+
+            Not a control inside the film: swapping the edit under a running
+            clock would drop the visitor at an arbitrary point in a different
+            film. The long edit is not a director's-cut curiosity, it is the
+            previous version of this film — kept because every shot in it is
+            good and only its length was wrong.
+          */}
+          <div className="dr-cut" role="group" aria-label="Which cut">
+            <button
+              type="button"
+              className="t-mono t-mono-xs dr-cut__btn"
+              data-on={cut === 'primary' ? 'true' : 'false'}
+              onClick={() => setCut('primary')}
+            >
+              {DIRECTOR_COPY.cutPrimary}
+            </button>
+            <button
+              type="button"
+              className="t-mono t-mono-xs dr-cut__btn"
+              data-on={cut === 'long' ? 'true' : 'false'}
+              onClick={() => setCut('long')}
+            >
+              {DIRECTOR_COPY.cutLong}
+            </button>
+          </div>
+
           <p className="t-body-s t-dim dr-offer__note">{DIRECTOR_COPY.soundNote}</p>
           <div className="dr-offer__actions">
             <button type="button" className="dr-btn dr-btn--signal" onClick={() => begin(true)}>

@@ -757,3 +757,41 @@
   text-align: inherit;
   max-width: 40ch;
 }
+
+/* ==========================================================================
+   WHICH CUT
+
+   Two buttons on the offer card, in the instrument's voice, because the choice
+   is about the film's construction rather than its content. Orange marks the
+   one that will play — the same reading every other acquired state in the Lab
+   gets.
+   ========================================================================== */
+
+.dr-cut {
+  display: flex;
+  gap: 6px;
+  margin-top: var(--s-2);
+}
+
+.dr-cut__btn {
+  padding: 5px 10px;
+  background: transparent;
+  border: 1px solid var(--rule);
+  color: var(--figure-dim);
+  letter-spacing: var(--tr-mono-wide);
+  cursor: pointer;
+  transition:
+    color 140ms var(--e-snap),
+    border-color 140ms var(--e-snap);
+}
+
+.dr-cut__btn:hover,
+.dr-cut__btn:focus-visible {
+  color: var(--figure);
+  border-color: var(--figure-dim);
+}
+
+.dr-cut__btn[data-on='true'] {
+  color: var(--signal);
+  border-color: var(--signal);
+}
