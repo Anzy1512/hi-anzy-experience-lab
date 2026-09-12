@@ -23,13 +23,44 @@ import { DISCLAIMER, type Frame } from './diagnose';
  * sitting on the machine after they left.
  */
 
+/**
+ * Where a line in the brief came from.
+ *
+ * The single most important distinction in this document, and the reason it can
+ * be handed to somebody who was not in the room. A brief that mixes what the
+ * visitor said with what a lookup table produced and what nobody knows yet is
+ * indistinguishable from an audit, which is exactly the claim this product must
+ * not make. Every line carries one of these, in the export as well as on screen.
+ */
+export type Provenance = 'FACT' | 'DERIVED' | 'UNKNOWN' | 'RECOMMENDATION';
+
+export interface ReportLine {
+  p: Provenance;
+  text: string;
+}
+
+/** One method stage, as the simulator works through it. */
+export interface ReportStage {
+  label: string;
+  title: string;
+  lines: ReportLine[];
+}
+
 export interface BriefState {
   /** The framed problem, if one has been made this session. */
   frame: Frame | null;
-  /** Capabilities the visitor selected in TECHNOLOGY.app, if any. */
+  /** Constraints the visitor chose, in their own words. */
   selected: string[];
   /** Where the frame came from, so SYSTEM.app can say so rather than imply. */
   origin: 'terminal' | 'simulator' | null;
+  /**
+   * The five-stage working, when a run has produced one.
+   *
+   * Optional because the Terminal's `diagnose` legitimately stops at the frame:
+   * it is a lookup, not a run, and printing five empty stages after it would
+   * dress a one-line answer up as a piece of work.
+   */
+  stages?: ReportStage[];
 }
 
 let state: BriefState = { frame: null, selected: [], origin: null };
@@ -42,7 +73,15 @@ export function getBrief(): BriefState {
 }
 
 export function setFrame(frame: Frame, origin: 'terminal' | 'simulator'): void {
-  state = { ...state, frame, origin };
+  /* A new statement invalidates the previous run's working. Keeping stale
+     stages under a fresh problem would be the worst failure this file has: a
+     document that looks assembled and describes something else. */
+  state = { ...state, frame, origin, stages: undefined };
+  emit();
+}
+
+export function setRun(frame: Frame, stages: ReportStage[], selected: string[]): void {
+  state = { frame, stages, selected, origin: 'simulator' };
   emit();
 }
 
@@ -124,9 +163,19 @@ export function briefMarkdown(s: BriefState = state): string {
         items: f ? f.capabilities : [],
       },
       {
-        head: 'SELECTED SYSTEMS',
-        items: s.selected,
+        head: 'STATED CONSTRAINTS',
+        body: s.selected.length ? 'Chosen by the visitor. These are facts about the brief, not findings.' : undefined,
+        items: s.selected.map((x) => `FACT — ${x}`),
       },
+      /*
+       * The run, when there was one. Each line keeps its provenance label in
+       * the file as well as on screen: a document travels, and by the time
+       * somebody forwards this the interface that colour-coded it is gone.
+       */
+      ...(s.stages ?? []).map((st) => ({
+        head: `${st.label} — ${st.title}`,
+        items: st.lines.map((l) => `**${l.p}** — ${l.text}`),
+      })),
       {
         head: 'EVIDENCE STILL REQUIRED',
         body: f ? 'None of the following has been established. They are what an audit would go and find.' : undefined,
@@ -179,6 +228,11 @@ export function briefJson(s: BriefState = state): unknown {
     sequence: f?.sequence ?? [],
     capabilities: f?.capabilities ?? [],
     selected: s.selected,
+    stages: (s.stages ?? []).map((st) => ({
+      stage: st.label,
+      title: st.title,
+      lines: st.lines.map((l) => ({ provenance: l.p, text: l.text })),
+    })),
     evidenceRequired: f?.evidence ?? [],
     openQuestions: f?.questions ?? [],
   };

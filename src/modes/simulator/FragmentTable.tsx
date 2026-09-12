@@ -43,7 +43,7 @@ interface Frag {
 interface Props {
   fragments: Frag[];
   reading: SystemReading | null;
-  phase: 'brief' | 'asking' | 'system';
+  phase: 'brief' | 'state' | 'asking' | 'system' | 'report';
   reduced: boolean;
 }
 
@@ -81,7 +81,7 @@ interface Placed {
 }
 
 export function FragmentTable({ fragments, reading, phase, reduced }: Props) {
-  const sorted = phase === 'system' && !!reading;
+  const sorted = (phase === 'system' || phase === 'report') && !!reading;
 
   /** How far through the method the table has been filled. */
   const reached = useMemo(() => {

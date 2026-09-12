@@ -398,4 +398,27 @@ export const SIM_COPY = {
     'A structured reading of what you described, produced by fixed rules. It is a starting point for a conversation, not a plan, a quote, or a prediction.',
   hintPointer: 'CLICK TO CHOOSE · ← BACK',
   hintTouch: 'TAP TO CHOOSE',
+
+  /* ---- stating the problem, in the visitor's own words ------------------ */
+  stateTitle: 'WHAT IS ACTUALLY WRONG?',
+  stateNote:
+    'One or two sentences, in your own words. This is matched against the diagnostic areas Hi Anzy actually audits — it reads words, not meaning, and it will tell you when nothing matched rather than guessing.',
+  statePlaceholder: 'e.g. we get plenty of traffic but almost nobody checks out',
+  stateGo: 'FRAME IT',
+  stateEmpty: 'Nothing matched. Try naming what is happening rather than how it feels — traffic, conversion, margin, churn, reporting, handover, brand, automation.',
+  stateExample: 'USE AN EXAMPLE',
+
+  /* ---- the run ---------------------------------------------------------- */
+  runTitle: 'HI ANZY — PROBLEM BRIEF',
+  runGo: 'PRODUCE THE BRIEF',
+  runNote:
+    'Every line below says where it came from. A finished run is mostly DERIVED and UNKNOWN, which is the honest shape of knowing one sentence about a business.',
+  legend: {
+    FACT: 'You said it, or chose it.',
+    DERIVED: 'A canonical table produced it from a fact above.',
+    UNKNOWN: 'Not established. This cannot establish it.',
+    RECOMMENDATION: 'An opinion, offered as one.',
+  },
+  sendSystem: 'SEND TO SYSTEM.APP',
+  sentSystem: 'SENT — OPEN ANZY.OS',
 } as const;

@@ -5,6 +5,10 @@ import { setPointerIntent } from '../../core/pointer';
 import { useExperience } from '../../experience/context';
 import { QUESTIONS, SIM_COPY } from '../../content/simulator';
 import { fragmentsFor, run, type Answers } from './model';
+import { buildRun, chosenLabels, tally } from './report';
+import { ArtifactBar } from '../../artifacts/ArtifactBar';
+import { briefJson, briefMarkdown, setRun } from '../../system/brief';
+import { DISCLAIMER, frame as buildFrame, type Frame } from '../../system/diagnose';
 import { FragmentTable } from './FragmentTable';
 import { SystemMap } from './SystemMap';
 import './simulator.css';
@@ -29,7 +33,13 @@ import './simulator.css';
  * follow. Movement is GSAP over real elements.
  */
 
-type Phase = 'brief' | 'asking' | 'system';
+/**
+ * `state` is where the visitor writes the problem in their own words, and it is
+ * the phase that turns this from a questionnaire into a simulator. Everything
+ * after it is refinement of something they said, rather than a path through
+ * options somebody else wrote.
+ */
+type Phase = 'brief' | 'state' | 'asking' | 'system' | 'report';
 
 export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
   const reduced = useReducedMotion();
@@ -39,14 +49,28 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
   const [phase, setPhase] = useState<Phase>('brief');
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
+  const [said, setSaid] = useState('');
+  const [frame, setFrameState] = useState<Frame | null>(null);
+  const [noMatch, setNoMatch] = useState(false);
+  const [sent, setSent] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   const question = QUESTIONS[step];
   const fragments = useMemo(() => fragmentsFor(answers), [answers]);
   const reading = useMemo(
-    () => (phase === 'system' ? run(answers) : null),
+    () => (phase === 'system' || phase === 'report' ? run(answers) : null),
     [phase, answers],
   );
+  /*
+   * The five-stage working. Derived rather than stored: it is a pure function
+   * of the frame, the reading and the answers, so holding it in state would
+   * only create a second copy that could disagree with the panel above it.
+   */
+  const stages = useMemo(
+    () => (phase === 'report' && frame && reading ? buildRun(frame, reading, answers) : null),
+    [phase, frame, reading, answers],
+  );
+  const counts = useMemo(() => (stages ? tally(stages) : null), [stages]);
 
   /* ---- entry ------------------------------------------------------------- */
   useEffect(() => {
@@ -55,16 +79,40 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
     return () => window.clearTimeout(id);
   }, [onReady, reduced]);
 
-  /* Leaving must not leave the simulation half-run for the next visit. */
+  /* Leaving must not leave the simulation half-run for the next visit. The
+     session brief is deliberately NOT cleared here: a visitor who framed a
+     problem and walked to ANZY.OS to read it there has not withdrawn it. */
   useEffect(() => {
     const reset = () => {
       setPhase('brief');
       setStep(0);
       setAnswers({});
+      setSaid('');
+      setFrameState(null);
+      setNoMatch(false);
+      setSent(false);
     };
     scope.add(reset);
     return reset;
   }, [scope]);
+
+  /* ---- stating the problem ----------------------------------------------- */
+  const stateProblem = useCallback(() => {
+    const text = said.trim();
+    if (!text) return;
+    const f = buildFrame(text);
+    if (f.empty) {
+      /* An unmatched sentence is not an error and is not advanced past. The
+         model has nothing to say about it and says so, which is the whole
+         reason this is a lookup rather than something that always answers. */
+      setNoMatch(true);
+      setFrameState(null);
+      return;
+    }
+    setNoMatch(false);
+    setFrameState(f);
+    setPhase('asking');
+  }, [said]);
 
   /* ---- flow -------------------------------------------------------------- */
   const choose = useCallback(
@@ -82,13 +130,17 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
   );
 
   const revise = useCallback(() => {
+    if (phase === 'report') {
+      setPhase('system');
+      return;
+    }
     if (phase === 'system') {
       setPhase('asking');
       setStep(QUESTIONS.length - 1);
       return;
     }
     if (step === 0) {
-      setPhase('brief');
+      setPhase('state');
       return;
     }
     const prev = QUESTIONS[step - 1];
@@ -104,12 +156,37 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
     setPhase('brief');
     setStep(0);
     setAnswers({});
+    setSaid('');
+    setFrameState(null);
+    setNoMatch(false);
+    setSent(false);
   }, []);
+
+  /*
+   * Handing the run to the rest of the Lab.
+   *
+   * `setRun` replaces the whole brief rather than merging into it: a second run
+   * describes a different problem, and a brief carrying one statement with
+   * another run's stages under it would be the worst thing this could produce —
+   * a document that looks assembled and is about two things.
+   */
+  const send = useCallback(() => {
+    if (!frame || !stages) return;
+    setRun(frame, stages, chosenLabels(answers));
+    setSent(true);
+  }, [frame, stages, answers]);
 
   /* ---- keyboard ---------------------------------------------------------- */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+      /*
+       * The problem is typed into a real textarea now, so Backspace belongs to
+       * whatever has focus before it belongs to this mode. Without this guard
+       * deleting a character walks the visitor back a step instead.
+       */
+      const el = document.activeElement;
+      if (el instanceof HTMLTextAreaElement || el instanceof HTMLInputElement) return;
       if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
         if (phase === 'brief') return;
         e.preventDefault();
@@ -120,7 +197,8 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
     return () => window.removeEventListener('keydown', onKey);
   }, [phase, revise]);
 
-  const stageIndex = phase === 'system' ? 4 : phase === 'brief' ? 0 : Math.min(3, step);
+  const stageIndex =
+    phase === 'report' || phase === 'system' ? 4 : phase === 'brief' || phase === 'state' ? 0 : Math.min(3, step);
 
   return (
     <div className="sim" ref={rootRef} data-phase={phase}>
@@ -150,12 +228,72 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
             <button
               type="button"
               className="sim-begin"
-              onClick={() => setPhase('asking')}
+              onClick={() => setPhase('state')}
               onPointerEnter={() => setPointerIntent('enter')}
               onPointerLeave={() => setPointerIntent('default')}
             >
               <span className="t-mono">{SIM_COPY.begin}</span>
             </button>
+          </section>
+        )}
+
+        {phase === 'state' && (
+          <section className="sim-state">
+            <h2 className="t-display t-display-m sim-ask__prompt">{SIM_COPY.stateTitle}</h2>
+            <p className="t-body-s t-dim sim-ask__note">{SIM_COPY.stateNote}</p>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                stateProblem();
+              }}
+            >
+              <label className="sim-state__label t-mono t-mono-xs t-dim" htmlFor="sim-said">
+                THE PROBLEM
+              </label>
+              <textarea
+                id="sim-said"
+                className="t-body sim-state__input"
+                value={said}
+                onChange={(e) => {
+                  setSaid(e.target.value);
+                  if (noMatch) setNoMatch(false);
+                }}
+                placeholder={SIM_COPY.statePlaceholder}
+                rows={3}
+                autoComplete="off"
+                /*
+                 * Enter submits, Shift+Enter makes a new line. A textarea is
+                 * right here — problems arrive as two sentences more often than
+                 * one — but a form whose primary action needs a mouse would be
+                 * the wrong trade in a mode that is otherwise fully keyboard.
+                 */
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    stateProblem();
+                  }
+                }}
+              />
+              <div className="sim-state__row">
+                <button type="submit" className="sim-begin" disabled={!said.trim()}>
+                  <span className="t-mono">{SIM_COPY.stateGo}</span>
+                </button>
+                <button
+                  type="button"
+                  className="sim-act"
+                  onClick={() => {
+                    setSaid(SIM_COPY.statePlaceholder.replace(/^e\.g\. /, ''));
+                    setNoMatch(false);
+                  }}
+                >
+                  {SIM_COPY.stateExample}
+                </button>
+              </div>
+            </form>
+            {/* Always in the DOM so the region is not announced as it appears. */}
+            <p className="t-body-s sim-state__miss" role="status" data-on={noMatch ? 'true' : 'false'}>
+              {noMatch ? SIM_COPY.stateEmpty : ''}
+            </p>
           </section>
         )}
 
@@ -191,7 +329,88 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
         )}
 
         {phase === 'system' && reading && (
-          <SystemMap reading={reading} onDistrict={() => enterMode('living-world')} />
+          <>
+            <SystemMap reading={reading} onDistrict={() => enterMode('living-world')} />
+            <button type="button" className="sim-begin sim-begin--run" onClick={() => setPhase('report')}>
+              <span className="t-mono">{SIM_COPY.runGo}</span>
+            </button>
+          </>
+        )}
+
+        {phase === 'report' && stages && counts && frame && (
+          <section className="sim-report">
+            <h2 className="t-display t-display-m sim-report__title">{SIM_COPY.runTitle}</h2>
+            <p className="t-body-s t-dim sim-report__note">{SIM_COPY.runNote}</p>
+
+            {/* The proportions, stated before the document rather than after it. */}
+            <p className="t-mono t-mono-xs sim-report__tally">
+              {(['FACT', 'DERIVED', 'UNKNOWN', 'RECOMMENDATION'] as const).map((k) => (
+                <span key={k} data-p={k}>
+                  {k} {counts[k]}
+                </span>
+              ))}
+            </p>
+
+            <dl className="sim-report__legend">
+              {(['FACT', 'DERIVED', 'UNKNOWN', 'RECOMMENDATION'] as const).map((k) => (
+                <div key={k}>
+                  <dt className="t-mono t-mono-xs" data-p={k}>
+                    {k}
+                  </dt>
+                  <dd className="t-body-s t-dim">{SIM_COPY.legend[k]}</dd>
+                </div>
+              ))}
+            </dl>
+
+            <ol className="sim-report__stages">
+              {stages.map((st) => (
+                <li key={st.label}>
+                  <h3 className="t-mono t-mono-s sim-report__stage">
+                    <span className="t-signal">{st.label}</span>
+                    <span className="t-faint"> · </span>
+                    <span className="t-dim">{st.title}</span>
+                  </h3>
+                  <ul className="sim-report__lines">
+                    {st.lines.map((l, i) => (
+                      <li key={`${st.label}-${i}`}>
+                        <span className="t-mono t-mono-xs sim-report__p" data-p={l.p}>
+                          {l.p}
+                        </span>
+                        <span className="t-body-s sim-report__text">{l.text}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ol>
+
+            <ArtifactBar
+              formats={['copy', 'markdown', 'json']}
+              label="THE BRIEF"
+              build={() => {
+                /* Composed from a state object built here rather than from the
+                   store, so the file is what is on screen even if the visitor
+                   has not pressed SEND. */
+                const s = {
+                  frame,
+                  stages,
+                  selected: chosenLabels(answers),
+                  origin: 'simulator' as const,
+                };
+                return {
+                  name: 'hi-anzy-problem-brief',
+                  text: briefMarkdown(s),
+                  data: briefJson(s),
+                };
+              }}
+            >
+              <button type="button" className="t-mono t-mono-xs artifact__btn" onClick={send}>
+                {sent ? SIM_COPY.sentSystem : SIM_COPY.sendSystem}
+              </button>
+            </ArtifactBar>
+
+            <p className="t-body-s t-dim sim-report__disclaimer">{DISCLAIMER}</p>
+          </section>
         )}
 
         <footer className="sim-panel__foot">

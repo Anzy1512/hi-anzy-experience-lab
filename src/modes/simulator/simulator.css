@@ -612,3 +612,243 @@
 .sim-derived dd {
   margin: 0;
 }
+
+/* ==========================================================================
+   STATING THE PROBLEM
+
+   The one place in the Lab where a visitor writes prose. It is set as a
+   written field on paper rather than as a form control: a rule under the
+   line, no box, and the same measure as the body text above it. A boxed
+   input here would make the mode read as the questionnaire it spent its
+   whole design refusing to be.
+   ========================================================================== */
+
+.sim-state {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sim-state__label {
+  display: block;
+  letter-spacing: var(--tr-mono-wide);
+  margin-bottom: 6px;
+}
+
+.sim-state__input {
+  width: 100%;
+  padding: 8px 0;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  color: var(--figure);
+  resize: vertical;
+  font: inherit;
+  transition: border-color 140ms var(--e-snap);
+}
+
+.sim-state__input:focus {
+  outline: none;
+  border-bottom-color: var(--signal);
+}
+
+.sim-state__input::placeholder {
+  color: var(--figure-faint, var(--figure-dim));
+}
+
+.sim-state__row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.sim-state__miss {
+  min-height: 3em;
+  color: var(--signal);
+}
+
+.sim-state__miss[data-on='false'] {
+  visibility: hidden;
+}
+
+/* ==========================================================================
+   THE RUN
+
+   A document, not a dashboard. Provenance is carried by a fixed-width label
+   in the margin rather than by colour alone — the distinction between what
+   you said and what nobody knows is the load-bearing fact in this brief, and
+   it has to survive a greyscale print and a colour-blind reader. Colour is
+   the second signal, never the only one.
+   ========================================================================== */
+
+.sim-report {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sim-report__tally {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  letter-spacing: var(--tr-mono-wide);
+}
+
+.sim-report__legend {
+  display: grid;
+  gap: 4px 12px;
+  grid-template-columns: auto 1fr;
+  padding: 10px 0;
+  border-top: 1px solid var(--rule-faint);
+  border-bottom: 1px solid var(--rule-faint);
+}
+
+.sim-report__legend > div {
+  display: contents;
+}
+
+.sim-report__legend dt {
+  letter-spacing: var(--tr-mono-wide);
+}
+
+.sim-report__stages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.sim-report__stage {
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--rule);
+  letter-spacing: var(--tr-mono-wide);
+}
+
+.sim-report__lines {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sim-report__lines > li {
+  display: grid;
+  /* A fixed first column, so every label starts at the same x and the shape
+     of the document is readable before a single word of it is. */
+  grid-template-columns: 10.5em 1fr;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.sim-report__p {
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--figure-dim);
+}
+
+/* FACT is what the visitor themselves put in, and is the only thing on this
+   page the product is not responsible for. It gets the full figure weight. */
+.sim-report__p[data-p='FACT'],
+.sim-report__tally [data-p='FACT'],
+.sim-report__legend dt[data-p='FACT'] {
+  color: var(--figure);
+}
+
+/* UNKNOWN carries the warning colour because it is the most important class
+   of line in the document: everything a real audit would still have to find. */
+.sim-report__p[data-p='UNKNOWN'],
+.sim-report__tally [data-p='UNKNOWN'],
+.sim-report__legend dt[data-p='UNKNOWN'] {
+  color: var(--signal);
+}
+
+.sim-report__disclaimer {
+  padding-top: 10px;
+  border-top: 1px solid var(--rule-faint);
+}
+
+.sim-begin--run {
+  margin-top: 16px;
+}
+
+@media (max-width: 620px) {
+  .sim-report__lines > li {
+    grid-template-columns: 1fr;
+    gap: 1px;
+  }
+}
+
+/* ==========================================================================
+   THE REPORT TAKES THE ROOM
+
+   The panel is a 420px rail because a question and six options want a narrow
+   measure. A brief does not. Left in the rail, the provenance label ate a
+   third of the column and the body set four words to the line, which is not
+   a document anybody would read, let alone forward.
+
+   So the report phase widens the panel to a reading measure and pushes the
+   table back rather than hiding it: the fragments stay on screen, dimmed,
+   as the material the document was made from. That is the argument of this
+   whole mode in one frame — loose words on the left, the system they became
+   on the right — and it only becomes available once there is a document to
+   put beside them.
+   ========================================================================== */
+
+.sim[data-phase='report'] .sim-panel {
+  width: min(920px, 74%);
+}
+
+/*
+ * The table keeps its full width and the panel sits over it.
+ *
+ * Moving its right edge in to meet the wider panel looked correct in the rule
+ * and wrong on screen: fragment positions are absolute and were computed
+ * against the old width, so every word in the right-hand columns was sliced
+ * mid-letter by the container's own overflow -- "NOTHING E", "FIRST IMPRESSI".
+ * Clipped words read as a broken layout, not as material receding. Leaving the
+ * table alone and letting the panel cover part of it gives the same composition
+ * with none of the damage.
+ */
+.sim[data-phase='report'] .sim-table {
+  right: 0;
+  opacity: 0.4;
+  transition: opacity 420ms var(--e-glide);
+}
+
+/* Opaque while it is covering the table, rather than the gradient it wears
+   when it is a rail with nothing behind it. */
+.sim[data-phase='report'] .sim-panel {
+  background: var(--c-bone);
+}
+
+/* At a reading measure the label column can be narrower in proportion and
+   still hold the longest word in the vocabulary on one line. */
+.sim[data-phase='report'] .sim-report__lines > li {
+  grid-template-columns: 9.5em 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 1100px) {
+  .sim[data-phase='report'] .sim-panel {
+    width: min(920px, 86%);
+  }
+}
+
+/* Stacked layout: the panel is already full width, so only the label column
+   needs to give way. */
+@media (max-width: 900px) {
+  .sim[data-phase='report'] .sim-panel,
+  .sim[data-phase='report'] .sim-table {
+    width: auto;
+    right: 0;
+  }
+  .sim[data-phase='report'] .sim-report__lines > li {
+    grid-template-columns: 1fr;
+    gap: 1px;
+  }
+}
