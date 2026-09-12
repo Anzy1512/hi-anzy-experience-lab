@@ -12,6 +12,9 @@ import { SpatialCanvas } from '../../spatial/SpatialCanvas';
 import { useSpatialCells, type SpatialCell } from '../../spatial/useSpatialCells';
 import { clamp01, damp, lerp, PERSPECTIVE, type Viewport } from '../../spatial/projection';
 import { CompilerDocument } from './CompilerDocument';
+import { CANONICAL_PAGES, CANONICAL_PAGES_COMMIT } from '../../content/canonicalPages';
+import { ArtifactBar } from '../../artifacts/ArtifactBar';
+import { toMarkdown } from '../../artifacts/artifact';
 import { Scaffold } from './Scaffold';
 import { Terrain } from './Terrain';
 import { StageRail } from './StageRail';
@@ -52,6 +55,17 @@ export default function CompilerMode({ onReady, onExit, scope }: ModeViewProps) 
   const { enterMode } = useExperience();
 
   const quality = useMemo(() => spatialQuality(capability), [capability]);
+
+  /*
+   * WHICH REAL PAGE IS BEING COMPILED.
+   *
+   * The selector is the whole difference between "here is a transformation" and
+   * "here is a transformation *of something you can go and look at*". Changing
+   * it remounts the document, so the compilation re-measures against the new
+   * page's own cells rather than against a stale plane table.
+   */
+  const [pageIndex, setPageIndex] = useState(0);
+  const page = CANONICAL_PAGES[pageIndex] ?? CANONICAL_PAGES[0];
   const rootRef = useRef<HTMLDivElement>(null);
   const docRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
@@ -289,7 +303,12 @@ export default function CompilerMode({ onReady, onExit, scope }: ModeViewProps) 
       {/* The shared world transform lives here and is mirrored into the scene. */}
       <div className="rc-world" ref={worldRef}>
         <div className="rc-doc-wrap" ref={docRef}>
-          <CompilerDocument />
+          <CompilerDocument
+            key={page.route}
+            page={page}
+            reduced={reduced}
+            scope={scope}
+          />
         </div>
       </div>
 
@@ -319,6 +338,100 @@ export default function CompilerMode({ onReady, onExit, scope }: ModeViewProps) 
         <p className="rc-fallback t-mono t-mono-xs" role="status">
           {COMPILER_COPY.fallback}
         </p>
+      )}
+
+      {/*
+        THE SOURCE SELECTOR.
+
+        Hidden once the sheet has left the page: changing the subject halfway
+        through a transformation would re-measure the planes underneath a world
+        that is already standing, and the honest reading of "which page is this"
+        belongs at the start of the compilation rather than in the middle of it.
+      */}
+      {stageIndex === 0 && (
+        <nav className="rc-source" aria-label="Which page to compile">
+          <p className="t-mono t-mono-xs t-dim rc-source__label">{COMPILER_COPY.sourceLabel}</p>
+          <ul className="rc-source__list">
+            {CANONICAL_PAGES.map((p, i) => (
+              <li key={p.route}>
+                <button
+                  type="button"
+                  className="t-mono t-mono-xs rc-source__btn"
+                  data-on={i === pageIndex ? 'true' : 'false'}
+                  onClick={() => setPageIndex(i)}
+                >
+                  {p.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
+
+      {/*
+        THE MANIFEST.
+
+        The Compiler's retainable output is the account of what it just did:
+        every plane, the file it was read from, the grid it spans, the ground it
+        sits on and the colours in it. That is genuinely useful to somebody
+        auditing the commercial page, and it is the one artifact in the Lab that
+        is *about* the canonical site rather than about the visitor.
+      */}
+      {atWorld && (
+        <div className="rc-manifest">
+          <ArtifactBar
+            formats={['copy', 'markdown', 'json']}
+            label={COMPILER_COPY.manifestLabel}
+            build={() => ({
+              name: `hi-anzy-compile-${page.route.replace(/\W+/g, '-') || 'home'}`,
+              text: toMarkdown({
+                title: `HI ANZY — TRANSFORMATION MANIFEST`,
+                standfirst: `${page.name} (${page.route}), read from ${page.file} at ${CANONICAL_PAGES_COMMIT}. A structural read of the page's own source, not a screenshot and not a runtime measurement.`,
+                sections: [
+                  {
+                    head: 'PAGE',
+                    items: [
+                      `Route — ${page.route}`,
+                      `Title — ${page.title ?? 'UNKNOWN'}`,
+                      `Source — ${page.file}`,
+                      `Commit — ${CANONICAL_PAGES_COMMIT}`,
+                      `Planes — ${page.sections.length}`,
+                    ],
+                  },
+                  ...page.sections.map((s) => ({
+                    head: `PLANE ${s.index} — ${s.label}`,
+                    items: [
+                      s.transition ? `Transition into — ${s.transition}` : '',
+                      s.headings[0] ? `Heading — ${s.headings[0].text}` : '',
+                      s.copy[0] ? `Copy — ${s.copy[0]}` : '',
+                      s.columns ? `Grid — ${s.columns} columns` : '',
+                      `Ground — ${s.ground}`,
+                      s.roles.length ? `Type — ${s.roles.join(', ')}` : '',
+                      s.colours.length ? `Colour — ${s.colours.join(' ')}` : '',
+                      s.components.length ? `Components — ${s.components.join(', ')}` : '',
+                      s.data.length ? `Canonical data — ${s.data.join(', ')}` : '',
+                      `Source — ${s.source}${s.read ? '' : ' (NOT READ)'}`,
+                    ].filter(Boolean),
+                  })),
+                ],
+                footer: {
+                  'CANONICAL SOURCE': CANONICAL_PAGES_COMMIT,
+                  METHOD: 'Structural read of committed source. No runtime measurement, no screenshot.',
+                  STORAGE: 'NONE — nothing was written to this device',
+                },
+              }),
+              data: {
+                route: page.route,
+                title: page.title,
+                description: page.description,
+                file: page.file,
+                commit: CANONICAL_PAGES_COMMIT,
+                method: 'structural-read',
+                planes: page.sections,
+              },
+            })}
+          />
+        </div>
       )}
 
       <StageRail

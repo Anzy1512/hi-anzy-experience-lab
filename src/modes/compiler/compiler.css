@@ -483,3 +483,301 @@
     padding-bottom: 7px;
   }
 }
+
+/* ==========================================================================
+   THE SOURCE SELECTOR
+
+   Five real routes. It sits at the foot of the sheet while the sheet is still
+   a sheet, and leaves as soon as compilation begins — a subject you can change
+   halfway through a transformation is not a subject, it is a filter.
+   ========================================================================== */
+
+.rc-source {
+  position: absolute;
+  left: var(--trim);
+  bottom: calc(var(--trim) * 2.6);
+  z-index: 3;
+  max-width: min(560px, 70vw);
+}
+
+.rc-source__label {
+  letter-spacing: var(--tr-mono-wide);
+  margin-bottom: 6px;
+}
+
+.rc-source__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rc-source__btn {
+  padding: 5px 9px;
+  background: transparent;
+  border: 1px solid var(--rule);
+  color: var(--figure-dim);
+  letter-spacing: var(--tr-mono-wide);
+  cursor: pointer;
+  transition:
+    color 140ms var(--e-snap),
+    border-color 140ms var(--e-snap);
+}
+
+.rc-source__btn:hover,
+.rc-source__btn:focus-visible {
+  color: var(--figure);
+  border-color: var(--figure-dim);
+}
+
+/* Orange means signal: the page actually being compiled. */
+.rc-source__btn[data-on='true'] {
+  color: var(--signal);
+  border-color: var(--signal);
+}
+
+/* ==========================================================================
+   PROVENANCE ON THE SHEET
+
+   Every plane states where it was read from. Set in the instrument's voice at
+   the smallest size in the mode, because it is apparatus rather than content —
+   but never hidden, since the claim that this is a real page is worth exactly
+   as much as a visitor's ability to check it.
+   ========================================================================== */
+
+.rc-doc__transition {
+  color: var(--signal);
+  letter-spacing: var(--tr-mono-wide);
+  margin-bottom: 4px;
+}
+
+.rc-doc__prov {
+  margin-top: 6px;
+  letter-spacing: 0.08em;
+  word-break: break-word;
+}
+
+.rc-doc__swatches {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+/* A drawn swatch, not a chip: a hairline box with the real value inside it, so
+   the colour is being *sampled from the source* rather than styled. */
+.rc-doc__swatch {
+  width: 16px;
+  height: 10px;
+  border: 1px solid var(--rule);
+}
+
+.rc-doc__colophon {
+  margin-top: 18px;
+  padding-top: 8px;
+  border-top: 1px solid var(--rule-faint);
+  letter-spacing: 0.08em;
+}
+
+/* ==========================================================================
+   THE MANIFEST
+   ========================================================================== */
+
+.rc-manifest {
+  position: absolute;
+  left: var(--trim);
+  right: var(--trim);
+  bottom: calc(var(--trim) * 2.4);
+  z-index: 4;
+  max-width: 620px;
+  background: var(--ground);
+  padding: 12px 14px;
+  border: 1px solid var(--rule);
+}
+
+@media (max-width: 900px) {
+  .rc-source {
+    max-width: calc(100% - var(--trim) * 2);
+  }
+  .rc-manifest {
+    max-width: none;
+  }
+}
+
+/* ==========================================================================
+   THE SHEET HOLDS A REAL PAGE NOW
+
+   `.rc-doc__stages` was `repeat(6, 1fr)` because the authored document it used
+   to compile had exactly six stages of four words each. A real Hi Anzy page
+   has fifteen sections carrying headings, copy, provenance and swatches, so
+   the fixed six-column rule wrapped them into rows that ran off the bottom of
+   the sheet. Auto-fit sizes to whatever the selected page actually has —
+   fifteen on HOME, four on NETWORK — which is the only version of this rule
+   that survives a page selector.
+   ========================================================================== */
+
+.rc-doc__stages {
+  grid-template-columns: repeat(auto-fit, minmax(clamp(104px, 10vw, 150px), 1fr));
+  row-gap: clamp(10px, 1.6vh, 22px);
+  overflow: visible;
+}
+
+/*
+ * Each cell is a card of the sheet, not an essay. The copy is clamped rather
+ * than truncated in the data: the full text is in the DOM for a screen reader
+ * and in the exported manifest, and the sheet shows as much of it as a column
+ * this wide can hold honestly.
+ */
+.rc-doc__stage-line {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.rc-doc__prov {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  opacity: 0.75;
+}
+
+/* ==========================================================================
+   THE SELECTOR MOVES OUT OF THE TITLE BLOCK
+
+   Bottom-left is where the mode's own name and tagline live, and the selector
+   was printing straight over them. Top-right is the only free corner on this
+   sheet once the masthead has taken the full measure — and it sits directly
+   under the EXIT control, which is the right neighbourhood for a control.
+   ========================================================================== */
+
+.rc-source {
+  left: auto;
+  bottom: auto;
+  top: calc(var(--trim) * 3.6);
+  right: var(--trim);
+  max-width: min(430px, 46vw);
+  text-align: right;
+}
+
+.rc-source__list {
+  justify-content: flex-end;
+}
+
+@media (max-width: 900px) {
+  .rc-source {
+    top: auto;
+    bottom: calc(var(--trim) * 4.6);
+    left: var(--trim);
+    right: var(--trim);
+    max-width: none;
+    text-align: left;
+  }
+  .rc-source__list {
+    justify-content: flex-start;
+  }
+}
+
+/* ==========================================================================
+   THE MASTHEAD IS A PAGE TITLE NOW, NOT A WORDMARK
+
+   `clamp(2.6rem, 8vw, 6.5rem)` was right for the single word HI ANZY. A real
+   page title is a sentence — "hiAnzy | We Build Brand Operating Systems" — and
+   at 8vw it set three lines of display type across half the sheet, which left
+   the planes nowhere to go and pushed them off the bottom edge. Sized for a
+   headline instead of a logotype, the sheet holds fifteen sections and still
+   reads as an editorial page.
+   ========================================================================== */
+
+.rc-doc__title {
+  font-size: clamp(1.5rem, 3vw, 2.9rem);
+  line-height: 1.02;
+  max-width: 22ch;
+}
+
+.rc-doc__plate-img {
+  max-height: 22vh;
+}
+
+/* ==========================================================================
+   THE SELECTOR SITS IN THE CHROME BAND
+
+   Bottom-left printed over the mode's own title; top-right printed over the
+   specimen plate. The one strip on this screen that belongs to chrome rather
+   than to the document is the header rule the mode name and EXIT already share,
+   and there is a clear span between them.
+   ========================================================================== */
+
+.rc-source {
+  top: calc(var(--trim) * 0.72);
+  right: 220px;
+  max-width: min(660px, 52vw);
+}
+
+.rc-source__label {
+  display: none;
+}
+
+@media (max-width: 1180px) {
+  .rc-source {
+    top: auto;
+    bottom: calc(var(--trim) * 4.8);
+    left: var(--trim);
+    right: var(--trim);
+    max-width: none;
+    text-align: left;
+  }
+  .rc-source__label {
+    display: block;
+  }
+  .rc-source__list {
+    justify-content: flex-start;
+  }
+}
+
+/* The transition slot is reserved on every plane so the row stays level. One
+   line was not enough: "CAPABILITY 92 METHOD" wraps in a 100px column, so the
+   three planes that carry a transition still sat 10px below the other nine.
+   Two lines fits every label the pages actually use, and clamps the rest. */
+.rc-doc__transition {
+  min-height: 2.8em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Twelve columns on a 1440 sheet is a ~100px measure, which is right for an
+   index and wrong for a word like DIAGNOSTIC. Breaking is better than clipping:
+   the section name is the one thing on the card that must be complete. */
+.rc-doc__stage-name,
+.rc-doc__stage-line {
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   THE SECTION NAME IS AN INDEX ENTRY, NOT A HEADING
+
+   At six authored stages the name was a heading and `clamp(.95rem, 1.75vw,
+   1.6rem)` was right for it. Twelve real sections on a twelve-column measure
+   give each name about 100px, where 25px type breaks PREVIEW into PREVIE/W —
+   and a mid-word break on the one field that identifies the plane is the worst
+   place on the card to put one. Sized to the column it actually has, the names
+   set whole, and `break-word` only breaks what genuinely cannot fit.
+   ========================================================================== */
+
+.rc-doc__stage-name {
+  font-size: clamp(0.78rem, 1.02vw, 1.06rem);
+  line-height: 1.12;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.rc-doc__stage-line {
+  overflow-wrap: break-word;
+}

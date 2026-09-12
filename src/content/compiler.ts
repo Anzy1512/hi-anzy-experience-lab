@@ -14,7 +14,7 @@
  * transformation is legible because the content already had a direction.
  */
 
-export const COMPILER_DOC = {
+export const COMPILER_DOC_LEGACY = {
   plate: 'DOCUMENT 01',
   kicker: 'THE METHOD',
   title: 'HI ANZY',
@@ -56,4 +56,6 @@ export const COMPILER_COPY = {
   enterWorld: 'ENTER THE WORLD',
   fallback:
     'The structural layer needs WebGL, which is unavailable here. The document still compiles into depth — the scaffolding around it is simply not drawn.',
+  sourceLabel: 'COMPILING',
+  manifestLabel: 'THE TRANSFORMATION MANIFEST',
 } as const;
