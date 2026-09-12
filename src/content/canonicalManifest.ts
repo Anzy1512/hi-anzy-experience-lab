@@ -12,8 +12,8 @@
  *
  * SOURCE OF TRUTH
  *   repo   github.com/Anzy1512/hi-anzy-platform
- *   branch main
- *   commit 6e36db1
+ *   branch main (read from `origin/main`, never a local checkout)
+ *   commit eac2282 — verified 2026-09-12
  * The commercial frontend is never imported at runtime. See `canonical.ts` for
  * the mirroring decision and `scripts/check-canonical-sync.mjs` for the drift
  * check that tells you when this file has gone stale.
@@ -243,6 +243,25 @@ export const ROUTES: ManifestEntry[] = [
     rationale: 'An error surface. The Lab has its own recovery path via emergencyReset.',
     consentRisk: 'none',
     payloadRisk: 'none',
+    status: 'done',
+  },
+  {
+    /*
+     * Phase 8.6 found this one missing. It serves six live routes —
+     * /work/built-here, /work/built-together, and the four /network rosters —
+     * and arrived in canonical `main` when the work-ecosystem branch merged.
+     * A manifest whose stated premise is that `NOT_MAPPED` is not a value the
+     * type can hold had a page it had never heard of, which is the exact
+     * failure this file exists to make impossible.
+     */
+    source: 'pages/ecosystem/EcosystemCategoryPage.js',
+    sourceType: 'route',
+    treatment: 'EXCLUDED',
+    destinations: [],
+    rationale:
+      'Its taxonomy is mirrored as ORBIT_CATEGORIES; its contents are not, and never will be. The page fetches its items from the commercial backend, and those items are named collaborators, named artists, named venues and named partners. The Lab may describe the kinds of relationship the network holds. It may not name one — that is the same rule that keeps Memory full of unrecovered fields rather than case studies.',
+    consentRisk: 'high',
+    payloadRisk: 'low',
     status: 'done',
   },
 ];

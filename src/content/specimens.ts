@@ -54,7 +54,8 @@
  * is supported everywhere this product already requires `:has()` and
  * `color-mix()`, both of which shipped later.
  *
- *   source   Anzy1512/hi-anzy-platform @ 6e36db1, frontend/public/brand/
+ *   source   Anzy1512/hi-anzy-platform @ eac2282, frontend/public/brand/
+ *            (the brand tree is byte-identical to 6e36db1; re-pinned, not re-read)
  */
 
 /**

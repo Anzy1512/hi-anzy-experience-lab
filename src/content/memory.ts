@@ -95,7 +95,11 @@ export const RECORDS: MemoryRecord[] = [
     lost: [],
   },
   {
-    id: 'assemble',
+    /* Was `assemble`, a leftover key from the retired method. The record's own
+       title has been CONNECT since the canonical sweep; only the internal id
+       still carried the old vocabulary, where nothing could see it contradict
+       the title above it. Unreferenced anywhere else, so renaming it is free. */
+    id: 'connect',
     index: 'M.04',
     category: 'METHOD',
     title: 'CONNECT',

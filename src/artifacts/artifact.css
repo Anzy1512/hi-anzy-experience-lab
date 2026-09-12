@@ -1,0 +1,82 @@
+/* ==========================================================================
+   THE ARTIFACT BAR
+
+   Deliberately plain. This strip appears at the end of six different tools, on
+   three different material states, and the one thing it must never do is look
+   like a feature of the tool it happens to be sitting in — it is the same
+   object everywhere, which is how a visitor learns that a Hi Anzy instrument
+   ends with something they can keep.
+
+   Everything is a semantic token, so it inherits paper, ink or blueprint
+   without a single per-material rule.
+   ========================================================================== */
+
+.artifact {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule);
+}
+
+.artifact__label {
+  color: var(--figure-dim);
+  letter-spacing: var(--tr-mono-wide);
+}
+
+.artifact__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.artifact__btn {
+  padding: 7px 12px;
+  background: transparent;
+  border: 1px solid var(--rule);
+  color: var(--figure);
+  letter-spacing: var(--tr-mono-wide);
+  cursor: pointer;
+  transition:
+    border-color 140ms var(--e-snap),
+    color 140ms var(--e-snap);
+}
+
+/* Orange means signal, and an export control is the acquired action on this
+   strip — the same reading the EXIT control and the one online reality get. */
+.artifact__btn:hover:not(:disabled),
+.artifact__btn:focus-visible {
+  border-color: var(--signal);
+  color: var(--signal);
+}
+
+.artifact__btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+/*
+   The message holds its line whether or not there is a message, so pressing a
+   button never reflows the panel underneath it. `min-height` rather than a
+   non-breaking space: an empty status region should be empty to a screen
+   reader, not a blank announcement.
+*/
+.artifact__msg {
+  min-height: 1.5em;
+  letter-spacing: var(--tr-mono-wide);
+  transition: color 140ms var(--e-snap);
+}
+
+.artifact__msg[data-state='idle'] {
+  color: transparent;
+}
+
+.artifact__msg[data-state='ok'] {
+  color: var(--figure-dim);
+}
+
+/* A refusal is not decorated, it is just the one thing on the strip that is
+   allowed to be the warning colour. */
+.artifact__msg[data-state='fail'] {
+  color: var(--signal);
+}

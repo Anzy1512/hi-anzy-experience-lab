@@ -37,7 +37,15 @@ export const CANONICAL_SOURCE = {
      holds the same string and is what tells you when it has gone stale;
      PERFORMANCE prints it so a visitor can see which version they are looking
      at rather than taking "converged" on trust. */
-  commit: '6e36db1',
+  commit: 'eac2282',
+  /* Verified 2026-09-12 against `origin/main`, not a local checkout: the clone
+     used for Phase 8 staging sits on a branch whose `main` is two unpushed
+     commits ahead of the remote, so "HEAD" there was never canonical truth.
+     `content.js` is byte-identical between `6e36db1` and `eac2282` — canonical
+     moved twenty commits without touching one value below, which is why the
+     sync check now hashes sources rather than comparing commits. */
+  verifiedAgainst: 'origin/main',
+  verifiedOn: '2026-09-12',
 } as const;
 
 /* -------------------------------------------------------------------------- */
@@ -440,3 +448,34 @@ export const SYSTEM_LOOP = {
  * recorded in `spatial/translation.ts` as ANATOMY_SPINE, which is the part the
  * Lab actually uses, and the Agency Simulator's registers are built on it.
  */
+
+/* -------------------------------------------------------------------------- */
+/* THE ORBIT — the six categories the Hi Anzy ecosystem is grouped into        */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * `ORBIT_CATEGORIES` from the commercial frontend.
+ *
+ * Added in Phase 8.6. It entered canonical `main` when the work-ecosystem
+ * branch merged, and the Lab had been mirroring around it: six live routes and
+ * the page that serves them were the one gap in a manifest whose entire premise
+ * is that no surface goes unaccounted for.
+ *
+ * ── ONLY THE TAXONOMY CROSSES, NEVER THE ROSTER ─────────────────────────────
+ *
+ * The categories are the company's own structure and are safe to mirror. What
+ * fills them is not: `EcosystemCategoryPage` fetches its items from the
+ * commercial backend, and those items are named collaborators, named artists,
+ * named venues and named partners. That is precisely the class of content this
+ * product may never assert — see the manifest entry, which excludes the page
+ * for that reason rather than for a technical one. The Lab can say what kinds
+ * of relationship exist. It cannot name a single one of them.
+ */
+export const ORBIT_CATEGORIES = [
+  { num: '01', key: 'built_here', name: 'BUILT HERE', descriptor: 'In-house projects', route: '/work/built-here' },
+  { num: '02', key: 'built_together', name: 'BUILT TOGETHER', descriptor: 'Collaborations & joint work', route: '/work/built-together' },
+  { num: '03', key: 'collaborator', name: 'MINDS IN THE MIX', descriptor: 'Collaborators & specialists', route: '/network/collaborators' },
+  { num: '04', key: 'creator', name: 'FACES & VOICES', descriptor: 'Artists & creators', route: '/network/artists-creators' },
+  { num: '05', key: 'venue', name: 'PLACES WITH POSSIBILITY', descriptor: 'Venues & institutions', route: '/network/venue-partners' },
+  { num: '06', key: 'partner', name: 'PARTNERS IN PROGRESS', descriptor: 'Media, production & strategic partners', route: '/network/partners' },
+] as const;

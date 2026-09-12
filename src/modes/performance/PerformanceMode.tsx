@@ -10,6 +10,8 @@ import { CANONICAL_SOURCE } from '../../content/canonical';
 import { coverage, exclusionsWithoutReason } from '../../content/canonicalManifest';
 import { ALL_PRIMITIVES, orphanPrimitives, unwiredPrimitives } from '../../spatial/translation';
 import { labOriginated, MATERIALS } from '../../design-system/materials';
+import { ArtifactBar } from '../../artifacts/ArtifactBar';
+import { toMarkdown } from '../../artifacts/artifact';
 import './performance.css';
 
 /**
@@ -222,6 +224,60 @@ export default function PerformanceMode({ onReady, scope }: ModeViewProps) {
 
   const groups = useMemo(() => [...new Set(rows.map((r) => r.group))], [rows]);
 
+  /*
+   * Built at click time from the same `rows` the page renders, so the file and
+   * the screen cannot disagree. `measured: false` is carried through rather
+   * than filtered out — the UNKNOWNs are the most load-bearing lines in this
+   * document, and a reader who cannot see which values the browser refused to
+   * supply has been handed a more confident report than the one that exists.
+   */
+  const buildReport = useCallback(() => {
+    const taken = sample;
+    const text = toMarkdown({
+      title: 'HI ANZY EXPERIENCE LAB — SESSION REPORT',
+      standfirst:
+        'Every value below was measured in this session or is marked UNKNOWN. Nothing is estimated. Nothing about the environment, storage or identity was read.',
+      sections: [
+        ...groups.map((g) => ({
+          head: g,
+          items: rows.filter((r) => r.group === g).map((r) => `**${r.k}** — ${r.v}`),
+        })),
+        {
+          head: 'FRAME BEHAVIOUR',
+          body: taken
+            ? 'Measured on this machine, in this tab, while this page was in front. It is not a benchmark of the Lab, and it is not comparable to any other run.'
+            : 'NOT SAMPLED — no frame measurement was taken in this session.',
+          items: taken
+            ? [
+                `**FRAMES DELIVERED** — ${taken.frames} in ${taken.seconds}s`,
+                `**FRAMES PER SECOND** — ${taken.fps.toFixed(1)}`,
+                `**MEAN FRAME** — ${taken.avgMs} ms`,
+                `**95TH PERCENTILE** — ${taken.p95Ms} ms`,
+                `**LONGEST FRAME** — ${taken.maxMs} ms`,
+                `**FRAMES OVER 50 ms** — ${taken.longFrames}`,
+              ]
+            : [],
+        },
+      ],
+      footer: {
+        GENERATED: new Date().toISOString(),
+        'CANONICAL SOURCE': CANONICAL_SOURCE.commit,
+        STORAGE: 'NONE — nothing was written to this device',
+      },
+    });
+    return {
+      name: 'hi-anzy-session-report',
+      text,
+      data: {
+        generated: new Date().toISOString(),
+        canonicalSource: CANONICAL_SOURCE.commit,
+        storage: 'NONE',
+        rows: rows.map(({ group, k, v, measured }) => ({ group, key: k, value: v, measured })),
+        frameSample: taken ?? null,
+      },
+    };
+  }, [groups, rows, sample]);
+
   return (
     <div className="pf" data-armed={armed ? 'true' : 'false'}>
       <header className="pf-head">
@@ -298,6 +354,23 @@ export default function PerformanceMode({ onReady, scope }: ModeViewProps) {
               BENCHMARK OF THE LAB, AND IT IS NOT COMPARABLE TO ANY OTHER RUN.
             </p>
           )}
+        </section>
+
+        {/*
+          THE SESSION REPORT.
+
+          Performance was the one reality whose entire output was already a
+          document — a page of measured values a visitor might genuinely want
+          to send somebody — and until now the only way to keep it was a
+          screenshot. It exports exactly what is on screen and nothing more:
+          the UNKNOWN rows travel as UNKNOWN, and the frame sample is present
+          only if it was actually taken, because a report that quietly dropped
+          its own caveats would be a different document from the one that was
+          read.
+        */}
+        <section className="pf-group pf-group--export">
+          <h2 className="t-mono t-mono-xs pf-group__title">THE SESSION REPORT</h2>
+          <ArtifactBar formats={['copy', 'markdown', 'json']} build={buildReport} />
         </section>
       </div>
     </div>

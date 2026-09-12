@@ -142,6 +142,12 @@ export const SPECIMEN = {
    * The words are now what the columns actually argue, and deliberately none
    * of them collides with AUDIT · ARCHITECT · BUILD · CONNECT · SCALE either.
    * The specimen is about reading a sheet; it is not a second method.
+   *
+   * ASSEMBLE was the last of the retired five still standing here. It read as
+   * ordinary English rather than as a stage name, which is why it survived the
+   * earlier sweep — but it is one of the exact words the retired method used,
+   * and a visitor who has seen the old deck has no way to know this column is
+   * not quoting it. GATHER argues the same thing and belongs to neither method.
    */
   columns: [
     {
@@ -157,7 +163,7 @@ export const SPECIMEN = {
       body: 'A problem becomes a drawing: measured, annotated, and specific enough that other people can build from it without being in the room.',
     },
     {
-      head: 'ASSEMBLE',
+      head: 'GATHER',
       body: 'The right capabilities are brought to the drawing, in the order the drawing asks for. The team follows the work; the work does not follow the team.',
     },
   ],

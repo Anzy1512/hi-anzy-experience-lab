@@ -11,7 +11,7 @@
  * own and `inherited: false` says so — a heritage is not something to claim by
  * implication.
  *
- *   canonical repo   Anzy1512/hi-anzy-platform @ 6e36db1
+ *   canonical repo   Anzy1512/hi-anzy-platform @ eac2282
  *
  * WHY A TABLE AND NOT CSS
  * A material's colour is CSS and stays there. Its *behaviour* — whether it can
