@@ -49,6 +49,18 @@ export interface Artifact {
    * kind of retention `useDisposable` exists to prevent.
    */
   canvas?: () => HTMLCanvasElement | null | undefined;
+  /**
+   * An async source for the still, for renderers that cannot be read from an
+   * event handler.
+   *
+   * A WebGL drawing buffer is cleared the moment its frame is presented, so
+   * `canvas.toBlob()` called from a click returns a blank image unless the
+   * context was created with `preserveDrawingBuffer` — which taxes every frame
+   * to serve a button that may never be pressed. A mode that would rather pay
+   * nothing until asked supplies this instead and fulfils it inside its own
+   * frame loop. Resolving `null` is a refusal and is reported as one.
+   */
+  canvasBlob?: () => Promise<Blob | null>;
 }
 
 export type ArtifactResult =
@@ -154,6 +166,11 @@ export function downloadJson(a: Artifact): ArtifactResult {
  * limitation it is rather than retried.
  */
 export function downloadImage(a: Artifact): Promise<ArtifactResult> {
+  if (a.canvasBlob) {
+    return a.canvasBlob().then((blob) =>
+      blob ? save(blob, `${slug(a.name)}-${stamp()}.png`) : { ok: false as const, reason: 'THIS FRAME CANNOT BE READ BACK' },
+    );
+  }
   return new Promise((resolve) => {
     const canvas = a.canvas?.();
     if (!canvas) {

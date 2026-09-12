@@ -39,6 +39,12 @@ interface Props {
   forceRef: { current: { x: number; y: number; sign: number } };
   spread: number;
   reduced: boolean;
+  /**
+   * Set to a callback to request one still. The frame loop clears it, renders,
+   * reads the buffer in the same tick and hands back the blob — or `null` when
+   * the browser refuses, which the caller reports rather than swallowing.
+   */
+  captureRef: { current: ((blob: Blob | null) => void) | null };
 }
 
 const VERT = /* glsl */ `
@@ -117,6 +123,7 @@ export function ParticleField({
   forceRef,
   spread,
   reduced,
+  captureRef,
 }: Props) {
   const matRef = useRef<THREE.ShaderMaterial>(null);
 
@@ -158,7 +165,7 @@ export function ParticleField({
     if (matRef.current) matRef.current.uniforms.uDrift.value = reduced ? 0 : 3.2;
   }, [reduced]);
 
-  useFrame((_, dt) => {
+  useFrame((three, dt) => {
     const m = matRef.current;
     if (!m) return;
     m.uniforms.uProgress.value = progressRef.current;
@@ -166,6 +173,28 @@ export function ParticleField({
     const f = forceRef.current;
     m.uniforms.uPointer.value.set(f.x, f.y, 0);
     m.uniforms.uForce.value = f.sign;
+
+    /*
+     * CAPTURING A STILL WITHOUT PRESERVING THE BUFFER.
+     *
+     * A WebGL drawing buffer is cleared the moment the frame is presented, so
+     * `canvas.toBlob()` from an event handler returns a blank image. The usual
+     * fix is `preserveDrawingBuffer: true`, and it is the wrong trade here:
+     * this mode draws 160,000 points continuously, and making every frame
+     * readable to serve a button nobody has pressed yet taxes the one mode in
+     * the Lab that genuinely needs its frame budget.
+     *
+     * Instead the request is fulfilled here, inside the loop: render on demand
+     * and read the buffer in the same tick, before it is presented. Costs
+     * nothing until somebody asks, and what comes back is the frame that was on
+     * screen rather than a re-creation of it.
+     */
+    const want = captureRef.current;
+    if (want) {
+      captureRef.current = null;
+      three.gl.render(three.scene, three.camera);
+      three.gl.domElement.toBlob((blob) => want(blob), 'image/png');
+    }
   });
 
   return (

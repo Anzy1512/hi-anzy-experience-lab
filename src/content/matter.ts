@@ -8,6 +8,7 @@
 export const MATTER_COPY = {
   /** The instrument's one input. Named as an instruction, not as a field. */
   typeLabel: 'SET THE MATTER IN YOUR OWN WORDS',
+  keepLabel: 'KEEP THIS FORMATION',
   typeSet: 'FORM',
   typeReset: 'BACK TO THE WORDMARK',
 

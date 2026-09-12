@@ -21,6 +21,8 @@ import {
   type MatterState,
 } from './targets';
 import { MATTER_COPY } from '../../content/matter';
+import { ArtifactBar } from '../../artifacts/ArtifactBar';
+import { toMarkdown } from '../../artifacts/artifact';
 import './matter.css';
 
 /**
@@ -68,6 +70,12 @@ export default function MatterMode({ onReady, scope }: ModeViewProps) {
   const [hidden, setHidden] = useState(false);
 
   const progressRef = useRef(1);
+  /*
+   * The still. Left null until a button is pressed; the frame loop clears it,
+   * renders and reads the buffer in the same tick. See `ParticleField` for why
+   * this is not `preserveDrawingBuffer`.
+   */
+  const captureRef = useRef<((blob: Blob | null) => void) | null>(null);
   const forceRef = useRef({ x: 0, y: 0, sign: 0 });
   const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -278,6 +286,7 @@ export default function MatterMode({ onReady, scope }: ModeViewProps) {
               forceRef={forceRef}
               spread={SPREAD}
               reduced={reduced}
+              captureRef={captureRef}
             />
           </SpatialCanvas>
         </div>
@@ -373,6 +382,88 @@ export default function MatterMode({ onReady, scope }: ModeViewProps) {
             <dd>{active ? '1 CALL' : '—'}</dd>
           </div>
         </dl>
+
+        {/*
+          WHAT THE VISITOR MADE.
+
+          The phrase and the state are theirs; everything else here describes
+          the machine that drew it. The JSON is a recipe rather than a record —
+          the same phrase, state and profile rebuild the same formation, because
+          the targets are sampled deterministically — and the PNG is the frame
+          that was actually on screen when the button was pressed.
+        */}
+        {active && (
+          <ArtifactBar
+            formats={['copy', 'markdown', 'json', 'image']}
+            label={MATTER_COPY.keepLabel}
+            build={() => {
+              return {
+                name: `hi-anzy-matter-${state}`,
+                text: toMarkdown({
+                  title: 'HI ANZY — MATTER',
+                  standfirst:
+                    'A formation of the Lab’s particle field. The values below are what produced it; the same ones produce it again, because the targets are sampled deterministically rather than randomly.',
+                  sections: [
+                    {
+                      head: 'THE FORMATION',
+                      items: [
+                        `State — ${STATE_LABEL[state]}`,
+                        state === 'type' ? `Phrase — ${typed}` : '',
+                        `Came from — ${STATE_LABEL[previous]}`,
+                        `Force — ${force.toUpperCase()}`,
+                      ].filter(Boolean),
+                    },
+                    {
+                      head: 'THE MACHINE',
+                      items: [
+                        `Particles — ${count.toLocaleString('en')}`,
+                        `Quality profile — ${quality.profile.toUpperCase()}`,
+                        `Draw calls — 1`,
+                        `Reduced motion — ${reduced ? 'REQUESTED' : 'NOT REQUESTED'}`,
+                      ],
+                    },
+                  ],
+                  footer: {
+                    GENERATED: new Date().toISOString(),
+                    METHOD: 'Deterministic sampling. No randomness is stored because none is used.',
+                    STORAGE: 'NONE — nothing was written to this device',
+                  },
+                }),
+                data: {
+                  state,
+                  previous,
+                  phrase: state === 'type' ? typed : null,
+                  force,
+                  particles: count,
+                  profile: quality.profile,
+                  reducedMotion: reduced,
+                  deterministic: true,
+                  generated: new Date().toISOString(),
+                },
+                /*
+                 * Handing the frame loop a request and waiting for it. If the
+                 * canvas is gone — WebGL fell over, the mode is unmounting —
+                 * the promise resolves null and the bar prints the refusal
+                 * rather than saving a blank PNG.
+                 */
+                canvasBlob: () =>
+                  new Promise<Blob | null>((resolve) => {
+                    if (!active) {
+                      resolve(null);
+                      return;
+                    }
+                    captureRef.current = resolve;
+                    window.setTimeout(() => {
+                      if (captureRef.current === resolve) {
+                        captureRef.current = null;
+                        resolve(null);
+                      }
+                    }, 1200);
+                  }),
+              };
+            }}
+          />
+        )}
       </div>
 
       <div className="mx-strip" data-disabled={!armed}>

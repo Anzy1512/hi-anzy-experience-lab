@@ -1,4 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+/** Presence never requests a capture; one shared no-op keeps the ref stable. */
+const NO_CAPTURE: { current: ((b: Blob | null) => void) | null } = { current: null };
 import type { ModeViewProps } from '../../experience/types';
 import { useCapability, useCoarsePointer, useReducedMotion } from '../../core/hooks';
 import { spatialFallbackReason } from '../../content/brand';
@@ -208,6 +211,7 @@ export default function PresenceMode({ onReady, scope }: ModeViewProps) {
               forceRef={forceRef}
               spread={860}
               reduced={reduced}
+              captureRef={NO_CAPTURE}
             />
           </SpatialCanvas>
           {/* CONTACT_GAP — the threshold the field is actually using, drawn. */}

@@ -318,3 +318,18 @@
     flex-direction: column;
   }
 }
+
+/* ==========================================================================
+   THE ARTIFACT BAR TAKES THE POINTER BACK
+
+   `.mx-band` is `pointer-events: none` so the particle field stays draggable
+   underneath the whole readout — which means anything in the band that is
+   actually a control has to opt back in. `.mx-type` already does. Without this
+   the export buttons were visible, focusable and completely unclickable: every
+   press went through to the canvas behind them.
+   ========================================================================== */
+
+.mx-band .artifact {
+  pointer-events: auto;
+  margin-top: var(--s-2);
+}
