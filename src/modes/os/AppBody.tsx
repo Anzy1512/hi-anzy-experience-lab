@@ -1,4 +1,7 @@
 import { APP_SERVICE, FUTURE_PROCESSES, type AppId } from '../../content/os';
+import { ArtifactBar } from '../../artifacts/ArtifactBar';
+import { briefJson, briefMarkdown, resetBrief, useBrief } from '../../system/brief';
+import { DISCLAIMER } from '../../system/diagnose';
 import { METHOD, NETWORK_CAPABILITIES, SERVICES } from '../../content/canonical';
 import { MODES } from '../../content/lab';
 import { STATUS_LABEL } from '../../experience/types';
@@ -285,11 +288,62 @@ export function CapabilityBody({
   sheets: number;
 }) {
   const online = MODES.filter((m) => m.status === 'online');
+  const brief = useBrief();
+  const f = brief.frame;
   return (
     <div className="os-app">
       <p className="t-mono t-mono-xs t-dim os-app__note">
         MEASURED IN THIS SESSION. NOTHING BELOW IS STORED OR SENT.
       </p>
+
+      {/*
+        THE ASSEMBLY SURFACE.
+
+        SYSTEM.app was a readout of the machine. It is also the sheet the rest
+        of the bench reports to: whatever the Terminal framed, or the Agency
+        Simulator ran, arrives here as one brief that can leave the building.
+        It appears only once there is something to assemble — an empty
+        scaffolding with placeholder headings would be the exact "beautiful
+        screen with controls" this pass exists to remove.
+      */}
+      <h4 className="os-app__h t-mono t-mono-xs">PROJECT BRIEF</h4>
+      {f ? (
+        <>
+          <dl className="os-kv">
+            <Row k="STATED" v={f.statement} />
+            <Row k="AREAS" v={f.areas.join(' · ')} />
+            <Row k="SEQUENCE" v={f.sequence.map((m) => m.label).join(' → ')} />
+            <Row k="CATEGORIES" v={String(f.services.length)} />
+            <Row k="EVIDENCE REQUIRED" v={String(f.evidence.length)} />
+            <Row k="OPEN QUESTIONS" v={String(f.questions.length)} />
+            <Row k="FROM" v={(brief.origin ?? 'unknown').toUpperCase()} />
+          </dl>
+          <ArtifactBar
+            formats={['copy', 'markdown', 'json']}
+            label="THE BRIEF"
+            build={() => ({
+              name: 'hi-anzy-problem-brief',
+              text: briefMarkdown(brief),
+              data: briefJson(brief),
+            })}
+          >
+            <button
+              type="button"
+              className="t-mono t-mono-xs artifact__btn"
+              onClick={resetBrief}
+            >
+              RESET
+            </button>
+          </ArtifactBar>
+          <p className="t-body-s t-dim os-app__foot">{DISCLAIMER}</p>
+        </>
+      ) : (
+        <p className="t-body-s t-dim os-app__foot">
+          Nothing framed yet. In TERMINAL, type{' '}
+          <span className="t-mono t-mono-xs">diagnose</span> followed by the situation in your
+          own words, and it arrives here as a brief you can take away.
+        </p>
+      )}
       <dl className="os-kv">
         <Row k="RENDER PROFILE" v={profile.toUpperCase()} />
         <Row k="WEBGL" v={webgl ? 'AVAILABLE' : 'UNAVAILABLE'} />

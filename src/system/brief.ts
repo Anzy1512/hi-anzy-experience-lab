@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from 'react';
 import { toMarkdown } from '../artifacts/artifact';
 import { CANONICAL_SOURCE, POSITION } from '../content/canonical';
 import { DISCLAIMER, type Frame } from './diagnose';
@@ -58,6 +59,19 @@ export function resetBrief(): void {
 export function subscribeBrief(fn: () => void): () => void {
   listeners.add(fn);
   return () => listeners.delete(fn);
+}
+
+/**
+ * Read the brief in a component.
+ *
+ * `useSyncExternalStore` rather than a `useState` mirror and an effect: the
+ * Terminal writes the frame from inside a command, which is not a React event
+ * this component knows about, and a mirror would render one frame behind it.
+ * `getBrief` returns the same object until something actually changes, which is
+ * the identity contract this hook needs.
+ */
+export function useBrief(): BriefState {
+  return useSyncExternalStore(subscribeBrief, getBrief, getBrief);
 }
 
 /* -------------------------------------------------------------------------- */
