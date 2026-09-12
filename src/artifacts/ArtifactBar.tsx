@@ -1,5 +1,9 @@
 import { useCallback, useRef, useState } from 'react';
 import { useScopedEffect } from '../core/useScope';
+import { useExperience } from '../experience/context';
+import { findMode } from '../content/lab';
+import { recordArtifact, type ArtifactKind, type ArtifactRecord } from '../system/project';
+import { offer } from '../system/handoff';
 import type { Artifact, ArtifactFormat, ArtifactResult } from './artifact';
 import { runFormat } from './artifact';
 import './artifact.css';
@@ -37,11 +41,55 @@ const DONE: Record<ArtifactFormat, string> = {
   image: 'SAVED .PNG',
 };
 
+/**
+ * CONTINUE, as a declaration rather than as six hand-written buttons.
+ *
+ * The sixth question a product has to answer is "where can this go next", and
+ * before Phase 8.7 exactly one tool answered it — the Simulator, by calling the
+ * brief store's setter directly. Five more tools doing that would be five tools
+ * reaching into each other's state.
+ *
+ * So a tool declares a destination here, and the bar does the rest: compose the
+ * artifact, put it in the project store, offer it to the destination, and go
+ * there. What crosses is an id. The receiving tool looks it up and decides for
+ * itself, and can decline without anything having been mutated.
+ */
+export interface ArtifactHandoff {
+  kind: ArtifactKind;
+  /** Mode id producing this. */
+  from: string;
+  /** Mode id it is offered to. */
+  to: string;
+  /**
+   * What this artifact cannot tell you. Required, not optional.
+   *
+   * An artifact travels — somebody forwards the Markdown and the screen that
+   * qualified it is long gone. The type makes the limits a compile error to
+   * omit rather than a review comment to remember.
+   */
+  limits: string;
+  /** Artifacts this was derived from, for a checkable lineage. */
+  sourceIds?: string[];
+  /**
+   * Run after the artifact is recorded and before the visitor is moved.
+   *
+   * For a tool that also keeps live working state a receiving surface renders —
+   * the Simulator writes the run into `system/brief`, which is what SYSTEM.app
+   * has drawn since Phase 8.6. The record and the live state are different
+   * things: one is a dated document in the project, the other is what the
+   * environment is currently showing. Keeping both in step is the producing
+   * tool's business, so it is a callback rather than something this bar guesses.
+   */
+  onSend?: (record: ArtifactRecord) => void;
+}
+
 export interface ArtifactBarProps {
   formats: readonly ArtifactFormat[];
   /** Resolved at click time. See `Artifact.canvas` for why nothing is held. */
   build: () => Artifact;
-  /** Optional trailing control — RESET, SEND TO…, anything tool-specific. */
+  /** Where this result can go next. Omit when nothing can receive it yet. */
+  handoff?: ArtifactHandoff;
+  /** Optional trailing control — RESET, anything tool-specific. */
   children?: React.ReactNode;
   /** Disables every format, for a tool whose result is not ready yet. */
   disabled?: boolean;
@@ -51,12 +99,14 @@ export interface ArtifactBarProps {
 export function ArtifactBar({
   formats,
   build,
+  handoff,
   children,
   disabled = false,
   label = 'TAKE THIS WITH YOU',
 }: ArtifactBarProps) {
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
   const timerRef = useRef(0);
+  const { enterMode } = useExperience();
 
   /*
    * The message's clear-out is the only thing here with a lifetime. It is held
@@ -92,6 +142,45 @@ export function ArtifactBar({
     [build],
   );
 
+  /**
+   * Send the result onward.
+   *
+   * Composes the artifact once, records it against the current project, offers
+   * it, and navigates. The artifact is recorded BEFORE the offer because an
+   * offer carries an id and an id has to exist — and it is recorded even on the
+   * failure path below, so a visitor who lands somewhere unexpected still has
+   * the thing in the project store rather than having lost it.
+   *
+   * Images are not carried. A PNG is handed to the browser's download path and
+   * never retained, so a recipe travels and the picture does not; the record's
+   * own `limits` line is where a producer says so.
+   */
+  const send = useCallback(() => {
+    if (!handoff) return;
+    const artifact = build();
+    const record = recordArtifact({
+      kind: handoff.kind,
+      title: artifact.name,
+      producer: handoff.from,
+      sourceIds: handoff.sourceIds ?? [],
+      limits: handoff.limits,
+      text: artifact.text,
+      data: artifact.data,
+    });
+    if (!offer(record.id, handoff.from, handoff.to)) {
+      setMsg({ text: 'COULD NOT SEND — THE RESULT WAS NOT RECORDED', ok: false });
+      window.clearTimeout(timerRef.current);
+      timerRef.current = window.setTimeout(() => setMsg(null), 8000);
+      return;
+    }
+    handoff.onSend?.(record);
+    enterMode(handoff.to);
+  }, [build, enterMode, handoff]);
+
+  /* The destination's own title, so the control names a place rather than an
+     id. Falls back to the id, which is still better than a generic "SEND". */
+  const destination = handoff ? (findMode(handoff.to)?.title ?? handoff.to) : null;
+
   return (
     <div className="artifact">
       <p className="t-mono t-mono-xs artifact__label">{label}</p>
@@ -107,6 +196,21 @@ export function ArtifactBar({
             {LABELS[f]}
           </button>
         ))}
+        {/*
+          CONTINUE sits after the formats and is marked as signal, because it is
+          the only control here that moves the visitor somewhere. Taking a copy
+          is an ending; sending it on is the product working.
+        */}
+        {handoff && (
+          <button
+            type="button"
+            className="t-mono t-mono-xs artifact__btn artifact__btn--send"
+            onClick={send}
+            disabled={disabled}
+          >
+            SEND TO {destination}
+          </button>
+        )}
         {children}
       </div>
       {/*

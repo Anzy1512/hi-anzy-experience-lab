@@ -382,8 +382,28 @@ export default function CompilerMode({ onReady, onExit, scope }: ModeViewProps) 
           <ArtifactBar
             formats={['copy', 'markdown', 'json']}
             label={COMPILER_COPY.manifestLabel}
+            /*
+             * The Compiler's first CONTINUE.
+             *
+             * It has always produced a real manifest and there has never been
+             * anywhere to put it: a visitor took the Markdown and the tool's
+             * relationship with the rest of the Lab ended there. The manifest
+             * now goes to the operating environment, where SYSTEM.app holds it
+             * beside whatever else this project has produced.
+             */
+            handoff={{
+              kind: 'manifest',
+              from: 'reality-compiler',
+              to: 'anzy-os',
+              limits:
+                'A structural read of committed source. It describes what the page is built from, not how it renders, how fast it is, or what it looks like — nothing here was measured in a browser.',
+            }}
             build={() => ({
-              name: `hi-anzy-compile-${page.route.replace(/\W+/g, '-') || 'home'}`,
+              /* A title, not a file stem. The artifact layer slugs it on the way
+                 out, so this can read like something a person named — and it has
+                 to, because it is what the project ledger lists. For the home
+                 route the old stem rendered as "hi-anzy-compile--". */
+              name: `${page.name} — Transformation Manifest`,
               text: toMarkdown({
                 title: `HI ANZY — TRANSFORMATION MANIFEST`,
                 standfirst: `${page.name} (${page.route}), read from ${page.file} at ${CANONICAL_PAGES_COMMIT}. A structural read of the page's own source, not a screenshot and not a runtime measurement.`,

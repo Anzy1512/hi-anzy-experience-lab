@@ -419,6 +419,12 @@ export const SIM_COPY = {
     UNKNOWN: 'Not established. This cannot establish it.',
     RECOMMENDATION: 'An opinion, offered as one.',
   },
-  sendSystem: 'SEND TO SYSTEM.APP',
-  sentSystem: 'SENT — OPEN ANZY.OS',
+  /*
+   * The two send labels that used to live here — 'SEND TO SYSTEM.APP' and
+   * 'SENT — OPEN ANZY.OS' — are gone with the hand-written button that used
+   * them. Phase 8.7 moved CONTINUE into the shared artifact bar, which names
+   * its destination from the index rather than from copy held beside one tool:
+   * a label typed here would have gone stale the moment a mode was retitled,
+   * and this file has already had to fix exactly that class of bug once.
+   */
 } as const;

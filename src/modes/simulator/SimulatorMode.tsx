@@ -52,7 +52,6 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
   const [said, setSaid] = useState('');
   const [frame, setFrameState] = useState<Frame | null>(null);
   const [noMatch, setNoMatch] = useState(false);
-  const [sent, setSent] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   const question = QUESTIONS[step];
@@ -90,7 +89,6 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
       setSaid('');
       setFrameState(null);
       setNoMatch(false);
-      setSent(false);
     };
     scope.add(reset);
     return reset;
@@ -159,22 +157,7 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
     setSaid('');
     setFrameState(null);
     setNoMatch(false);
-    setSent(false);
   }, []);
-
-  /*
-   * Handing the run to the rest of the Lab.
-   *
-   * `setRun` replaces the whole brief rather than merging into it: a second run
-   * describes a different problem, and a brief carrying one statement with
-   * another run's stages under it would be the worst thing this could produce —
-   * a document that looks assembled and is about two things.
-   */
-  const send = useCallback(() => {
-    if (!frame || !stages) return;
-    setRun(frame, stages, chosenLabels(answers));
-    setSent(true);
-  }, [frame, stages, answers]);
 
   /* ---- keyboard ---------------------------------------------------------- */
   useEffect(() => {
@@ -387,6 +370,27 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
             <ArtifactBar
               formats={['copy', 'markdown', 'json']}
               label="THE BRIEF"
+              /*
+               * The brief goes to the operating environment.
+               *
+               * This was a hand-written button that called the brief store's
+               * setter and printed SENT, leaving the visitor to walk to Anzy.OS
+               * themselves. It now goes through the shared handoff: the brief is
+               * recorded as a dated artifact in the project, offered to the
+               * environment, and the visitor is taken there. `onSend` keeps the
+               * live brief state in step, because SYSTEM.app has drawn from it
+               * since Phase 8.6 and that is still the surface it renders.
+               */
+              handoff={{
+                kind: 'brief',
+                from: 'agency-simulator',
+                to: 'anzy-os',
+                limits:
+                  'A structured mapping of your words onto Hi Anzy’s own method and service categories. It is not an audit, a forecast or a professional diagnosis, and every line is marked with where it came from — most of them are DERIVED, and the UNKNOWN lines are the work a real audit would still have to do.',
+                onSend: () => {
+                  if (frame && stages) setRun(frame, stages, chosenLabels(answers));
+                },
+              }}
               build={() => {
                 /* Composed from a state object built here rather than from the
                    store, so the file is what is on screen even if the visitor
@@ -398,16 +402,12 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
                   origin: 'simulator' as const,
                 };
                 return {
-                  name: 'hi-anzy-problem-brief',
+                  name: 'Hi Anzy System Brief',
                   text: briefMarkdown(s),
                   data: briefJson(s),
                 };
               }}
-            >
-              <button type="button" className="t-mono t-mono-xs artifact__btn" onClick={send}>
-                {sent ? SIM_COPY.sentSystem : SIM_COPY.sendSystem}
-              </button>
-            </ArtifactBar>
+            />
 
             <p className="t-body-s t-dim sim-report__disclaimer">{DISCLAIMER}</p>
           </section>

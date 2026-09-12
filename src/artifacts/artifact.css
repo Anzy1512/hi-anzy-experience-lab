@@ -80,3 +80,23 @@
 .artifact__msg[data-state='fail'] {
   color: var(--signal);
 }
+
+/*
+ * CONTINUE — the only control in the bar that moves you.
+ *
+ * Orange means signal, and this is the one button here that is not an ending:
+ * COPY and DOWNLOAD hand you a file and leave you where you are, while SEND TO
+ * takes the result into another tool. The border carries the brand value and
+ * the label takes the deepening, which is the same rule every other signal
+ * control in the Lab follows on light stock.
+ */
+.artifact__btn--send {
+  border-color: var(--signal);
+  color: var(--signal-text);
+}
+.artifact__btn--send:hover:not(:disabled),
+.artifact__btn--send:focus-visible:not(:disabled) {
+  background: var(--signal);
+  border-color: var(--signal);
+  color: var(--text-on-signal);
+}

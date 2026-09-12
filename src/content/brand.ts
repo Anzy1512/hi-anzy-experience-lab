@@ -35,7 +35,7 @@ export const LAB = {
  * The counts are not written here. `six` and `sixteen` are read off `PATH` and
  * `MODES` at render, because a number typed into marketing copy is a claim that
  * goes stale the first time the product changes — this file has already had to
- * fix exactly that once, in `INDEX_COPY.reverse`.
+ * fix exactly that once, in the index note below.
  */
 export const DOORS = {
   curated: 'SHOW ME',
@@ -72,16 +72,23 @@ export const RETURN_COPY = {
   stayNote: 'THE REST OF THE INDEX.',
 } as const;
 
+/**
+ * Copy for the index sheet.
+ *
+ * It used to carry a `reverse` line — "REVERSE SIDE — SUPPORTING EXPERIMENTS" —
+ * naming the second of the sheet's two lists. Phase 8.7 regrouped the index by
+ * what each reality IS rather than which side of the plate it was printed on,
+ * so there is no longer a reverse side for that line to label. The group
+ * headings come from `system/registry` instead, beside the realities they
+ * actually describe.
+ *
+ * The counts are still not written here. This file once shipped "ONE REALITY IS
+ * ONLINE" for two phases after that stopped being true — the product's own copy
+ * making a false claim about the product — which is why `indexNote()` computes
+ * the number from the index rather than stating it.
+ */
 export const INDEX_COPY = {
   eyebrow: 'REALITY INDEX',
-  /**
-   * Deliberately NOT a sentence with a number written into it.
-   *
-   * This line read "ONE REALITY IS ONLINE" for two phases after that stopped
-   * being true — the product's own copy was making a false claim about the
-   * product. The count now comes from the index itself; see `indexNote()`.
-   */
-  reverse: 'REVERSE SIDE — SUPPORTING EXPERIMENTS',
 } as const;
 
 /** The honest version of the note above, computed from the actual index. */

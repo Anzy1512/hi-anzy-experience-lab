@@ -206,24 +206,53 @@
   padding: 0 0 var(--s-4);
 }
 
-/* ---- reverse side : denser, quieter ------------------------------------ */
-.index__reverse {
-  margin-top: var(--s-8);
+/* ==========================================================================
+   GROUPS — sixteen things, four kinds
+
+   The sheet used to be a list of eight and a reverse list of eight, which is a
+   fact about the plate rather than about the work. It is now grouped by what a
+   thing IS, and the weight follows: products and instruments are set at full
+   plate size because a visitor is choosing a tool, while the spatial, archive
+   and experimental rows stay denser and quieter — the same two-weight system
+   the front-and-reverse composition had, re-cut along the honest axis.
+   ========================================================================== */
+.index__group + .index__group {
+  margin-top: var(--s-7);
 }
-.index__reverse-label {
+
+.index__group-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-1) var(--s-3);
   padding-bottom: var(--s-2);
   border-bottom: var(--hair) solid var(--rule);
-  margin-bottom: 0;
-  letter-spacing: var(--tr-mono-wide);
 }
-.index__list--dense .row__hit {
+
+.index__group-label {
+  margin: 0;
+  font-weight: 400;
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--text);
+}
+
+.index__group-note {
+  margin: 0;
+  letter-spacing: var(--tr-mono);
+}
+
+/* The demonstrating half of the sheet: denser, quieter, still fully legible. */
+.index__group[data-group='spatial'] .row__hit,
+.index__group[data-group='experiments'] .row__hit {
   grid-template-columns: auto minmax(0, 1fr) minmax(0, 26ch) auto;
   padding: clamp(var(--s-2), 1.1vw, var(--s-3)) 0;
 }
-.index__list--dense .row__title {
+.index__group[data-group='spatial'] .row__title,
+.index__group[data-group='experiments'] .row__title {
   font-size: clamp(1.05rem, 2.2vw, 1.75rem);
 }
-.index__list--dense .row__index {
+.index__group[data-group='spatial'] .row__index,
+.index__group[data-group='experiments'] .row__index {
   font-size: clamp(0.8rem, 1.3vw, 1.05rem);
 }
 
@@ -260,7 +289,8 @@
   .row__tagline {
     grid-area: tag;
   }
-  .index__list--dense .row__hit {
+  .index__group[data-group='spatial'] .row__hit,
+  .index__group[data-group='experiments'] .row__hit {
     grid-template-columns: auto 1fr;
     padding: var(--s-3) 0;
   }

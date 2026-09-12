@@ -14,6 +14,7 @@ import { APPS, BOOT_LINES, OS_COPY, type AppId } from '../../content/os';
 import { complete, execute, type OsLine } from './commands';
 import { runFormat } from '../../artifacts/artifact';
 import { briefJson, briefMarkdown } from '../../system/brief';
+import { offered } from '../../system/handoff';
 import { Sheet } from './Sheet';
 import { CapabilityBody, ServiceBody, TerminalBody } from './AppBody';
 import './os.css';
@@ -354,8 +355,26 @@ export default function OsMode({ onReady, scope }: ModeViewProps) {
     seeded.current = true;
     openSheet('system');
     submitRef.current('help');
+
+    /*
+     * ARRIVING WITH SOMETHING IN HAND.
+     *
+     * A visitor sent here by another tool's CONTINUE is not arriving to type a
+     * command — they are arriving to see what they sent. The bench seeds the
+     * terminal with `help` and hands it the caret, which is right for somebody
+     * who came here on purpose and exactly wrong for somebody handed a brief:
+     * the offer rendered on the SYSTEM sheet, underneath the terminal, and the
+     * continuation looked like it had done nothing.
+     *
+     * So when a handoff is waiting, SYSTEM comes to the front and keeps the
+     * focus. The terminal is still open and still holds its command table.
+     */
+    if (offered('anzy-os')) {
+      focusSheet('system');
+      return;
+    }
     if (!coarse) inputRef.current?.focus({ preventScroll: true });
-  }, [armed, openSheet, coarse, submitRef]);
+  }, [armed, openSheet, focusSheet, coarse, submitRef]);
 
   /* ---- keep the terminal at its newest line ------------------------------ */
   useEffect(() => {

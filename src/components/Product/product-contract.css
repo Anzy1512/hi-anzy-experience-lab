@@ -1,0 +1,108 @@
+/* ==========================================================================
+   THE PRODUCT CONTRACT
+
+   A ruled specification block, not a feature list. Six rows on a fixed label
+   column so the shape of the answer is readable before a word of it is — and
+   so a NOT YET is visible as a gap in a column rather than as prose that
+   happens to be shorter.
+   ========================================================================== */
+
+.pc {
+  display: grid;
+  gap: var(--s-2);
+}
+
+.pc__proposition {
+  margin: 0;
+  max-width: 56ch;
+  color: var(--text);
+}
+
+/* The layer line: what kind of thing this is, with a mark that carries the
+   distinction without the word. Solid for a product, hollow for an instrument
+   (it reads rather than makes), a rule for an experience (it has no output to
+   fill). The same solid/hollow vocabulary the provenance registers use. */
+.pc__layer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  letter-spacing: var(--tr-mono);
+  color: var(--text-secondary);
+}
+
+.pc__layer-mark {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border: 1px solid currentColor;
+  background: currentColor;
+}
+.pc[data-layer='INSTRUMENT'] .pc__layer-mark {
+  background: transparent;
+}
+.pc[data-layer='EXPERIENCE'] .pc__layer-mark {
+  height: 1px;
+  border: 0;
+  width: 12px;
+}
+
+/* ---- the six rows ------------------------------------------------------- */
+.pc__rows {
+  margin: 0;
+  display: grid;
+  gap: 1px;
+  border-top: var(--hair) solid var(--rule);
+}
+
+.pc__row {
+  display: grid;
+  grid-template-columns: 8.5em 1fr;
+  gap: var(--s-2);
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: var(--hair) solid var(--rule-faint);
+}
+
+.pc__k {
+  margin: 0;
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--text-secondary);
+}
+
+.pc__v {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--text);
+}
+
+/*
+ * An unanswered row is not styled as an error.
+ *
+ * It is a statement about what this tool does not do yet, and dressing it in
+ * the failure plate would say something false — nothing has gone wrong. It
+ * takes the unknown register, which is the same one the Simulator uses for the
+ * work a real audit would still have to do.
+ */
+.pc__row[data-answered='false'] .pc__k {
+  color: var(--state-unknown);
+}
+
+.pc__unmet {
+  color: var(--state-unknown);
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-mono);
+}
+
+/* ---- brief variant: inside a surface that already has a heading ---------- */
+.pc[data-variant='brief'] .pc__row {
+  padding: 4px 0;
+}
+
+@media (max-width: 620px) {
+  .pc__row {
+    grid-template-columns: 1fr;
+    gap: 1px;
+  }
+}

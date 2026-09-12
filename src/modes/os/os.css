@@ -1402,3 +1402,83 @@
     padding: 7px 0;
   }
 }
+
+/* ==========================================================================
+   THE PROJECT LEDGER — what this session produced
+
+   A ruled list on the sheet, not a card stack. Each entry is a dated line of
+   work with its producer and its limits, which is what a job ticket looks like
+   in the print shop this OS is modelled on.
+   ========================================================================== */
+
+/* An offer waiting to be taken. Ruled on the signal edge because it is the one
+   thing on this sheet asking the visitor to decide something. */
+.os-offer {
+  margin: var(--s-2) 0;
+  padding: var(--s-2);
+  border-left: 3px solid var(--signal);
+  background: var(--surface-raised);
+}
+
+.os-offer__head {
+  margin: 0;
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--signal-text);
+}
+
+.os-offer__title {
+  margin: 4px 0 0;
+  color: var(--text);
+}
+
+.os-offer__limits {
+  margin: 4px 0 0;
+  max-width: 58ch;
+}
+
+.os-offer__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+  margin-top: var(--s-2);
+}
+
+.os-arts {
+  list-style: none;
+  margin: var(--s-2) 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.os-art {
+  padding: var(--s-2) 0;
+  border-top: var(--hair) solid var(--rule-faint);
+}
+.os-art:first-child {
+  border-top: var(--hair) solid var(--rule);
+}
+
+.os-art__meta {
+  margin: 0;
+  letter-spacing: var(--tr-mono);
+}
+
+.os-art__kind {
+  color: var(--text-secondary);
+}
+
+.os-art__title {
+  margin: 2px 0 0;
+  color: var(--text);
+}
+
+.os-art__limits {
+  margin: 3px 0 0;
+  max-width: 58ch;
+}
+
+.os-art__from {
+  margin: 3px 0 0;
+  letter-spacing: var(--tr-mono);
+}

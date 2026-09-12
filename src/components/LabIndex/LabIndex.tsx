@@ -1,5 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { EXPERIMENT_MODES, FLAGSHIP_MODES, findMode, MODES } from '../../content/lab';
+import { findMode, MODES } from '../../content/lab';
+import { groupMembers, INDEX_GROUPS } from '../../system/registry';
+import { ProductContract } from '../Product/ProductContract';
 import { EDGES } from '../../content/graph';
 import { INDEX_COPY, indexNote } from '../../content/brand';
 import { isEnterable, STATUS_LABEL, type ModeDefinition } from '../../experience/types';
@@ -104,6 +106,9 @@ function Row({ mode, expanded, onToggle, visited }: RowProps) {
       <div className="row__expand" aria-hidden={!expanded}>
         <div className="row__expand-inner">
           <p className="t-body-s row__desc">{mode.description}</p>
+          {/* What kind of thing this is, and — for a tool — what it will and
+              will not do for you, before you spend a mode entry finding out. */}
+          <ProductContract id={mode.id} variant="brief" />
           <ul className="row__req">
             {requirementChips(mode).map((chip) => (
               <li className="t-mono t-mono-xs t-dim" key={chip}>
@@ -228,8 +233,15 @@ export function LabIndex() {
   const journey = useSyncExternalStore(subscribeJourney, journeyState);
   const nextOnRoute = journey.active ? findMode(PATH[journey.reached + 1]?.id ?? '') : null;
   const reduced = useReducedMotion();
-  const listRef = useRef<HTMLUListElement>(null);
-  const reverseRef = useRef<HTMLUListElement>(null);
+  /*
+   * One ref over every group rather than one per list.
+   *
+   * The sheet used to be two lists — front and reverse — and held a ref to
+   * each. It is now four groups by kind, and a ref per group would mean the
+   * entrance animation and the focus restoration both had to know how many
+   * groups there are. Scoping to the container means they do not.
+   */
+  const listRef = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const onToggle = useCallback((id: string) => {
@@ -238,9 +250,8 @@ export function LabIndex() {
 
   useEffect(() => {
     const rows = listRef.current?.querySelectorAll('.row');
-    const reverse = reverseRef.current?.querySelectorAll('.row');
     if (!rows) return;
-    const all = [...Array.from(rows), ...Array.from(reverse ?? [])];
+    const all = Array.from(rows);
 
     if (reduced) {
       settleImmediately(all);
@@ -272,8 +283,7 @@ export function LabIndex() {
   useEffect(() => {
     const from = takeReturningFrom();
     if (!from) return;
-    const row = listRef.current?.querySelector<HTMLElement>(`[data-mode-id="${from}"] .row__hit`)
-      ?? reverseRef.current?.querySelector<HTMLElement>(`[data-mode-id="${from}"] .row__hit`);
+    const row = listRef.current?.querySelector<HTMLElement>(`[data-mode-id="${from}"] .row__hit`);
     row?.focus();
   }, []);
 
@@ -340,31 +350,46 @@ export function LabIndex() {
         </p>
       )}
 
-      <ul className="index__list" ref={listRef}>
-        {FLAGSHIP_MODES.map((mode) => (
-          <Row
-            key={mode.id}
-            mode={mode}
-            expanded={expanded === mode.id}
-            onToggle={onToggle}
-            visited={hasVisited(mode.id)}
-          />
-        ))}
-      </ul>
+      {/*
+        SIXTEEN THINGS, FOUR KINDS.
 
-      <div className="index__reverse">
-        <p className="t-mono t-mono-xs t-dim index__reverse-label">{INDEX_COPY.reverse}</p>
-        <ul className="index__list index__list--dense" ref={reverseRef}>
-          {EXPERIMENT_MODES.map((mode) => (
-            <Row
-              key={mode.id}
-              mode={mode}
-              expanded={expanded === mode.id}
-              onToggle={onToggle}
-              visited={hasVisited(mode.id)}
-            />
-          ))}
-        </ul>
+        This was one list of eight and a reverse list of eight, which is a fact
+        about the plate rather than about the work: a visitor met sixteen
+        equivalent choices and had to open each one to find out whether it was a
+        tool, a measuring instrument or a piece of cinema. The grouping is now
+        by kind, from `system/registry`, and each group says in one line what
+        having that kind of thing means.
+
+        Plate numbers are untouched. 01–08 and X1–X8 are identity — the graph,
+        the cross-references and the Terminal all name realities by them — so a
+        group can reorder the sheet without renumbering anything on it.
+      */}
+      <div className="index__groups" ref={listRef}>
+        {INDEX_GROUPS.map((group) => {
+          const members = groupMembers(group.key)
+            .map((id) => findMode(id))
+            .filter((m): m is ModeDefinition => Boolean(m));
+          if (!members.length) return null;
+          return (
+            <section className="index__group" key={group.key} data-group={group.key}>
+              <header className="index__group-head">
+                <h2 className="t-mono t-mono-s index__group-label">{group.label}</h2>
+                <p className="t-mono t-mono-xs t-dim index__group-note">{group.note}</p>
+              </header>
+              <ul className="index__list">
+                {members.map((mode) => (
+                  <Row
+                    key={mode.id}
+                    mode={mode}
+                    expanded={expanded === mode.id}
+                    onToggle={onToggle}
+                    visited={hasVisited(mode.id)}
+                  />
+                ))}
+              </ul>
+            </section>
+          );
+        })}
       </div>
 
       <CrossReferences visited={visitTrail() as string[]} />

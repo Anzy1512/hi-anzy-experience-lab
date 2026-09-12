@@ -1,6 +1,7 @@
 import { APP_SERVICE, FUTURE_PROCESSES, type AppId } from '../../content/os';
 import { ArtifactBar } from '../../artifacts/ArtifactBar';
 import { briefJson, briefMarkdown, resetBrief, useBrief } from '../../system/brief';
+import { ProjectPanel } from './ProjectPanel';
 import { DISCLAIMER } from '../../system/diagnose';
 import { METHOD, NETWORK_CAPABILITIES, SERVICES } from '../../content/canonical';
 import { MODES } from '../../content/lab';
@@ -322,7 +323,7 @@ export function CapabilityBody({
             formats={['copy', 'markdown', 'json']}
             label="THE BRIEF"
             build={() => ({
-              name: 'hi-anzy-problem-brief',
+              name: 'Hi Anzy System Brief',
               text: briefMarkdown(brief),
               data: briefJson(brief),
             })}
@@ -352,6 +353,9 @@ export function CapabilityBody({
         <Row k="NETWORK" v="NONE" />
         <Row k="STORAGE" v="NONE" />
       </dl>
+
+      {/* What this session has produced, and what is waiting to be taken. */}
+      <ProjectPanel />
 
       <h4 className="os-app__h t-mono t-mono-xs">REALITIES</h4>
       <ul className="os-list">
