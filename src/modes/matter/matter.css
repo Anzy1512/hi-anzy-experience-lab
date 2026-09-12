@@ -9,7 +9,7 @@
   overflow: hidden;
   touch-action: none;
   /* Deeper than the other ink modes: matter needs somewhere to be seen against. */
-  background: #0b0e0e;
+  background: var(--stage);
 }
 
 .mx-canvas {
@@ -72,8 +72,9 @@
   letter-spacing: 0.1em;
   line-height: 1.7;
 }
+/* A dt names a value the mode measured. It is information, not furniture. */
 .mx-readout dt {
-  color: var(--figure-faint);
+  color: var(--text-secondary);
 }
 .mx-readout dd {
   margin: 0;

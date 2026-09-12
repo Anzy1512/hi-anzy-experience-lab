@@ -1,6 +1,7 @@
 import type { CanonicalPage } from '../../content/canonicalPages';
 import { CANONICAL_PAGES_COMMIT } from '../../content/canonicalPages';
 import { SpecimenPlate } from '../../components/Specimen/SpecimenPlate';
+import { specimen, specimenSrc } from '../../content/specimens';
 import type { CleanupScope } from '../../core/cleanup';
 
 /**
@@ -40,7 +41,18 @@ import type { CleanupScope } from '../../core/cleanup';
  * argument the real page is already making, spatialised rather than authored.
  */
 
-/** One owned specimen per page, so each compiles with real Hi Anzy imagery. */
+/**
+ * The fallback figure, for a page that carries no mirrored imagery of its own.
+ *
+ * It used to be the only source, and it was a Lab choice dressed as a fact: one
+ * hand-picked specimen per route, chosen because it suited the page. Since
+ * Phase 8.6 E the capture records which brand assets each section ACTUALLY
+ * renders, so the figure is read off the page wherever the page has one and
+ * this map is only reached when it does not. Two of the five picks turned out
+ * to be right for the wrong reason and one was nearly right — /network was
+ * given char-walkers, and the page really carries pop-camera-duo, which is
+ * char-walkers with the ground cut away.
+ */
 const PAGE_FIGURE: Record<string, string> = {
   '/': 'pop-cube-thinker',
   '/what-we-do': 'char-fixer',
@@ -58,7 +70,14 @@ export function CompilerDocument({
   reduced: boolean;
   scope: CleanupScope;
 }) {
-  const figure = PAGE_FIGURE[page.route] ?? 'pop-cube-thinker';
+  /* The page's own picture, when the Lab mirrors it. `specimen()` returning
+     undefined is the test for "owned but not carried here" — art-* is the one
+     canonical family still excluded, and a plane that uses it says so rather
+     than borrowing a different image to fill the hole. */
+  const ownImages = page.sections.flatMap((s) => s.images);
+  const fromPage = ownImages.find((id) => specimen(id));
+  const figure = fromPage ?? PAGE_FIGURE[page.route] ?? 'pop-cube-thinker';
+  const figureIsPageOwn = Boolean(fromPage);
 
   /*
    * WHICH SECTIONS BECOME PLANES.
@@ -111,7 +130,8 @@ export function CompilerDocument({
           className="rc-doc__plate-img"
         />
         <figcaption className="t-mono t-mono-xs t-dim rc-doc__caption">
-          FIG. — {figure.toUpperCase()} · HI ANZY'S OWN LIBRARY
+          FIG. — {figure.toUpperCase()} ·{' '}
+          {figureIsPageOwn ? 'CARRIED BY THIS PAGE' : "HI ANZY'S OWN LIBRARY"}
         </figcaption>
       </figure>
 
@@ -185,6 +205,45 @@ export function CompilerDocument({
               {s.roles.length ? ` · ${s.roles.map((r) => r.split(' ')[0]).join('+')}` : ''}
               {s.data.length && (s.headings[0] || s.copy[0]) ? ` · DATA ${s.data.join('+')}` : ''}
             </p>
+            {/*
+              A PLANE THAT IS A PICTURE ON THE REAL PAGE IS A PICTURE HERE.
+
+              Seven sections across the five pages render brand imagery, and
+              until Phase 8.6 E every one of them compiled to a plane of text
+              like any other — a quiet falsehood about the page, since on the
+              real site those parts are mostly picture.
+
+              The image is the Lab's own mirrored copy under BASE_URL, never a
+              hotlink to the commercial site. Where the file is owned but not
+              mirrored — the art-* pair, the one family still excluded in the
+              manifest — the plane draws the empty frame and names what belongs
+              in it. A marked gap is a truthful compilation; a borrowed picture
+              would not be.
+            */}
+            {s.images.length > 0 && (
+              <p className="rc-doc__plane-figs">
+                {s.images.slice(0, 2).map((id) =>
+                  specimen(id) ? (
+                    <img
+                      key={id}
+                      className="rc-doc__plane-fig"
+                      src={specimenSrc(id)}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ) : (
+                    <span key={id} className="rc-doc__plane-fig rc-doc__plane-fig--absent">
+                      <span className="t-mono t-mono-xs">NOT MIRRORED</span>
+                    </span>
+                  ),
+                )}
+                <span className="t-mono t-mono-xs t-dim rc-doc__plane-figcap">
+                  IMAGE · {s.images.join(' + ')}
+                </span>
+              </p>
+            )}
+
             {s.colours.length > 0 && (
               <p className="rc-doc__swatches" aria-hidden="true">
                 {s.colours.slice(0, 5).map((c) => (

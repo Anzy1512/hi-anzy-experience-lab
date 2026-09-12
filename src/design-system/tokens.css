@@ -33,18 +33,117 @@
    * file to no benefit; the mapping is recorded here instead.
    */
   --c-bone: #e0d8c1; /* canonical --paper */
-  --c-bone-deep: #d0c7ab; /* darkened from --paper; no canonical equivalent */
-  --c-bone-dim: #b0a68b;
-  --c-bone-lit: #f7f5ee; /* canonical --white-d — the lifted stock */
+  --c-bone-deep: #d8cfb4; /* canonical bg-[#D8CFB4] — the full-bleed paper band */
+  --c-bone-dim: #b3ac98; /* canonical --border 44 15% 65% — the rule on paper */
+  --c-bone-lit: #f7f5ee; /* canonical --white-d / --card — the lifted stock */
 
   --c-ink: #232a2a; /* canonical --ink */
   --c-ink-raised: #1d2424; /* canonical --panel-dark */
-  --c-void: #0e1111;
+  --c-void: #171c1c; /* canonical .dark --background 180 9% 10% */
 
-  --c-signal: #f19020; /* canonical --orange — SIGNAL ONLY */
-  --c-signal-hot: #e54a25; /* canonical --signal, the second plate */
+  --c-signal: #f19020; /* canonical --orange / --accent / --ring — SIGNAL ONLY */
+  --c-signal-hot: #e54a25; /* canonical --signal, and its --destructive */
 
   --c-grey: #8a8578;
+
+  /*
+   * ---- PHASE 8.6 E : THE REST OF THE COMPANY'S OWN RANGE -----------------
+   *
+   * Everything above was read off the canonical site in Phase 6 and stopped at
+   * six values, which is why this product has spent eight phases looking like
+   * bone, black and orange. The site has more than six, and this phase went and
+   * counted them rather than inventing a palette to fill the gap.
+   *
+   * THE PAPER LADDER. Five stocks, not one. Each is a real surface on the real
+   * site: a card, a torn scrap holding an image, the stock itself, a full-bleed
+   * band, and the rule between them. This is the middle the Lab never had —
+   * every previous surface was either --ground, --figure, or an alpha of one of
+   * the two, and a material with no middle is exactly what reads as a prototype.
+   */
+  --c-paper-card: #efead8; /* canonical bg-[#EFEAD8] — a bordered article */
+  --c-paper-raised: #e7dfc9; /* canonical .scrap — the plate an image sits on */
+
+  /*
+   * THE INK LADDER. The same argument on the other material, and the reason
+   * --c-void moved from the Lab's invented #0e1111 to the site's own dark-theme
+   * ground. Before this the Lab had six privately chosen near-blacks — #0b0e0e
+   * in three separate modes, plus #0d1110, #121616 and #14191a — none of them
+   * the company's, all of them slightly different from each other, and every
+   * one of them written because there was no token to reach for.
+   */
+  --c-ink-rule: #3e4646; /* canonical .dark --border 180 6% 26% */
+  /*
+   * THE STAGE. The Lab's own, and the only value in this milestone that is not
+   * the company's — marked as such rather than quietly mixed in with the rest.
+   *
+   * Canonical's darkest ground is #171C1C, which is right for a page and wrong
+   * for a lens. Six places in this product draw a canvas, a video frame or a
+   * projection and need a surround darker than any page, because a rendered
+   * image seen against a page-dark ground reads as a lit rectangle rather than
+   * as a picture. Those six had each solved it privately — #0b0e0e three times,
+   * #0d1110, #121616, #14191a — and this is the one value they now share.
+   */
+  --c-stage: #0b0e0e;
+
+  /*
+   * THE TWO MUTED TEXT VALUES. The site states both, one per ground, and the
+   * Lab had independently re-derived the paper one four times — #5d605a in
+   * portal, simulator and xray, #50544e in os. It is #4D5656 and always was.
+   */
+  --c-muted-on-paper: #4d5656; /* canonical --muted-foreground 180 6% 32% */
+  --c-muted-on-ink: #beb8a7; /* canonical .dark --muted-foreground 45 15% 70% */
+
+  /*
+   * THE ACCENT DEEPENINGS. The site solves "orange cannot be read as text" in
+   * both directions and names all four. Phase 6 hit the same wall and invented
+   * --signal-text: #9c3d0b for it, which was a reasonable guess and the wrong
+   * answer: #844B0A is what the company actually uses. The Lab now uses it too.
+   *
+   * Canonical's own note: "Brand orange on the paper ground is 1.7:1 and signal
+   * red is 2.8:1 — neither is readable as body or label text however large you
+   * set it. These are the text-safe deepenings; the raw brand values stay for
+   * fills, rules and icons, and on charcoal where they pass comfortably."
+   */
+  --c-orange-on-paper: #844b0a; /* canonical --orange-on-paper */
+  --c-orange-mid: #a85a12; /* canonical text-[#A85A12] — display-size orange */
+  --c-signal-on-paper: #a8351a; /* canonical --signal-on-paper */
+  --c-orange-on-dark: #ffa94d; /* canonical --orange-on-dark */
+  --c-signal-on-dark: #ff7a52; /* canonical --signal-on-dark */
+
+  /*
+   * ---- THE PHOTOGRAPHIC GREY ---------------------------------------------
+   *
+   * MEASURED, not chosen. All eighteen raster assets in the canonical
+   * frontend/public/brand were decoded and their opaque pixels counted
+   * (scripts/sample-brand-colour.py). The result settled the whole question
+   * this milestone opened with:
+   *
+   *   #303030  16.9%   S 0     #C0C0C0  10.3%   S 0
+   *   #D8D8C0  12.3%   S 11    #B4B4B4   7.4%   S 0
+   *   #D8CCB4   7.1%   S 17    #6C6C6C   5.5%   S 0
+   *   ...
+   *   #F09018   0.6%   S 90    ← the brand orange. all of it.
+   *
+   * Hi Anzy's own pictures are greyscale collage on warm stock. There is no
+   * fourth hue in this company's imagery — not a teal, not a blue, not a
+   * secondary. Six tenths of one per cent of every brand pixel is orange, and
+   * everything else is neutral grey or the paper showing through.
+   *
+   * So this milestone does not add hues, because adding one would be the first
+   * fabricated brand fact in the product. It adds the grey the pictures are
+   * actually made of, which the Lab had never had: a neutral axis that is
+   * neither the warm stock nor the green-black ink, and therefore the one thing
+   * that can sit between them without belonging to either.
+   *
+   * That is what MEASURED is set in. An instrument's readings are not the
+   * company's words and should not be printed in the company's ink.
+   */
+  --c-halftone-deep: #303030; /* 16.95% of every brand pixel */
+  --c-halftone-shadow: #545454; /*  4.68% */
+  --c-halftone: #6c6c6c; /*  5.53% */
+  --c-halftone-mid: #9c9c9c; /*  2.25% */
+  --c-halftone-lit: #b4b4b4; /*  7.38% */
+  --c-halftone-pale: #c0c0c0; /* 10.28% */
 
   /* ---- type families ---------------------------------------------------- */
   /* Rajdhani = System Voice, Newsreader = Human Voice. That pairing is not a
@@ -126,7 +225,11 @@
   --ground: var(--c-bone);
   --ground-deep: var(--c-bone-deep);
   --figure: var(--c-ink);
-  --figure-dim: #5a5f59;
+  /* Canonical --muted-foreground, 180 6% 32%. Was #5a5f59 — the Lab's own,
+     arrived at by eye, and one of five places this product had independently
+     invented "dim ink on paper". It is slightly darker than the guess, so every
+     existing consumer gains contrast rather than losing it. */
+  --figure-dim: var(--c-muted-on-paper);
   /* rgba() of the canonical ink 35 42 42, not the old 25 29 28 the deck gave. */
   --figure-faint: rgba(35, 42, 42, 0.34);
   --rule: rgba(35, 42, 42, 0.22);
@@ -148,8 +251,150 @@
    *
    * On ink and blueprint the orange is already 6.09:1 and stays exactly itself.
    */
-  --signal-text: #9c3d0b;
+  --signal-text: var(--c-orange-on-paper);
   --screen-dot: rgba(35, 42, 42, 0.09);
+
+  /* ---- SURFACES : the paper ladder, near to far ------------------------- */
+  --surface-raised: var(--c-paper-raised); /* a scrap laid on the sheet */
+  --surface-card: var(--c-paper-card); /* a bordered article */
+  --surface: var(--ground); /* the stock itself */
+  /*
+   * A band printed into the stock. This is #D8CFB4 composited at the 60% the
+   * canonical site actually renders it at (`bg-[#D8CFB4]/60`) rather than the
+   * raw value, because the raw value is never what a visitor sees there.
+   *
+   * It is a STRUCTURE surface — full-bleed, behind headings and rules — and the
+   * audit holds it to 3:1 rather than 4.5:1 for that reason. The constraint is
+   * real and worth stating: canonical's own rust-on-paper clears AA on the
+   * stock by 0.13 and on nothing darker, so small rust text belongs on the
+   * stock, the scrap and the card, never on the band.
+   */
+  --surface-aged: #dbd3b9;
+  --surface-recessed: var(--c-bone-dim); /* below the surface, not behind it */
+  /* The opposite material, inset. Paper's panel is ink — that is what a dark
+     tile on a light page IS, and the site does it constantly. */
+  --panel: var(--c-ink-raised);
+  --panel-figure: var(--c-bone-lit);
+  --panel-rule: var(--c-ink-rule);
+  /* A hole. Not a dark fill — the absence of stock, with depth behind it. */
+  --cut: var(--c-void);
+  --stage: var(--c-stage); /* the surround a rendered image is seen against */
+
+  /* ---- TEXT : four registers, and they are not four opacities ----------- */
+  --text: var(--figure);
+  /*
+   * The company has ONE muted value per ground, not two. Both names point at it
+   * rather than at two shades three steps apart, because a second muted would
+   * be a Lab invention and the first thing this milestone found is that the
+   * Lab already had four of those. The register below muted is --text-faint,
+   * and it is not a text colour at all.
+   */
+  --text-secondary: var(--c-muted-on-paper);
+  --text-muted: var(--c-muted-on-paper);
+  --text-faint: var(--figure-faint); /* NEVER information. decoration only. */
+  --text-inverse: var(--c-bone-lit);
+  /* Both brand fills are dark enough that bone type sits on them cleanly;
+     canonical sets --accent-foreground to its own near-ink for the same reason,
+     but at label sizes the lifted stock is the safer of the two. */
+  --text-on-signal: var(--c-ink);
+  --text-on-signal-hot: var(--c-bone-lit);
+
+  /* ---- SIGNAL : fills keep the brand value, text gets the deepening ----- */
+  --signal-hot-text: var(--c-signal-on-paper);
+  --signal-mid: var(--c-orange-mid); /* display-size orange, canonical */
+  --signal-soft: rgba(241, 144, 32, 0.16); /* a wash, never a text colour */
+  --signal-hot-soft: rgba(229, 74, 37, 0.14);
+  --registration: var(--c-muted-on-paper);
+  /*
+   * FOCUS IS NOT THE RAW ORANGE ON THIS MATERIAL.
+   *
+   * Canonical's --ring is #F19020 and on the charcoal grounds that is right and
+   * stays. On the company's own paper it measures 1.69:1 against the ground it
+   * is drawn on — WCAG 2.2 asks 3:1 of a focus indicator, and 1.69 is not a
+   * ring anybody can see. This is the same problem canonical already solved for
+   * text, solved the same way and with its own value: the ring deepens to
+   * --orange-on-paper and clears 4.93:1. It is still unmistakably the brand's
+   * orange; it is simply laid down heavily enough to be visible on cream.
+   */
+  --focus: var(--c-orange-on-paper);
+
+  /* ---- HALFTONE : the grey the company's own photographs are made of ----
+     --halftone is the register that can be READ on this material; -tone and
+     -pale are fills and dot structure, and are decorative by definition. */
+  --halftone: var(--c-halftone-deep);
+  --halftone-tone: var(--c-halftone);
+  --halftone-pale: var(--c-halftone-lit);
+
+  /*
+   * ---- PROVENANCE : five registers, and the difference is the product ----
+   *
+   * Every tool in the Lab ends in a document whose whole claim to being worth
+   * reading is that it says which lines are facts and which are inference. Up
+   * to this phase that distinction was carried by three values — figure, dim,
+   * signal — so DERIVED and RECOMMENDATION were literally the same colour, and
+   * MEASURED was set in the company's ink as if the company had said it.
+   *
+   * These five are distinguishable by hue AND by value AND (in the components)
+   * by fill-vs-outline, because colour alone is not an accessible distinction.
+   *
+   *   SOURCED  it is in the record. full ink, solid. nothing was added.
+   *   MEASURED this browser produced it just now. the photographic grey —
+   *            a reading is not a company statement and is not printed as one.
+   *   DERIVED  reasoned from the above. secondary weight: real, but second-hand.
+   *   UNKNOWN  nobody knows. orange, because it is the most valuable line in
+   *            any honest brief: the work a real audit would still have to do.
+   *   RECOMMEND the only line that asks the reader to act. rust — the second
+   *            plate, the one you commit to. canonical's own --destructive hue,
+   *            used here for consequence rather than for danger.
+   */
+  --prov-sourced: var(--figure);
+  --prov-measured: var(--c-halftone-shadow);
+  --prov-derived: var(--c-muted-on-paper);
+  --prov-unknown: var(--c-orange-on-paper);
+  --prov-recommend: var(--c-signal-on-paper);
+  /*
+   * THE MARK, WHICH IS HALF THE DISTINCTION.
+   *
+   * Five registers cannot be told apart by value alone on a light ground and
+   * the arithmetic says so: AA at 4.5:1 caps a readable colour at L 0.109, the
+   * ink sits at L 0.022, and the whole readable band is therefore 2.2:1 wide.
+   * Split five ways that is 1.22:1 per step — below the threshold at which two
+   * dark values read as two different colours.
+   *
+   * So provenance is carried by hue family AND by form AND by the word, which
+   * is printed in every case. These are the forms: a solid square for material
+   * that exists, a hollow square for material that does not, a rule for a
+   * reading. A visitor who cannot distinguish amber from rust still sees a
+   * filled mark against an empty one and still reads the label.
+   */
+  --prov-mark-solid: currentColor;
+  --prov-mark-hollow: transparent;
+
+  /*
+   * ---- SYSTEM STATE -----------------------------------------------------
+   *
+   * A print shop has no green light. "It worked" is that the plate is seated
+   * and the mark is solid; "it failed" is the second plate; "nobody knows" is
+   * an unfilled outline. That is the whole vocabulary, and it happens to be
+   * exactly what the brief asks for: unavailable must not look like live, and
+   * UNKNOWN must not look like failure.
+   */
+  --state-ok: var(--figure);
+  --state-active: var(--signal);
+  --state-active-text: var(--c-orange-on-paper);
+  --state-warning: var(--c-orange-on-paper);
+  --state-failure: var(--c-signal-on-paper);
+  --state-unknown: var(--c-halftone-deep);
+  --state-info: var(--c-muted-on-paper);
+  /*
+   * Inactive is readable. WCAG exempts genuinely disabled controls from
+   * contrast, and that exemption is routinely used to make "off" illegible —
+   * but half the inactive things in this Lab are not disabled, they are simply
+   * not the current one, and a visitor still has to read them to choose. The
+   * OFF-ness is carried by the mark below, which is a rule rather than a fill.
+   */
+  --state-inactive: var(--c-muted-on-paper);
+  --state-inactive-mark: var(--c-bone-dim);
 }
 
 /* ======================================================================== */
@@ -173,6 +418,62 @@
   --signal-hot: var(--c-signal-hot);
   --signal-text: var(--signal);
   --screen-dot: rgba(224, 216, 193, 0.05);
+
+  /* ---- SURFACES : the ink ladder. raised is LIGHTER, deep is darker. ----- */
+  --surface-raised: #2b3333; /* between --ink and --ink-rule; a lifted tile */
+  --surface-card: var(--c-ink-raised);
+  --surface: var(--ground);
+  --surface-aged: var(--c-ink-raised);
+  --surface-recessed: var(--c-void);
+  /* Ink's panel is paper. The inversion is the point: on the dark material an
+     inset light tile is a sheet lying on the bench, which is the same object
+     the launcher is made of. */
+  --panel: var(--c-bone);
+  --panel-figure: var(--c-ink);
+  --panel-rule: var(--c-bone-dim);
+  --cut: var(--c-stage);
+  --stage: var(--c-stage); /* the surround a rendered image is seen against */
+
+  /* ---- TEXT ------------------------------------------------------------- */
+  --text: var(--figure);
+  --text-secondary: var(--c-muted-on-ink);
+  --text-muted: var(--figure-dim);
+  --text-faint: var(--figure-faint);
+  --text-inverse: var(--c-ink);
+  --text-on-signal: var(--c-ink);
+  --text-on-signal-hot: var(--c-bone-lit);
+
+  /* ---- SIGNAL : on this ground the raw brand values already pass --------- */
+  --signal-hot-text: var(--c-signal-on-dark);
+  --signal-mid: var(--c-orange-on-dark);
+  --signal-soft: rgba(241, 144, 32, 0.14);
+  --signal-hot-soft: rgba(229, 74, 37, 0.12);
+  --registration: var(--c-muted-on-ink);
+  --focus: var(--signal);
+
+  --halftone: var(--c-halftone-pale);
+  --halftone-tone: var(--c-halftone-lit);
+  --halftone-pale: var(--c-halftone);
+
+  /* Same five registers, walked to the other side of the ground. MEASURED
+     lightens rather than darkens; the accents take canonical's on-dark pair. */
+  --prov-sourced: var(--figure);
+  --prov-measured: var(--c-halftone-mid);
+  --prov-derived: var(--figure-dim);
+  --prov-unknown: var(--c-orange-on-dark);
+  --prov-recommend: var(--c-signal-on-dark);
+  --prov-mark-solid: currentColor;
+  --prov-mark-hollow: transparent;
+
+  --state-ok: var(--figure);
+  --state-active: var(--signal);
+  --state-active-text: var(--c-orange-on-dark);
+  --state-warning: var(--c-orange-on-dark);
+  --state-failure: var(--c-signal-on-dark);
+  --state-unknown: var(--c-halftone-pale);
+  --state-info: var(--c-muted-on-ink);
+  --state-inactive: var(--c-muted-on-ink);
+  --state-inactive-mark: var(--c-ink-rule);
 }
 
 /* ======================================================================== */
@@ -194,4 +495,55 @@
   --signal-hot: var(--c-signal-hot);
   --signal-text: var(--signal);
   --screen-dot: rgba(228, 221, 202, 0.04);
+
+  /* Blueprint is a section drawing, so its ladder is shallower on purpose:
+     a construction drawing that develops rich surface variation has stopped
+     being a construction drawing. Raised and aged are one step either side. */
+  --surface-raised: #171c1b;
+  --surface-card: #141817;
+  --surface: var(--ground);
+  --surface-aged: #0d100f;
+  --surface-recessed: var(--ground-deep);
+  --panel: var(--c-bone);
+  --panel-figure: var(--c-ink);
+  --panel-rule: var(--c-bone-dim);
+  --cut: var(--c-stage);
+  --stage: var(--c-stage); /* the surround a rendered image is seen against */
+
+  --text: var(--figure);
+  --text-secondary: var(--c-muted-on-ink);
+  --text-muted: var(--figure-dim);
+  --text-faint: var(--figure-faint);
+  --text-inverse: var(--c-ink);
+  --text-on-signal: var(--c-ink);
+  --text-on-signal-hot: var(--c-bone-lit);
+
+  --signal-hot-text: var(--c-signal-on-dark);
+  --signal-mid: var(--c-orange-on-dark);
+  --signal-soft: rgba(241, 144, 32, 0.13);
+  --signal-hot-soft: rgba(229, 74, 37, 0.11);
+  --registration: var(--c-muted-on-ink);
+  --focus: var(--signal);
+
+  --halftone: var(--c-halftone-pale);
+  --halftone-tone: var(--c-halftone-lit);
+  --halftone-pale: var(--c-halftone);
+
+  --prov-sourced: var(--figure);
+  --prov-measured: var(--c-halftone-mid);
+  --prov-derived: var(--figure-dim);
+  --prov-unknown: var(--c-orange-on-dark);
+  --prov-recommend: var(--c-signal-on-dark);
+  --prov-mark-solid: currentColor;
+  --prov-mark-hollow: transparent;
+
+  --state-ok: var(--figure);
+  --state-active: var(--signal);
+  --state-active-text: var(--c-orange-on-dark);
+  --state-warning: var(--c-orange-on-dark);
+  --state-failure: var(--c-signal-on-dark);
+  --state-unknown: var(--c-halftone-pale);
+  --state-info: var(--c-muted-on-ink);
+  --state-inactive: var(--c-muted-on-ink);
+  --state-inactive-mark: var(--c-ink-rule);
 }

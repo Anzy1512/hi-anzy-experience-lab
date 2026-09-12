@@ -34,8 +34,25 @@
   color: var(--figure);
 }
 
-/* The escalation is legible in colour as well as motion: as the system fails,
-   the type loses the last of its contrast — then gets all of it back. */
+/*
+ * The escalation is legible in colour as well as motion: as the system fails,
+ * the type loses the last of its contrast — then gets all of it back.
+ *
+ * THE ONE PLACE IN THIS PRODUCT WHERE LOW CONTRAST IS THE CONTENT.
+ *
+ * Phase 8.6 E's audit reports these two stages below AA and they are meant to
+ * be. Chaos is a performance of a system failing, and stages 07 and 08 are the
+ * moment it nearly goes: type fading out is not a legibility decision here, it
+ * is the thing being depicted. Stage 09 returns every fragment to full figure
+ * weight, which is the recovery the whole sequence is built to arrive at.
+ *
+ * It is accessible because nothing is only here: the words are the Lab's own
+ * material names, set legibly in the same mode's manifest and in
+ * design-system/materials.ts, the stage number and its name are printed in the
+ * chrome throughout at full contrast, and no control, instruction or state
+ * depends on reading a fragment at stage 07. A visitor who cannot see them has
+ * missed a picture of failure, not a fact.
+ */
 .ch[data-stage='7'] .ch-frag,
 .ch[data-stage='8'] .ch-frag {
   color: var(--figure-faint);

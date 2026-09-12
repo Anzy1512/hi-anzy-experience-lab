@@ -49,11 +49,8 @@
   overflow-y: auto;
   overscroll-behavior: contain;
 
-  --ground: var(--c-bone);
-  --figure: var(--c-ink);
-  --figure-dim: #5d605a;
-  --figure-faint: rgba(25, 29, 28, 0.34);
-  --rule: rgba(25, 29, 28, 0.22);
+  /* The specimen plate is paper on a blueprint ground; the material is
+     declared on the element, so the plate inherits all of it. */
 
   background: var(--ground);
   color: var(--figure);
@@ -134,7 +131,7 @@
   flex: 1;
   min-height: 190px;
   object-fit: cover;
-  background: #0b0e0e;
+  background: var(--stage);
 }
 .xr-spec__plate-frame {
   position: absolute;
@@ -573,10 +570,13 @@
   background: var(--signal);
   border-color: var(--signal);
 }
+/* The key is how a visitor operates the patch bay — it names the number to
+   press. Faint is for furniture that repeats something legible beside it, and
+   this repeats nothing. */
 .xr-patch__key {
   grid-row: 1;
   grid-column: 2;
-  color: var(--figure-faint);
+  color: var(--text-secondary);
 }
 .xr-patch__label {
   grid-row: 2;

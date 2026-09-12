@@ -68,7 +68,7 @@
   font-family: var(--f-mono);
   font-size: var(--t-mono-xs);
   letter-spacing: 0.1em;
-  color: var(--figure-faint);
+  color: var(--text-secondary);
 }
 .pf-rows dd {
   margin: 0;
@@ -82,8 +82,12 @@
 
 /* An unmeasured value is visibly a different kind of statement from a measured
    one. This is the whole ethic of the mode, expressed in one rule. */
+/* UNKNOWN is the most important class of line in this mode and was the least
+   readable one at 1.96:1. It stays visibly a different kind of statement — the
+   italic does that — but it is now the state token rather than a near-invisible
+   wash, because a value nobody measured is a finding, not an absence. */
 .pf-rows > div[data-measured='false'] dd {
-  color: var(--figure-faint);
+  color: var(--state-unknown);
   font-style: italic;
 }
 

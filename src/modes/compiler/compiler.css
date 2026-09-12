@@ -131,7 +131,7 @@
   flex: 1;
   min-height: 150px;
   max-height: 30vh;
-  background: #0b0e0e;
+  background: var(--stage);
 }
 .rc-doc__caption {
   margin-top: 0.7em;
@@ -780,4 +780,60 @@
 
 .rc-doc__stage-line {
   overflow-wrap: break-word;
+}
+
+/* ==========================================================================
+   A PLANE THAT IS A PICTURE
+
+   Seven of the twenty-four captured sections render brand imagery on the real
+   site. They used to compile to text like every other plane, which made the
+   document a truthful report about half a page. The thumbnail is small on
+   purpose — a plane on the twelve-column measure is about 110px wide, and a
+   picture at that size reads as what it is: the part of the page that is a
+   picture, not a hero image the Lab has decided to feature.
+   ========================================================================== */
+.rc-doc__plane-figs {
+  margin: 8px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.rc-doc__plane-fig {
+  display: block;
+  width: 46px;
+  height: 46px;
+  object-fit: cover;
+  object-position: 50% 22%;
+  background: var(--surface-aged);
+  border: var(--hair) solid var(--rule);
+}
+
+/* Owned, and deliberately not carried here. The frame stays so the plane still
+   reports that this part of the page is a picture; the label says why there is
+   nothing in it. Ruled rather than blank, so it cannot be mistaken for a
+   loading state. */
+.rc-doc__plane-fig--absent {
+  display: grid;
+  place-items: center;
+  width: auto;
+  min-width: 46px;
+  padding: 0 6px;
+  color: var(--state-unknown);
+  background: repeating-linear-gradient(
+    135deg,
+    transparent 0 4px,
+    var(--rule-faint) 4px 5px
+  );
+  border-style: dashed;
+  font-size: 7px;
+  letter-spacing: 0.06em;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.rc-doc__plane-figcap {
+  flex: 1 1 100%;
+  letter-spacing: var(--tr-mono);
 }

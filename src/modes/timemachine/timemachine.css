@@ -53,7 +53,11 @@
   gap: 4px;
   align-items: center;
   padding: 5px 0;
-  color: var(--figure-faint);
+  /* The year on a scrub stop. It is the only thing identifying which
+     checkpoint a visitor is about to travel to, and every one of these is a
+     real date in the repository — faint made the mode's one factual axis its
+     least readable element at 2.25:1. */
+  color: var(--state-inactive);
   letter-spacing: var(--tr-mono-wide);
   transition: color var(--d-1) var(--e-snap);
 }
@@ -94,7 +98,7 @@
   font-family: var(--f-mono);
   font-size: var(--t-mono-xs);
   letter-spacing: var(--tr-mono-wide);
-  color: var(--figure-faint);
+  color: var(--text-secondary);
 }
 .tm-notes dd {
   margin: 0;

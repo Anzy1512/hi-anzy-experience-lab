@@ -7,7 +7,7 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: #0d1110;
+  background: var(--stage);
   touch-action: none;
 }
 
@@ -52,7 +52,82 @@
 .pr-tag { margin-top: 0.3em; letter-spacing: var(--tr-mono-wide); }
 
 .pr-read { display: grid; gap: 5px; }
-.pr-source { letter-spacing: var(--tr-mono-wide); }
+/* ==========================================================================
+   THE CAMERA STATE, WHICH MUST NEVER FLATTER ITSELF
+
+   Five appearances for nine states. The grouping is the point: every way of
+   NOT having a camera that is nobody's fault reads the same and reads neutral,
+   one state reads as a refusal, and exactly one reads as live.
+
+   Colour is never alone in saying it — each state also has a mark, and the
+   sentence beside it says the same thing in words. A filled orange square is
+   the only thing in this mode that means a camera is running, and it cannot
+   appear unless `status === 'active'`, which is set from a track that is
+   actually delivering frames.
+   ========================================================================== */
+.pr-source {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--state-info);
+}
+
+.pr-source__mark {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border: 1px solid currentColor;
+  background: currentColor;
+}
+
+/* LIVE — and nothing else in this mode gets the signal colour. */
+.pr-source[data-cam='live'] {
+  color: var(--state-active-text);
+}
+.pr-source[data-cam='live'] .pr-source__mark {
+  background: var(--signal);
+  border-color: var(--signal);
+}
+
+/* ASKING — a prompt is open and nothing has been granted. Hollow. */
+.pr-source[data-cam='asking'] {
+  color: var(--state-warning);
+}
+.pr-source[data-cam='asking'] .pr-source__mark {
+  background: transparent;
+}
+
+/* REFUSED — somebody said no. The second plate. Crossed rather than filled,
+   so the refusal is legible without reading the word or seeing the hue. */
+.pr-source[data-cam='refused'] {
+  color: var(--state-failure);
+}
+.pr-source[data-cam='refused'] .pr-source__mark {
+  background: linear-gradient(
+    to bottom right,
+    transparent calc(50% - 1px),
+    currentColor calc(50% - 1px),
+    currentColor calc(50% + 1px),
+    transparent calc(50% + 1px)
+  );
+}
+
+/* ABSENT — no API, no device, no https, in use elsewhere, unplugged. None of
+   these is a failure and none of them is styled as one. */
+.pr-source[data-cam='absent'] {
+  color: var(--state-unknown);
+}
+.pr-source[data-cam='absent'] .pr-source__mark {
+  background: transparent;
+  border-style: dashed;
+}
+
+/* POINTER — the camera was never asked for, which is the default and is fine. */
+.pr-source[data-cam='pointer'] .pr-source__mark {
+  background: transparent;
+  border-color: var(--state-inactive-mark);
+}
 
 /* The meter is the instrument reading the room. */
 .pr-meter {

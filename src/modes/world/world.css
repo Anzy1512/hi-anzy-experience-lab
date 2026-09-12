@@ -67,10 +67,14 @@
     border-color var(--d-2) var(--e-snap),
     background-color var(--d-2) var(--e-snap);
 }
+/* The district code. It identifies a place in the territory and is the only
+   thing distinguishing two labels with similar names, so it is read rather
+   than glanced past. Colour only — no geometry, no behaviour: Living World is
+   frozen and this consumes the shared token layer, nothing more. */
 .lw-label__idx {
   grid-column: 2;
   grid-row: 1;
-  color: var(--figure-faint);
+  color: var(--text-secondary);
   letter-spacing: var(--tr-mono-wide);
   text-align: left;
 }
@@ -330,8 +334,11 @@
   border-color: var(--signal);
   color: var(--signal);
 }
+/* The district code on the route control — D1..D8. It is how a visitor names
+   the place they are about to travel to, so it is read, not glanced past.
+   Colour only: Living World's geometry, navigation and behaviour are frozen. */
 .lw-stop__idx {
-  color: var(--figure-faint);
+  color: var(--text-secondary);
 }
 .lw-stop[data-status='forming'],
 .lw-stop[data-status='sealed'] {

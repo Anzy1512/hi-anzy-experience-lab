@@ -221,6 +221,18 @@ export default function XRayMode({ onReady, scope }: ModeViewProps) {
       {/* ---- the subject ---------------------------------------------------- */}
       <div
         className="xr-surface"
+        /*
+         * The plate is paper until the instrument drains it, and then it is the
+         * blueprint ground again — which is the whole gesture of this mode: the
+         * sheet goes and the construction stays.
+         *
+         * Declaring it as a MATERIAL rather than patching five tokens means the
+         * whole semantic layer moves together. The drained rule used to restore
+         * --ground, --figure, --figure-dim, --figure-faint and --rule by hand
+         * and knew nothing about the accents, so PLATE 01 kept paper's deepened
+         * orange over the dark ground at 2.64:1 once the paper had gone.
+         */
+        data-material={step >= 1 ? 'blueprint' : 'paper'}
         onPointerDown={onSurfacePointerDown}
         data-drained={step >= 1 ? 'true' : 'false'}
       >

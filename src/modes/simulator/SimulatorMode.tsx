@@ -201,7 +201,7 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
     phase === 'report' || phase === 'system' ? 4 : phase === 'brief' || phase === 'state' ? 0 : Math.min(3, step);
 
   return (
-    <div className="sim" ref={rootRef} data-phase={phase}>
+    <div className="sim" ref={rootRef} data-material="paper" data-phase={phase}>
       {/* The table is always present. It is the thing that changes. */}
       <FragmentTable
         fragments={fragments}

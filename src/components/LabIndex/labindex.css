@@ -318,8 +318,11 @@
 
 /* A walked row settles back: its number dims, so unvisited realities are the
    ones that read forward. The title is untouched. */
+/* Visited still has to be readable. The dimming says where you have been; it
+   is not permission to make the row's own number illegible — and --state-inactive
+   is the token that carries exactly that distinction. */
 .row[data-visited='true'] .row__index {
-  color: var(--figure-faint);
+  color: var(--state-inactive);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -366,7 +369,7 @@
   letter-spacing: var(--tr-mono-wide);
 }
 .index__graph-num {
-  color: var(--figure-faint);
+  color: var(--text-secondary);
 }
 .index__graph-name {
   color: var(--figure-dim);

@@ -179,6 +179,26 @@ function captureFile(src, file) {
     );
 
     const colours = uniq([...body.matchAll(/#([0-9A-Fa-f]{6})\b/g)].map((m) => `#${m[1].toUpperCase()}`));
+
+    /*
+     * WHICH PARTS OF THE REAL PAGE CARRY A PICTURE.
+     *
+     * Added in Phase 8.6 E. Without it the Compiler turned an image-bearing
+     * section into a plane of text like any other, which is a false report
+     * about the page: on the real site those parts are mostly picture, and a
+     * tool that claims to take a website apart should not quietly drop the
+     * half of it that is not words.
+     *
+     * The brand STEM is recorded rather than a path, because the Lab serves the
+     * same owned files from its own public/brand under BASE_URL. Nothing is
+     * hotlinked from the commercial site and nothing is invented: `<Picture
+     * name="pop-hands-a" />` is the site's own component and `name` is the file
+     * stem, so this is a direct read of the markup.
+     */
+    const images = uniq([
+      ...[...body.matchAll(/<Picture\b[^>]*?\bname=["']([a-z0-9-]+)["']/g)].map((m) => m[1]),
+      ...[...body.matchAll(/brand\/([a-z0-9-]+)\.(?:avif|png|jpg|webp)/g)].map((m) => m[1]),
+    ]);
     const components = uniq(
       [...body.matchAll(/<([A-Z][A-Za-z0-9]+)\b/g)].map((m) => m[1]),
     ).filter((c) => c !== 'Reveal' && c !== 'Seo');
@@ -194,6 +214,7 @@ function captureFile(src, file) {
       copy: paras,
       roles,
       colours,
+      images,
       components,
       columns,
       ground: dark ? 'INK' : 'PAPER',
@@ -263,6 +284,7 @@ for (const p of PAGES) {
         copy: first?.copy ?? [],
         roles: first?.roles ?? [],
         colours: first?.colours ?? [],
+        images: first?.images ?? [],
         components: first?.components ?? [],
         columns: first?.columns ?? null,
         ground: first?.ground ?? 'PAPER',
@@ -337,6 +359,12 @@ export interface CanonicalSection {
   roles: string[];
   /** Hex values written into this section's own markup. */
   colours: string[];
+  /**
+   * Brand asset stems this part actually renders, read from its own markup.
+   * The Lab serves the same owned files from public/brand; nothing is
+   * hotlinked and nothing is inferred from a section's subject.
+   */
+  images: string[];
   /** Real component names this section mounts. */
   components: string[];
   /** Columns of the real twelve-column grid this section spans. */

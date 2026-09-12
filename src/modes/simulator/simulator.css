@@ -8,16 +8,10 @@
   inset: 0;
   overflow: hidden;
 
-  /* Local material override: this mode is worked on, so it is paper again.
-     Declared here rather than as a fourth html material because it is the same
-     paper the launcher uses — a return, not a new state. */
-  --ground: var(--c-bone);
-  --figure: var(--c-ink);
-  --figure-dim: #5d605a;
-  --figure-faint: rgba(25, 29, 28, 0.34);
-  --rule: rgba(25, 29, 28, 0.22);
-  --rule-faint: rgba(25, 29, 28, 0.1);
-  --screen-dot: rgba(25, 29, 28, 0.09);
+  /* This mode is worked on, so it is paper again — declared as a material on
+     the element rather than re-listed here, which is a return to the launcher's
+     stock rather than a new state. The values this block used to carry were
+     still the pre-Phase-6 deck ink (25 29 28) and had drifted a step cool. */
 
   background: var(--ground);
   color: var(--figure);
@@ -140,8 +134,10 @@
   gap: 0 10px;
   letter-spacing: var(--tr-mono-wide);
 }
+/* Stages not yet reached. Readable, because the point of showing them is that
+   a visitor can see how much method is still ahead. */
 .sim-panel__stage span {
-  color: var(--figure-faint);
+  color: var(--state-inactive);
   transition: color var(--d-2) var(--e-snap);
 }
 .sim-panel__stage span[data-on='true'] {
@@ -297,7 +293,7 @@
   margin: 0;
 }
 .sim-cluster__band {
-  color: var(--figure-faint);
+  color: var(--text-secondary);
   letter-spacing: var(--tr-mono);
   white-space: nowrap;
 }
@@ -746,9 +742,49 @@
   align-items: baseline;
 }
 
+/* ==========================================================================
+   THE FOUR REGISTERS
+
+   Before Phase 8.6 E this document had three colours for four classes of
+   line — figure, dim, signal — so DERIVED and RECOMMENDATION were literally
+   indistinguishable, which is a strange thing for a document whose entire
+   claim is that it tells you which lines are which.
+
+   Each register is now carried three ways at once, because on a light ground
+   at AA there is not enough room to carry it one way. Measured: the readable
+   band on this stock spans L* 16 to L* 39, and four values is what genuinely
+   fits in it (ΔE 19.4 at the closest pair — scripts/check-contrast.mjs).
+
+     COLOUR   the token, from the company's own range
+     MARK     a square before the label: solid for material that exists,
+              hollow for material that does not, so the distinction survives
+              being printed, photocopied, or read by somebody who does not
+              separate amber from rust
+     WORD     the label itself, always set, never replaced by the colour
+   ========================================================================== */
+.sim-report__p,
+.sim-report__tally span,
+.sim-report__legend dt {
+  position: relative;
+  padding-left: 13px;
+}
+
+.sim-report__p::before,
+.sim-report__tally span::before,
+.sim-report__legend dt::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.36em;
+  width: 7px;
+  height: 7px;
+  border: 1px solid currentColor;
+  background: currentColor;
+}
+
 .sim-report__p {
   letter-spacing: var(--tr-mono-wide);
-  color: var(--figure-dim);
+  color: var(--prov-derived);
 }
 
 /* FACT is what the visitor themselves put in, and is the only thing on this
@@ -756,15 +792,37 @@
 .sim-report__p[data-p='FACT'],
 .sim-report__tally [data-p='FACT'],
 .sim-report__legend dt[data-p='FACT'] {
-  color: var(--figure);
+  color: var(--prov-sourced);
 }
 
 /* UNKNOWN carries the warning colour because it is the most important class
-   of line in the document: everything a real audit would still have to find. */
+   of line in the document: everything a real audit would still have to find.
+   It is also the one register whose mark is HOLLOW — there is nothing there,
+   and the square says so before the word does. */
 .sim-report__p[data-p='UNKNOWN'],
 .sim-report__tally [data-p='UNKNOWN'],
 .sim-report__legend dt[data-p='UNKNOWN'] {
-  color: var(--signal);
+  color: var(--prov-unknown);
+}
+.sim-report__p[data-p='UNKNOWN']::before,
+.sim-report__tally [data-p='UNKNOWN']::before,
+.sim-report__legend dt[data-p='UNKNOWN']::before {
+  background: var(--prov-mark-hollow);
+}
+
+/* RECOMMENDATION is the only line in the document that asks the reader to do
+   something. Rust — the second plate, the one you commit to — and a mark that
+   is split rather than solid, because a recommendation is half evidence and
+   half instruction. */
+.sim-report__p[data-p='RECOMMENDATION'],
+.sim-report__tally [data-p='RECOMMENDATION'],
+.sim-report__legend dt[data-p='RECOMMENDATION'] {
+  color: var(--prov-recommend);
+}
+.sim-report__p[data-p='RECOMMENDATION']::before,
+.sim-report__tally [data-p='RECOMMENDATION']::before,
+.sim-report__legend dt[data-p='RECOMMENDATION']::before {
+  background: linear-gradient(135deg, currentColor 50%, transparent 50%);
 }
 
 .sim-report__disclaimer {

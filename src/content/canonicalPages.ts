@@ -46,6 +46,12 @@ export interface CanonicalSection {
   roles: string[];
   /** Hex values written into this section's own markup. */
   colours: string[];
+  /**
+   * Brand asset stems this part actually renders, read from its own markup.
+   * The Lab serves the same owned files from public/brand; nothing is
+   * hotlinked and nothing is inferred from a section's subject.
+   */
+  images: string[];
   /** Real component names this section mounts. */
   components: string[];
   /** Columns of the real twelve-column grid this section spans. */
@@ -84,6 +90,7 @@ export const CANONICAL_PAGES: CanonicalPage[] = [
         "copy": [],
         "roles": [],
         "colours": [],
+        "images": [],
         "components": [],
         "columns": null,
         "ground": "PAPER",
@@ -99,6 +106,7 @@ export const CANONICAL_PAGES: CanonicalPage[] = [
         "copy": [],
         "roles": [],
         "colours": [],
+        "images": [],
         "components": [],
         "columns": null,
         "ground": "PAPER",
@@ -124,6 +132,7 @@ export const CANONICAL_PAGES: CanonicalPage[] = [
           "#F7F5EE",
           "#1D2424"
         ],
+        "images": [],
         "components": [
           "RouteLine",
           "MagneticButton",
@@ -163,6 +172,7 @@ export const CANONICAL_PAGES: CanonicalPage[] = [
           "#F7F5EE",
           "#F19020"
         ],
+        "images": [],
         "components": [
           "React"
         ],
@@ -180,6 +190,7 @@ export const CANONICAL_PAGES: CanonicalPage[] = [
         "copy": [],
         "roles": [],
         "colours": [],
+        "images": [],
         "components": [],
         "columns": null,
         "ground": "PAPER",
@@ -207,6 +218,7 @@ export const CANONICAL_PAGES: CanonicalPage[] = [
           "#E54A25",
           "#F7F5EE"
         ],
+        "images": [],
         "components": [
           "SectionHeading",
           "SystemDiagnostic"
@@ -233,6 +245,9 @@ export const CANONICAL_PAGES: CanonicalPage[] = [
         "colours": [
           "#232A2A",
           "#F7F5EE"
+        ],
+        "images": [
+          "pop-cube-thinker"
         ],
         "components": [
           "SectionHeading",
@@ -263,6 +278,7 @@ export const CANONICAL_PAGES: CanonicalPage[] = [
           "#F7F5EE",
           "#F19020"
         ],
+        "images": [],
         "components": [
           "SectionHeading",
           "MagneticButton",
@@ -295,6 +311,7 @@ export const CANONICAL_PAGES: CanonicalPage[] = [
           "#F19020",
           "#232A2A"
         ],
+        "images": [],
         "components": [
           "Check"
         ],
@@ -324,6 +341,9 @@ export const CANONICAL_PAGES: CanonicalPage[] = [
         "colours": [
           "#F7F5EE",
           "#F19020"
+        ],
+        "images": [
+          "art-thinker"
         ],
         "components": [
           "MagneticButton",
@@ -355,6 +375,7 @@ export const CANONICAL_PAGES: CanonicalPage[] = [
           "#232A2A",
           "#F7F5EE"
         ],
+        "images": [],
         "components": [
           "SectionHeading",
           "MagneticButton",
@@ -386,6 +407,7 @@ export const CANONICAL_PAGES: CanonicalPage[] = [
           "#F19020",
           "#232A2A"
         ],
+        "images": [],
         "components": [
           "SectionHeading",
           "MagneticButton",
@@ -418,6 +440,9 @@ export const CANONICAL_PAGES: CanonicalPage[] = [
           "#232A2A",
           "#F7F5EE"
         ],
+        "images": [
+          "pop-hands-a"
+        ],
         "components": [
           "SectionHeading",
           "ProgressRule",
@@ -443,6 +468,7 @@ export const CANONICAL_PAGES: CanonicalPage[] = [
         "colours": [
           "#232A2A"
         ],
+        "images": [],
         "components": [
           "SectionHeading",
           "MagneticButton",
@@ -471,6 +497,9 @@ export const CANONICAL_PAGES: CanonicalPage[] = [
         ],
         "colours": [
           "#F7F5EE"
+        ],
+        "images": [
+          "pop-hat-balloon"
         ],
         "components": [
           "RouteLine",
@@ -529,6 +558,9 @@ export const CANONICAL_PAGES: CanonicalPage[] = [
           "#FF7A52",
           "#D8CFB4"
         ],
+        "images": [
+          "art-cube-head"
+        ],
         "components": [
           "ArrowRight",
           "Link",
@@ -577,6 +609,7 @@ export const CANONICAL_PAGES: CanonicalPage[] = [
           "#232A2A",
           "#F19020"
         ],
+        "images": [],
         "components": [
           "InboxUnfold"
         ],
@@ -605,6 +638,9 @@ export const CANONICAL_PAGES: CanonicalPage[] = [
           "#F7F5EE",
           "#D8CFB4",
           "#232A2A"
+        ],
+        "images": [
+          "pop-clock-watch"
         ],
         "components": [
           "RouteLine",
@@ -662,6 +698,7 @@ export const CANONICAL_PAGES: CanonicalPage[] = [
           "#F19020",
           "#232A2A"
         ],
+        "images": [],
         "components": [
           "Maximize2",
           "ThreeSafe",
@@ -701,6 +738,9 @@ export const CANONICAL_PAGES: CanonicalPage[] = [
           "#F19020",
           "#F7F5EE"
         ],
+        "images": [
+          "pop-camera-duo"
+        ],
         "components": [
           "PopIllustration",
           "CardCarousel",
@@ -736,6 +776,7 @@ export const CANONICAL_PAGES: CanonicalPage[] = [
           "#232A2A",
           "#F19020"
         ],
+        "images": [],
         "components": [
           "CircularCarousel"
         ],
@@ -767,6 +808,7 @@ export const CANONICAL_PAGES: CanonicalPage[] = [
           "#232A2A",
           "#F7F5EE"
         ],
+        "images": [],
         "components": [
           "ProvenanceTag",
           "PunPop",
@@ -811,6 +853,7 @@ export const CANONICAL_PAGES: CanonicalPage[] = [
           "#F19020",
           "#A85A12"
         ],
+        "images": [],
         "components": [],
         "columns": 12,
         "ground": "PAPER",
@@ -860,6 +903,7 @@ export const CANONICAL_PAGES: CanonicalPage[] = [
           "#D8CFB4",
           "#F19020"
         ],
+        "images": [],
         "components": [
           "RouteLine",
           "MagneticButton",

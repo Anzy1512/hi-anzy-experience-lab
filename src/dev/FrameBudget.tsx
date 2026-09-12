@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { onFrame, frameSubscriberCount } from '../core/raf';
 import { readCapability } from '../core/capability';
 import { currentStage, installPerfApi } from './perf';
+import { installContrastApi } from './contrast';
 import './frame-budget.css';
 
 /**
@@ -33,6 +34,11 @@ export default function FrameBudget() {
   const bodyRef = useRef<HTMLDListElement>(null);
 
   useEffect(() => installPerfApi(), []);
+  /* `window.__labContrast.report()` — the live AA audit of whatever is on
+     screen. Installed beside the perf API for the same reason: the headless
+     path needs no UI, and a design system that passes on paper can still put a
+     paper-coloured control over a dark aperture at one viewport. */
+  useEffect(() => installContrastApi(), []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

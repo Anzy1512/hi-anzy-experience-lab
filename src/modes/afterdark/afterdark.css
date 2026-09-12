@@ -86,9 +86,18 @@
   text-transform: uppercase;
 }
 
+/*
+ * AFTER DARK IS DIM ON PURPOSE, AND THAT IS NOT A LICENCE.
+ *
+ * Night stock under sodium: everything here is quiet, and it should stay quiet.
+ * But the foot line carries the poster's own words and the counter says which
+ * of six you are on, and both sat at 4.03:1 — close enough to look deliberate,
+ * low enough to fail. Lifting the chalk to 0.62 keeps the mode dark and puts
+ * the two lines that say something over the line.
+ */
 .ad-poster__foot {
   letter-spacing: var(--tr-mono-wide);
-  color: rgba(222, 215, 198, 0.5);
+  color: rgba(222, 215, 198, 0.62);
   border-top: var(--hair) solid rgba(222, 215, 198, 0.22);
   padding-top: var(--s-2);
   max-width: 62ch;
@@ -175,13 +184,15 @@
 
 .ad-count {
   letter-spacing: var(--tr-mono-wide);
-  color: rgba(222, 215, 198, 0.5);
+  color: rgba(222, 215, 198, 0.62);
   font-variant-numeric: tabular-nums;
 }
+/* The only instruction on screen. It was 2.28:1 — a visitor who did not
+   already know to click could not read the sentence telling them to. */
 .ad-hint {
   margin-left: auto;
   letter-spacing: var(--tr-mono-wide);
-  color: rgba(222, 215, 198, 0.32);
+  color: rgba(222, 215, 198, 0.62);
 }
 
 @media (max-width: 900px) {

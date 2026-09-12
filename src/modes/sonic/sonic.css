@@ -54,11 +54,14 @@
   gap: var(--s-1);
   height: 0;
 }
+/* The note name. It is the reading — which pitch this elevation line is —
+   and at 8px it was the least readable text in the Lab at 2.25:1. Mono is the
+   instrument's voice and an instrument that cannot be read is an ornament. */
 .sn-datum__note {
   flex: 0 0 auto;
   width: 3.4ch;
   text-align: right;
-  color: var(--figure-faint);
+  color: var(--text-secondary);
   font-size: 0.5rem;
   letter-spacing: 0.04em;
   transform: translateY(-0.5em);
@@ -208,7 +211,7 @@
 .sn-bay__note {
   flex: 0 0 auto;
   text-align: center;
-  color: var(--figure-faint);
+  color: var(--text-secondary);
   font-size: 0.5rem;
   letter-spacing: 0.06em;
   line-height: 1;
@@ -219,7 +222,7 @@
 .sn-bay__label {
   font-size: 0.5rem;
   letter-spacing: 0.12em;
-  color: var(--figure-faint);
+  color: var(--text-secondary);
 }
 
 .sn-bay__n {
@@ -230,7 +233,7 @@
   left: 0;
   right: 0;
   text-align: center;
-  color: var(--figure-faint);
+  color: var(--text-secondary);
   font-size: 0.5rem;
   letter-spacing: 0.08em;
 }
@@ -346,9 +349,13 @@
 .sn-legend dt[data-family='SIGNAL'] {
   color: var(--signal);
 }
+/* A legend explains the drawing. Everything in this mode is set at 8px, which
+   is small enough already without also being a wash — the four faint values
+   here carried note names, bay references and the legend itself, and every one
+   of them measured 2.25:1. */
 .sn-legend dd {
   margin: 0;
-  color: var(--figure-faint);
+  color: var(--text-secondary);
 }
 
 .sn-hint {

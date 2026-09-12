@@ -18,13 +18,11 @@
    Agency Simulator and the OS sheets use.
    ========================================================================== */
 .pt {
-  --ground: var(--c-bone);
-  --ground-deep: var(--c-bone-deep);
-  --figure: var(--c-ink);
-  --figure-dim: #5d605a;
-  --figure-faint: rgba(25, 29, 28, 0.34);
-  --rule: rgba(25, 29, 28, 0.22);
-  --rule-faint: rgba(25, 29, 28, 0.1);
+  /* The material is declared on the element in PortalMode, so the whole paper
+     semantic layer is inherited rather than half-remembered here. The four
+     tokens this block used to re-state were still the pre-Phase-6 deck ink
+     (25 29 28) — the same drift os.css found on the bench, in the three files
+     that had each copied the override rather than declared the material. */
 
   position: absolute;
   inset: 0;
@@ -46,9 +44,19 @@
   opacity: 0.6;
 }
 
+/*
+ * The stage centres the aperture in what is LEFT of the mode, not in the whole
+ * mode. The head sits at the top and the strip of controls at the bottom, both
+ * fixed; centring in `inset: 0` put the hole through both of them on a short
+ * viewport, so the CROSS control was drawn over the dark interior of the very
+ * thing it opens. Reserving their bands here fixes it at every height rather
+ * than clamping the aperture smaller for everybody.
+ */
 .pt-stage {
   position: absolute;
   inset: 0;
+  padding-top: calc(var(--trim) * 0.5 + 74px);
+  padding-bottom: calc(var(--trim) * 0.5 + 96px);
   display: grid;
   place-items: center;
   transform-style: preserve-3d;
@@ -61,7 +69,7 @@
   position: relative;
   /* A little wider than it was: the aperture now carries a real section of the
      site through it, and the hole has to be big enough to read one in. */
-  width: min(62vw, 54vh * 0.72, 560px);
+  width: min(62vw, 46vh * 0.72, 560px);
   aspect-ratio: 0.72;
   transform-style: preserve-3d;
   transform: rotateY(calc(var(--tx) * -7deg)) rotateX(calc(var(--ty) * 5deg));
@@ -80,9 +88,9 @@
   border: var(--hair) solid var(--c-ink);
   /* The thickness of the stock, seen at the cut. */
   box-shadow:
-    inset 0 1px 0 rgba(233, 226, 208, 0.5),
+    inset 0 1px 0 rgba(247, 245, 238, 0.5),
     0 0 0 3px var(--c-bone),
-    0 0 0 4px rgba(25, 29, 28, 0.18);
+    0 0 0 4px var(--rule);
   pointer-events: none;
   z-index: 3;
 }
@@ -217,16 +225,29 @@
   font-weight: 400;
 }
 
+/*
+ * The strip is a band of stock laid across the bottom of the sheet, and it is
+ * opaque for a reason rather than for tidiness.
+ *
+ * It carries the controls and the read-out, and it wraps — at narrow widths it
+ * is three times the height it is at 1440. Nothing can reserve exactly that
+ * much space in advance, so on a short viewport the centred aperture reached
+ * under it and the CROSS control was drawn over the dark interior of the hole
+ * at 2.33:1. Giving the band its own stock makes the overlap an occlusion
+ * instead of a collision: the strip lies ON the sheet, which is what it is, and
+ * the control is always on paper whatever the aperture is doing behind it.
+ */
 .pt-strip {
   position: absolute;
-  left: var(--trim);
-  right: var(--trim);
-  bottom: calc(var(--trim) * 0.5);
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: var(--z-xray-ui);
   display: flex;
   align-items: flex-end;
   gap: clamp(12px, 2vw, 32px);
-  padding-top: var(--s-2);
+  padding: var(--s-2) var(--trim) calc(var(--trim) * 0.5);
+  background: var(--ground);
   border-top: var(--hair) solid var(--rule);
 }
 
@@ -243,8 +264,13 @@
   letter-spacing: 0.1em;
   line-height: 1.7;
 }
+/* WEBXR / RUNNING / PARALLAX label values the mode actually determined — what
+   the browser reports, what is running, what is driving the parallax. They were
+   set in --figure-faint, which this Lab reserves for furniture that repeats
+   something legible beside it, and measured 2.03:1. A label on a fact is not
+   furniture. */
 .pt-read dt {
-  color: var(--figure-faint);
+  color: var(--text-secondary);
   min-width: 9ch;
 }
 .pt-read dd {
@@ -258,9 +284,19 @@
   gap: var(--s-1);
 }
 
+/*
+ * A CONTROL IS A SMALL PLATE, NOT A WINDOW.
+ *
+ * These had no background, so on a short viewport — where the aperture reaches
+ * down under the strip — the paper-coloured label sat on the dark interior of
+ * the hole and measured 2.33:1. Giving the control its own stock fixes the
+ * whole class of problem rather than the one viewport, and is what the material
+ * language says a control is anyway: something laid on the sheet.
+ */
 .pt-btn {
   padding: 6px 11px;
   border: var(--hair) solid var(--rule);
+  background: var(--surface-raised);
   color: var(--figure-dim);
   font-family: var(--f-mono);
   font-size: var(--t-mono-xs);
@@ -276,9 +312,12 @@
   border-color: var(--figure-dim);
   color: var(--figure);
 }
+/* The brand orange is a FILL and a RULE on this stock, never a text colour —
+   #F19020 on bone is 1.69:1. The border keeps the raw brand value; the label
+   takes the deepening canonical states for exactly this case. */
 .pt-btn--signal {
   border-color: var(--signal);
-  color: var(--signal);
+  color: var(--signal-text);
 }
 .pt-btn--signal:hover,
 .pt-btn--signal:focus-visible {
@@ -388,21 +427,57 @@
  * type on the dark interior, barely visible, with no reason on screen for why
  * one side should be harder to read than the other.
  */
-.pt-carry::before {
+/*
+ * THE CROSSING IS A CUT, AND A CUT DOES NOT FADE.
+ *
+ * This was one element fading from opacity 1 to 0, and the Lab's own material
+ * table has been calling that wrong since Phase 5 — CUT's motion is written
+ * down as "Opens. A cut that fades was never a cut," and the aperture was
+ * dissolving instead. Dissolving reads as a slide transition: the paper was
+ * never removed, it just stopped being drawn.
+ *
+ * So the stock is now two halves that part and withdraw past the edges of the
+ * hole. The sheet is cut down the middle and taken away, which is the literal
+ * thing the mode claims to be doing, and the depth behind it was there the
+ * whole time rather than arriving. The inner edges keep a hairline so the
+ * thickness of the material is visible as it goes.
+ *
+ * Reduced motion keeps all of it and skips the travel: the halves are simply
+ * already withdrawn, which is the correct end state rather than a disabled one.
+ */
+.pt-carry::before,
+.pt-carry::after {
   content: '';
   position: absolute;
-  inset: 0;
-  background: var(--c-bone);
+  top: 0;
+  bottom: 0;
+  width: 50.5%; /* the half-pixel overlap stops a seam at fractional widths */
+  background: var(--surface-raised);
   z-index: -1;
-  transition: opacity 620ms var(--e-glide);
+  transition: transform 620ms var(--e-weight);
 }
 
-.pt-carry[data-side='before']::before {
-  opacity: 1;
+.pt-carry::before {
+  left: 0;
+  border-right: 1px solid var(--rule);
+}
+
+.pt-carry::after {
+  right: 0;
+  border-left: 1px solid var(--rule);
+}
+
+.pt-carry[data-side='before']::before,
+.pt-carry[data-side='before']::after {
+  transform: translateX(0);
 }
 
 .pt-carry[data-side='after']::before {
-  opacity: 0;
+  transform: translateX(-101%);
+}
+
+.pt-carry[data-side='after']::after {
+  transform: translateX(101%);
 }
 
 /* Type follows the stock it is printed on, both ways. */
@@ -554,15 +629,24 @@
    THE CROSSING CONTROL
    ========================================================================== */
 
+/*
+ * The crossing control sits on the sheet too, for the same reason the strip
+ * does: its label was the last thing still being drawn over the open hole on a
+ * short viewport. The bottom of this mode is now a single band of stock that
+ * the aperture passes behind, which is also the more honest picture — the
+ * controls are on the near side, and the hole is not.
+ */
 .pt-cross {
   position: absolute;
-  left: var(--trim);
+  left: 0;
   bottom: calc(var(--trim) * 5.4);
   z-index: 5;
-  max-width: min(460px, 62vw);
+  max-width: min(calc(460px + var(--trim)), 70vw);
   display: flex;
   flex-direction: column;
   gap: 7px;
+  padding: var(--s-1) var(--s-3) var(--s-1) var(--trim);
+  background: var(--ground);
 }
 
 .pt-cross__label {

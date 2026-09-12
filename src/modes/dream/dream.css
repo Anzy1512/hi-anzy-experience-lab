@@ -34,15 +34,29 @@
   font-weight: 400;
 }
 
-/* The word is set in the same face the field is remembering, but ghosted —
-   the contours are the real rendering of it. */
+/*
+ * The word is set in the same face the field is remembering, but ghosted —
+ * the contours are the real rendering of it.
+ *
+ * Ghosted, not illegible. At --figure-faint it measured 2.25:1 at 44px, and it
+ * is the visitor's OWN WORD: the one piece of text on screen they put there.
+ *
+ * `--halftone` — not `--halftone-pale` — is the register this milestone
+ * documents as READABLE on a given ground; `-tone` and `-pale` are named for
+ * fills and dot structure and are decorative by definition. The first pass
+ * here used `-pale` by a naming slip: it passed large-text AA (3:1) at desktop
+ * size by coincidence, then failed outright (3.28:1 against a 4.5:1 floor)
+ * once the mode's own responsive rule drops the word below the large-text
+ * threshold at 768px. `--halftone` clears both — 8.04:1 on this ground — so
+ * the word stays legible at every size this mode sets it at.
+ */
 .dm-word {
   position: absolute;
   left: 50%;
   bottom: calc(var(--trim) * 0.5 + 92px);
   transform: translateX(-50%);
   z-index: var(--z-xray-ui);
-  color: var(--figure-faint);
+  color: var(--halftone);
   letter-spacing: var(--tr-mono-wide);
   pointer-events: none;
 }
@@ -96,7 +110,7 @@
   letter-spacing: 0.1em;
 }
 .dm-read dt {
-  color: var(--figure-faint);
+  color: var(--text-secondary);
 }
 .dm-read dd {
   margin: 0;

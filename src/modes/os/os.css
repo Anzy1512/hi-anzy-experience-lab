@@ -289,13 +289,13 @@
    * repeats something legible beside it (ordinals, the plate number); every
    * line that states a fact is set in dim or darker.
    */
-  --figure-dim: #50544e;
+  --figure-dim: var(--c-muted-on-paper);
   --figure-faint: rgba(35, 42, 42, 0.72);
   --rule: rgba(35, 42, 42, 0.22);
   --rule-faint: rgba(35, 42, 42, 0.1);
-  /* On bone stock the brand orange is 1.69:1 and unreadable — the same reason
-     tokens.css prints it heavier on the launcher. */
-  --signal-text: #9c3d0b;
+  /* Inherited from the paper material now that the sheet declares it. The
+     bench above is ink, so without that declaration the sheet was picking up
+     ink's accents on bone stock. */
 
   position: absolute;
   background-color: var(--ground);
@@ -752,7 +752,7 @@
   justify-content: center;
   padding: var(--s-2);
   margin: 0 auto var(--s-2);
-  background: #14191a;
+  background: var(--stage);
   /*
    * The bevel is opaque, and it has to be.
    *

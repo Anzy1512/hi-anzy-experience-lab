@@ -38,7 +38,7 @@
    ========================================================================== */
 .dr-gate {
   position: relative;
-  background: #121616;
+  background: var(--stage);
 }
 .dr-gate__inner {
   position: absolute;

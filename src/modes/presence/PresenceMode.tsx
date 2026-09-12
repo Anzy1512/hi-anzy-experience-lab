@@ -208,6 +208,43 @@ export default function PresenceMode({ onReady, scope }: ModeViewProps) {
   const statusLine = CAMERA_LINE[status] ?? (coarse ? 'TOUCH' : 'POINTER');
 
   /*
+   * WHAT THE LINE LOOKS LIKE, WHICH UNTIL NOW WAS "ORANGE" IN EVERY CASE.
+   *
+   * The wording has been careful since Phase 8.6 C4 — nine states, one sentence
+   * each, every one of them ending in what still works. The rendering was not:
+   * all nine were printed in the signal colour, so CAMERA · LOCAL MOTION
+   * SENSING and NO CAMERA ON THIS DEVICE were the same orange at the same
+   * weight, and a visitor scanning the band could not tell a live camera from
+   * an absent one without reading the words.
+   *
+   * That is the exact failure the brief names, and it mattered more here than
+   * anywhere else in the Lab: this is the one mode where looking like the
+   * camera is on when it is not would be a lie the product told on purpose.
+   *
+   *   live        the camera is genuinely delivering frames. SIGNAL, filled.
+   *               The only state that gets the brand orange, which is what
+   *               "orange means signal" has always meant.
+   *   asking      a permission prompt is open. warning, hollow — nothing has
+   *               been granted yet and the mark says so.
+   *   refused     a person or a policy said no. the rust plate.
+   *   absent      no camera, no API, no https, held by another app, unplugged
+   *               mid-session. NOT a failure and not styled as one — the
+   *               neutral grey, because nothing went wrong and nothing is
+   *               broken. UNKNOWN must not look like failure.
+   *   pointer     no camera was ever asked for. informational.
+   */
+  const camState: 'live' | 'asking' | 'refused' | 'absent' | 'pointer' =
+    status === 'active'
+      ? 'live'
+      : status === 'requesting'
+        ? 'asking'
+        : status === 'denied'
+          ? 'refused'
+          : status === 'idle'
+            ? 'pointer'
+            : 'absent';
+
+  /*
    * The diagnostics live in a ref because they are written from the sampling
    * loop, which must not render anything. This copies them out once a second —
    * often enough that a frozen frame count is visible within a second of it
@@ -272,8 +309,9 @@ export default function PresenceMode({ onReady, scope }: ModeViewProps) {
         </header>
 
         <div className="pr-read">
-          <p className="t-mono t-mono-xs pr-source" role="status">
-            <span className="t-signal">{statusLine}</span>
+          <p className="t-mono t-mono-xs pr-source" role="status" data-cam={camState}>
+            <span className="pr-source__mark" aria-hidden="true" />
+            <span>{statusLine}</span>
           </p>
           <div className="pr-meter" aria-hidden="true">
             <span className="pr-meter__fill" style={{ transform: `scaleX(${energy})` }} />

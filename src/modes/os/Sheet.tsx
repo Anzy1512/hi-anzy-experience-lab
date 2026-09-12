@@ -149,6 +149,11 @@ export function Sheet({
   return (
     <section
       className="os-sheet"
+      /* A paper island inside the ink bench. Declaring the material here rather
+         than re-listing its tokens means the sheet inherits the whole semantic
+         layer — surfaces, provenance, state — instead of the four values this
+         block happened to remember to override. */
+      data-material="paper"
       ref={ref}
       data-top={top ? 'true' : 'false'}
       data-stock={stock}

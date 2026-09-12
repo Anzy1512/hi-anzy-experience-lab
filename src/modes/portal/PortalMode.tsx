@@ -241,7 +241,13 @@ export default function PortalMode({ onReady, scope }: ModeViewProps) {
               : 'IMMERSIVE VR REPORTED SUPPORTED';
 
   return (
-    <div className="pt" data-armed={armed ? 'true' : 'false'} data-tier={tier}>
+    <div
+      className="pt"
+      /* PORTAL is a paper mode — the sheet the aperture is cut into. */
+      data-material="paper"
+      data-armed={armed ? 'true' : 'false'}
+      data-tier={tier}
+    >
       {/* ---- the aperture: a sheet with a hole cut in it ------------------- */}
       <div className="pt-stage">
         <div className="pt-aperture" ref={apertureRef}>
