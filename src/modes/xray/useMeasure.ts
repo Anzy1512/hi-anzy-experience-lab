@@ -66,6 +66,13 @@ function depthOf(el: HTMLElement, root: HTMLElement): number {
 export function useMeasure(
   rootRef: React.RefObject<HTMLElement | null>,
   active: boolean,
+  /**
+   * Changes when the measured DOM is replaced wholesale — X-Ray swapping its
+   * subject, for instance. The observer below binds to the nodes that exist
+   * when it runs, so without this a new subject's elements were never observed
+   * and the object table described a tree that had been unmounted.
+   */
+  subjectKey: unknown = null,
 ): { objects: MeasuredObject[]; remeasure: () => void } {
   const [objects, setObjects] = useState<MeasuredObject[]>([]);
   const frameRef = useRef(0);
@@ -132,7 +139,7 @@ export function useMeasure(
       window.removeEventListener('resize', schedule);
       root.removeEventListener('scroll', schedule);
     };
-  }, [active, rootRef, schedule]);
+  }, [active, rootRef, schedule, subjectKey]);
 
   return { objects, remeasure: schedule };
 }

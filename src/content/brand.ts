@@ -178,4 +178,6 @@ export const XRAY_COPY = {
   hintPointer: 'MOVE TO SCAN · CLICK TO HOLD',
   hintTouch: 'TAP AN ELEMENT TO SCAN',
   exit: 'EXIT EXPERIENCE',
+  subjectLabel: 'SUBJECT',
+  reportLabel: 'SYSTEM SPECIMEN REPORT',
 } as const;
