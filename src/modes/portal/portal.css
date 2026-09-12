@@ -59,7 +59,9 @@
   --tx: 0;
   --ty: 0;
   position: relative;
-  width: min(58vw, 46vh * 0.72, 520px);
+  /* A little wider than it was: the aperture now carries a real section of the
+     site through it, and the hole has to be big enough to read one in. */
+  width: min(62vw, 54vh * 0.72, 560px);
   aspect-ratio: 0.72;
   transform-style: preserve-3d;
   transform: rotateY(calc(var(--tx) * -7deg)) rotateX(calc(var(--ty) * 5deg));
@@ -338,6 +340,261 @@
 @media (prefers-reduced-motion: reduce) {
   .pt-aperture {
     transition-duration: 200ms;
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   WHAT GOES THROUGH THE HOLE
+
+   One record, two readings, one DOM. Only `data-side` changes — which is the
+   point, and is why the transition is a change of emphasis rather than a
+   replacement: the heading that was editorial copy a moment ago is the heading
+   on the plane now, and a visitor watching closely can see that nothing was
+   swapped.
+   ========================================================================== */
+
+/*
+ * The hole clips what goes through it. That is not a workaround for overflow —
+ * it is the one piece of physical logic the whole mode rests on, and without it
+ * the carried section spilled across the paper on both sides of the aperture
+ * and read as a caption beside a rectangle rather than as something inside it.
+ */
+.pt-carry {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  padding: clamp(14px, 1.8vw, 24px);
+  text-align: left;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/*
+ * THE CROSSING IS MATERIAL, NOT JUST INFORMATIONAL.
+ *
+ * The Lab's whole material language already carries this argument: `paper` is
+ * the commercial register and `ink` is the spatial one. So the near side of the
+ * aperture is stock — a lit sheet filling the hole, ink type on it, the page as
+ * a customer meets it. Crossing takes the paper away, and what was behind the
+ * sheet the entire time is the depth. The same words, bone on ink, with the
+ * system's own facts beside them.
+ *
+ * Setting only the text colour was the first attempt and it read as a bug: ink
+ * type on the dark interior, barely visible, with no reason on screen for why
+ * one side should be harder to read than the other.
+ */
+.pt-carry::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--c-bone);
+  z-index: -1;
+  transition: opacity 620ms var(--e-glide);
+}
+
+.pt-carry[data-side='before']::before {
+  opacity: 1;
+}
+
+.pt-carry[data-side='after']::before {
+  opacity: 0;
+}
+
+/* Type follows the stock it is printed on, both ways. */
+.pt-carry[data-side='before'] {
+  color: var(--c-ink);
+}
+
+.pt-carry[data-side='after'] {
+  color: var(--c-bone);
+}
+
+.pt-carry[data-side='before'] .pt-carry__head,
+.pt-carry[data-side='before'] .pt-carry__copy {
+  color: var(--c-ink);
+}
+
+.pt-carry[data-side='after'] .pt-carry__head,
+.pt-carry[data-side='after'] .pt-carry__copy {
+  color: var(--c-bone);
+}
+
+.pt-carry[data-side='after'] .pt-carry__system dt {
+  color: rgba(233, 226, 208, 0.55);
+}
+
+.pt-carry[data-side='after'] .pt-carry__system dd {
+  color: var(--c-bone);
+}
+
+.pt-carry[data-side='after'] .pt-carry__system > div {
+  border-bottom-color: rgba(233, 226, 208, 0.18);
+}
+
+.pt-carry__origin {
+  letter-spacing: var(--tr-mono-wide);
+}
+
+.pt-carry__head {
+  font-size: clamp(0.9rem, 1.35vw, 1.25rem);
+  line-height: 1.06;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  transition:
+    font-size 620ms var(--e-glide),
+    color 620ms var(--e-glide);
+}
+
+.pt-carry__copy,
+.pt-carry__system,
+.pt-carry__swatches {
+  transition:
+    opacity 480ms var(--e-glide),
+    transform 620ms var(--e-glide);
+}
+
+/* ---- BEFORE: the commercial reading -------------------------------------- */
+
+.pt-carry__copy {
+  font-size: clamp(0.7rem, 0.88vw, 0.84rem);
+  line-height: 1.42;
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pt-carry[data-side='before'] .pt-carry__copy {
+  opacity: 1;
+}
+
+.pt-carry[data-side='before'] .pt-carry__system,
+.pt-carry[data-side='before'] .pt-carry__swatches {
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+}
+
+/* ---- AFTER: the system reading ------------------------------------------- */
+
+/* The heading does not disappear; it stops being a headline and becomes a
+   label, which is exactly what happens to a line of copy when a system takes
+   hold of it. */
+.pt-carry[data-side='after'] .pt-carry__head {
+  font-size: clamp(0.95rem, 1.5vw, 1.3rem);
+}
+
+.pt-carry[data-side='after'] .pt-carry__copy {
+  opacity: 0.3;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.pt-carry[data-side='after'] .pt-carry__system,
+.pt-carry[data-side='after'] .pt-carry__swatches {
+  opacity: 1;
+  transform: none;
+}
+
+.pt-carry__system {
+  display: grid;
+  gap: 2px 14px;
+  margin: 6px 0 0;
+}
+
+.pt-carry__system > div {
+  display: grid;
+  grid-template-columns: 5.6em 1fr;
+  gap: 7px;
+  border-bottom: 1px solid var(--rule-faint);
+  padding-bottom: 2px;
+}
+
+.pt-carry__system dt,
+.pt-carry__system dd {
+  margin: 0;
+  font-family: var(--f-mono);
+  font-size: 0.55rem;
+  line-height: 1.35;
+  letter-spacing: 0.12em;
+}
+
+.pt-carry__system dt {
+  color: var(--figure-dim);
+}
+
+.pt-carry__system dd {
+  color: var(--figure);
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pt-carry__swatches {
+  display: flex;
+  gap: 4px;
+}
+
+.pt-carry__swatch {
+  width: 16px;
+  height: 10px;
+  border: 1px solid var(--rule);
+}
+
+/* ==========================================================================
+   THE CROSSING CONTROL
+   ========================================================================== */
+
+.pt-cross {
+  position: absolute;
+  left: var(--trim);
+  bottom: calc(var(--trim) * 5.4);
+  z-index: 5;
+  max-width: min(460px, 62vw);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.pt-cross__label {
+  letter-spacing: var(--tr-mono-wide);
+}
+
+.pt-cross__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+@media (max-width: 900px) {
+  .pt-cross {
+    left: var(--trim);
+    right: var(--trim);
+    max-width: none;
+    bottom: calc(var(--trim) * 7.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The concept survives: the crossing still happens and every fact still
+     arrives, it simply arrives without travel. */
+  .pt-carry__head,
+  .pt-carry__copy,
+  .pt-carry__system,
+  .pt-carry__swatches {
+    transition: none;
+  }
+  .pt-carry[data-side='before'] .pt-carry__system,
+  .pt-carry[data-side='before'] .pt-carry__swatches {
     transform: none;
   }
 }

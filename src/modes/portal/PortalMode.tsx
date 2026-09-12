@@ -5,6 +5,7 @@ import { useCapability, useCoarsePointer, useReducedMotion } from '../../core/ho
 import { onFrame } from '../../core/raf';
 import { pointer, setPointerIntent } from '../../core/pointer';
 import { damp, lerp } from '../../spatial/projection';
+import { CANONICAL_PAGES, CANONICAL_PAGES_COMMIT } from '../../content/canonicalPages';
 import './portal.css';
 
 /**
@@ -29,6 +30,29 @@ import './portal.css';
  * The immersive path has **not been exercised on a headset in this
  * environment**; there is none here. It is written against the WebXR session
  * API and reports its own failures rather than pretending.
+ *
+ * ── WHAT THE HOLE IS FOR ────────────────────────────────────────────────────
+ *
+ * The aperture was well made and meant nothing. It was a rectangle of paper
+ * with depth behind it, and a visitor could look through it for a minute
+ * without learning what Hi Anzy was claiming — which made it the one reality
+ * whose form was finished and whose argument was missing. "The hole is not the
+ * feature" was true and was not yet acted on.
+ *
+ * The crossing is the feature, and it now has a subject on both sides:
+ *
+ *   BEFORE    a real section of the commercial site, as it reads there —
+ *             a heading, a line of copy, set on paper. What a customer sees.
+ *   CROSSING  the aperture opens and the same section goes through it.
+ *   AFTER     the identical section as this Lab holds it: a plane with a grid
+ *             span, a ground, typographic roles, sampled colours, and the
+ *             canonical data that fills it. What the system sees.
+ *
+ * Nothing is invented on either side. Both are the same record out of
+ * `canonicalPages.ts`, read from the commercial repository at a known commit;
+ * the only thing that changes across the crossing is which facts about it are
+ * made visible. That is the whole claim: the website and the Lab are two
+ * renderings of one institution, and here they are, one behind the other.
  */
 
 type XrSupport = 'unasked' | 'unavailable' | 'none' | 'ar' | 'vr' | 'both';
@@ -47,6 +71,29 @@ export default function PortalMode({ onReady, scope }: ModeViewProps) {
   const { enterMode } = useExperience();
 
   const [armed, setArmed] = useState(false);
+
+  /*
+   * THE CROSSING.
+   *
+   * `before` is the commercial reading, `after` is the system reading, and they
+   * are the same record — so crossing cannot be a navigation, only a change of
+   * what is shown about one thing. Which subject is being carried across is the
+   * visitor's, because the claim is about the whole site rather than one lucky
+   * page.
+   */
+  const [side, setSide] = useState<'before' | 'after'>('before');
+  const [subject, setSubject] = useState(0);
+  const crossable = useMemo(
+    () =>
+      CANONICAL_PAGES.flatMap((pg) =>
+        pg.sections
+          .filter((sec) => sec.headings.length > 0 || sec.copy.length > 0)
+          .slice(0, 2)
+          .map((sec) => ({ page: pg, sec })),
+      ).slice(0, 6),
+    [],
+  );
+  const carried = crossable[subject % crossable.length];
   const [support, setSupport] = useState<XrSupport>('unasked');
   const [sessionNote, setSessionNote] = useState<string | null>(null);
   const [orientation, setOrientation] = useState<'idle' | 'on' | 'denied' | 'unsupported'>('idle');
@@ -213,12 +260,119 @@ export default function PortalMode({ onReady, scope }: ModeViewProps) {
             <span className="pt-horizon" />
           </div>
 
+          {/*
+            THE THING BEING CARRIED THROUGH.
+
+            One record, two readings. The DOM is the same on both sides — only
+            `data-side` changes — so a visitor watching closely can see that
+            nothing was swapped: the heading that was editorial copy a moment
+            ago is the heading on the plane now.
+          */}
+          {carried && (
+            <div className="pt-carry" data-side={side}>
+              <p className="t-mono t-mono-xs pt-carry__origin">
+                <span className="t-signal">{carried.page.route}</span>
+                <span className="t-faint"> · </span>
+                {carried.sec.label}
+              </p>
+
+              <h2 className="t-display t-display-m pt-carry__head">
+                {carried.sec.headings[0]?.text ?? carried.sec.label}
+              </h2>
+
+              {/* BEFORE: what a customer reads. */}
+              <p className="t-body pt-carry__copy">
+                {carried.sec.copy[0] ?? carried.sec.headings[0]?.text ?? ''}
+              </p>
+
+              {/* AFTER: what the system holds about the very same section. */}
+              <dl className="pt-carry__system" aria-hidden={side === 'before'}>
+                <div>
+                  <dt>GRID</dt>
+                  <dd>{carried.sec.columns ? `${carried.sec.columns} COLUMNS` : 'NOT DECLARED'}</dd>
+                </div>
+                <div>
+                  <dt>GROUND</dt>
+                  <dd>{carried.sec.ground}</dd>
+                </div>
+                <div>
+                  <dt>TYPE</dt>
+                  <dd>
+                    {carried.sec.roles.length
+                      ? carried.sec.roles.map((r) => r.split(' ')[0]).join(' + ')
+                      : 'NOT DECLARED'}
+                  </dd>
+                </div>
+                <div>
+                  <dt>FILLED BY</dt>
+                  <dd>{carried.sec.data.length ? carried.sec.data.join(' + ') : 'LITERAL COPY'}</dd>
+                </div>
+                <div>
+                  <dt>SOURCE</dt>
+                  <dd>{carried.sec.source}</dd>
+                </div>
+              </dl>
+
+              {carried.sec.colours.length > 0 && (
+                <p className="pt-carry__swatches" aria-hidden="true">
+                  {carried.sec.colours.slice(0, 5).map((c) => (
+                    <span key={c} className="pt-carry__swatch" style={{ background: c }} title={c} />
+                  ))}
+                </p>
+              )}
+            </div>
+          )}
+
           {/* The paper the hole is cut in. Trim marks, not a glowing ring. */}
           <span className="pt-trim pt-trim--tl" aria-hidden="true" />
           <span className="pt-trim pt-trim--tr" aria-hidden="true" />
           <span className="pt-trim pt-trim--bl" aria-hidden="true" />
           <span className="pt-trim pt-trim--br" aria-hidden="true" />
         </div>
+      </div>
+
+      {/*
+        THE CROSSING CONTROL.
+
+        One verb, and it reads as the state it is about to produce. The subject
+        can be changed only from the near side: carrying a different section
+        across without going back first would make the crossing look like a
+        filter on a list, which is exactly the "another menu" this must not be.
+      */}
+      <div className="pt-cross">
+        <p className="t-mono t-mono-xs t-dim pt-cross__label">
+          {side === 'before' ? 'THE SITE SHOWS YOU THIS' : 'THE SYSTEM HOLDS THIS'}
+        </p>
+        <div className="pt-cross__row">
+          <button
+            type="button"
+            className="pt-btn pt-btn--signal"
+            onClick={() => setSide((v) => (v === 'before' ? 'after' : 'before'))}
+            onPointerEnter={() => setPointerIntent('enter')}
+            onPointerLeave={() => setPointerIntent('default')}
+          >
+            {side === 'before' ? 'CROSS' : 'COME BACK'}
+          </button>
+          {side === 'before' && crossable.length > 1 && (
+            <button
+              type="button"
+              className="pt-btn"
+              onClick={() => setSubject((i) => (i + 1) % crossable.length)}
+            >
+              CARRY SOMETHING ELSE
+            </button>
+          )}
+          {side === 'after' && (
+            <button type="button" className="pt-btn" onClick={() => enterMode('reality-compiler')}>
+              SEE THE WHOLE PAGE COMPILED
+            </button>
+          )}
+        </div>
+        <p className="t-body-s t-dim pt-cross__note">
+          {side === 'before'
+            ? 'The same section is on the other side of the aperture. Nothing is swapped — only what is shown about it.'
+            : `Read from ${carried?.sec.source ?? 'the commercial repository'} at ${CANONICAL_PAGES_COMMIT}. The website and this Lab are two renderings of one institution.`}
+        </p>
       </div>
 
       <header className="pt-head">
