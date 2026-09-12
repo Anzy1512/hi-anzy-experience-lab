@@ -40,16 +40,51 @@ export interface CameraReport {
   videoElementsInDocument: number;
   transientNodes: number;
   samplingLoopRunning: boolean;
+  diagnostics: CameraDiagnostics;
   tracks: { kind: string; readyState: string; enabled: boolean; muted: boolean; label: string }[];
 }
 
+/**
+ * Every state the camera path can actually be in.
+ *
+ * Each one is a different sentence to the visitor and a different thing they
+ * can do about it, which is the whole reason they are separate values. Folding
+ * `insecure`, `nodevice` and `busy` into `error` — as this did — told somebody
+ * on plain http that "something went wrong" when the truthful answer was "this
+ * needs https and nothing is broken".
+ */
 export type CameraStatus =
   | 'idle'
-  | 'requesting'
-  | 'active'
-  | 'denied'
+  /** No `mediaDevices` at all: an old or locked-down browser. */
   | 'unsupported'
+  /** `getUserMedia` exists but the page is not a secure context. */
+  | 'insecure'
+  /** Asked, waiting on the visitor or the OS. */
+  | 'requesting'
+  /** Running, sampling, and the visitor can see it is. */
+  | 'active'
+  /** The visitor or the browser said no. */
+  | 'denied'
+  /** Secure, permitted, and there is no camera on this machine. */
+  | 'nodevice'
+  /** A camera exists and something else is holding it. */
+  | 'busy'
+  /** It was active and the device went away — unplugged, or taken. */
+  | 'lost'
   | 'error';
+
+/** What a screenshot has to be able to answer, per the hardware QA sheet. */
+export interface CameraDiagnostics {
+  /** From `navigator.permissions` where the browser implements it. */
+  permission: 'granted' | 'denied' | 'prompt' | 'unknown';
+  /** Actual pixels the browser is handing over, not what was requested. */
+  videoW: number;
+  videoH: number;
+  /** Sampling ticks since the stream started. Frozen means frozen. */
+  frames: number;
+  /** Live track readyState, so "active" can be checked rather than trusted. */
+  track: string;
+}
 
 export interface PresenceSignal {
   /** Normalised centroid of movement, 0..1, mirrored to feel like a mirror. */
@@ -67,6 +102,13 @@ export function useCameraMotion(signal: { current: PresenceSignal }) {
   // Mirrored so the DEV report reads the live value without re-installing it.
   const statusRef = useLatest(status);
   const streamRef = useRef<MediaStream | null>(null);
+  const diagRef = useRef<CameraDiagnostics>({
+    permission: 'unknown',
+    videoW: 0,
+    videoH: 0,
+    frames: 0,
+    track: 'none',
+  });
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const rafRef = useRef(0);
   const prevRef = useRef<Uint8ClampedArray | null>(null);
@@ -89,7 +131,15 @@ export function useCameraMotion(signal: { current: PresenceSignal }) {
       videoRef.current = null;
     }
     prevRef.current = null;
-    setStatus((s) => (s === 'denied' || s === 'unsupported' || s === 'error' ? s : 'idle'));
+    /* Nothing is carried into the next attempt. A stale frame count or a stale
+       resolution would be a readout of a stream that no longer exists. */
+    diagRef.current = { permission: diagRef.current.permission, videoW: 0, videoH: 0, frames: 0, track: 'none' };
+    setStatus((s) =>
+      s === 'denied' || s === 'unsupported' || s === 'insecure' || s === 'nodevice' ||
+      s === 'busy' || s === 'lost' || s === 'error'
+        ? s
+        : 'idle',
+    );
   }, []);
 
   const start = useCallback(async () => {
@@ -97,7 +147,27 @@ export function useCameraMotion(signal: { current: PresenceSignal }) {
       setStatus('unsupported');
       return;
     }
+    /*
+     * A secure context is checked before asking rather than after failing.
+     * `getUserMedia` on plain http rejects with a `NotAllowedError` that is
+     * indistinguishable from the visitor clicking Block — so without this the
+     * mode told somebody on http that they had denied a prompt they never saw.
+     */
+    if (!window.isSecureContext) {
+      setStatus('insecure');
+      return;
+    }
     setStatus('requesting');
+
+    /* Best-effort and never blocking: Firefox does not implement the camera
+       permission name and throws, which is not a failure of anything. */
+    try {
+      const perm = await navigator.permissions?.query({ name: 'camera' });
+      if (perm) diagRef.current.permission = perm.state;
+    } catch {
+      diagRef.current.permission = 'unknown';
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'user', width: { ideal: 320 }, height: { ideal: 240 } },
@@ -131,6 +201,18 @@ export function useCameraMotion(signal: { current: PresenceSignal }) {
         return;
       }
 
+      /*
+       * A track that ends while active is a device that went away — unplugged,
+       * claimed by another application, or revoked in browser settings. It is
+       * not an error the visitor caused and it is not the same as denial.
+       */
+      stream.getVideoTracks().forEach((t) => {
+        t.addEventListener('ended', () => {
+          setStatus('lost');
+          stop();
+        });
+      });
+
       setStatus('active');
 
       const tick = () => {
@@ -139,6 +221,10 @@ export function useCameraMotion(signal: { current: PresenceSignal }) {
           rafRef.current = requestAnimationFrame(tick);
           return;
         }
+        diagRef.current.frames += 1;
+        diagRef.current.videoW = v.videoWidth;
+        diagRef.current.videoH = v.videoHeight;
+        diagRef.current.track = streamRef.current?.getVideoTracks()[0]?.readyState ?? 'none';
         ctx.drawImage(v, 0, 0, GRID_W, GRID_H);
         const frame = ctx.getImageData(0, 0, GRID_W, GRID_H).data;
         const prev = prevRef.current;
@@ -173,8 +259,21 @@ export function useCameraMotion(signal: { current: PresenceSignal }) {
       };
       rafRef.current = requestAnimationFrame(tick);
     } catch (err) {
+      /*
+       * The name is the only honest signal here, and each one means something
+       * different to the person reading it. Collapsing them into "error" threw
+       * away the one piece of information they could have acted on.
+       */
       const name = (err as DOMException)?.name;
-      setStatus(name === 'NotAllowedError' || name === 'SecurityError' ? 'denied' : 'error');
+      setStatus(
+        name === 'NotAllowedError' || name === 'SecurityError'
+          ? 'denied'
+          : name === 'NotFoundError' || name === 'DevicesNotFoundError'
+            ? 'nodevice'
+            : name === 'NotReadableError' || name === 'TrackStartError'
+              ? 'busy'
+              : 'error',
+      );
       stop();
     }
   }, [signal, stop]);
@@ -190,6 +289,7 @@ export function useCameraMotion(signal: { current: PresenceSignal }) {
       videoElementsInDocument: document.querySelectorAll('video').length,
       transientNodes: document.querySelectorAll('[data-lab-transient]').length,
       samplingLoopRunning: rafRef.current !== 0,
+      diagnostics: { ...diagRef.current },
       tracks: (streamRef.current?.getTracks() ?? []).map((t) => ({
         kind: t.kind,
         readyState: t.readyState,
@@ -204,7 +304,7 @@ export function useCameraMotion(signal: { current: PresenceSignal }) {
     };
   }, [statusRef]);
 
-  return { status, start, stop };
+  return { status, start, stop, diagRef };
 }
 
 declare global {

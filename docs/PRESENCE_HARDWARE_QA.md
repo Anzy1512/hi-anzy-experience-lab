@@ -53,3 +53,88 @@ Note device, OS, browser + version, and the outcome of each numbered step. Until
 that table is filled in by a human, the honest status of the granted-camera path
 is **unverified**, and it is described that way in the README and the
 architecture notes.
+
+---
+
+# PHASE 8.6 — ACCEPTANCE TEST
+
+Ten minutes on a real machine with a real webcam. Everything below is a thing to
+*look at*, not a thing to take on trust: the mode now prints its own vitals
+while the camera runs, so a single screenshot of the readout answers most of it.
+
+## What has already been proven, and what has not
+
+Verified automatically on 2026-09-12, in Chromium on this machine:
+
+| | |
+|---|---|
+| Nothing requested on load or on entry | PASS — zero `<video>` elements until USE CAMERA |
+| Granted path end to end | PASS **against a Windows virtual camera device** (`Lenovo Virtual Camera`). A live 320×240 stream, track `live`, frame count advancing. |
+| STOP CAMERA tears down | PASS — 0 tracks, 0 video elements, 0 transient nodes, loop stopped, diagnostics reset |
+| Escape out of the mode tears down | PASS — same, and the hook itself unmounts |
+| Re-entry does not reuse a stale stream | PASS — returns to `idle` with nothing attached |
+| denied / nodevice / busy / unsupported / other | PASS — each maps to its own sentence, none leaves a video element |
+
+**Not proven, and only a person can prove it:**
+
+- Behaviour with a *physical* webcam rather than a virtual device.
+- Whether the motion sensing actually feels responsive to a human body in a
+  real room, at real light levels. Frame differencing is sensitive to lighting
+  and this is the part no automated check can judge.
+- The browser's own camera indicator going out on stop. The Lab stops every
+  track, but the indicator is the operating system's and has to be *seen*.
+- Safari and Firefox. Only Chromium was exercised here.
+- `insecure` — localhost is a secure context, so the HTTPS branch could not be
+  reached on this machine. Load the Lab over plain `http://` on a LAN address to
+  see it.
+
+## The test
+
+1. **Open Presence. Do not touch anything.**
+   The status must read `POINTER` (or `TOUCH`). The browser's camera indicator
+   must be off. Move the pointer — the field must respond. *Presence is fully
+   usable without ever granting the camera; if that is not true, stop here.*
+
+2. **Press USE CAMERA.** A consent panel appears and states what is read, at
+   what size, that frames are compared in-tab and discarded, that nothing is
+   recorded, stored or uploaded, and that it identifies nobody. Read it. Press
+   KEEP USING POINTER. Nothing must have started.
+
+3. **Press USE CAMERA again, then ALLOW CAMERA.** Grant at the browser prompt.
+   - Status reads `CAMERA · LOCAL MOTION SENSING`.
+   - The readout appears. Screenshot it. It must show `PERMISSION GRANTED`, a
+     real `STREAM` resolution, `TRACK LIVE`, and a `FRAMES READ` count.
+   - Watch the frame count for five seconds. **It must keep rising.** A count
+     that stops is a stream that has frozen, and it is the failure no status
+     word can show.
+   - Wave. The field must follow, and `ENERGY` must rise.
+
+4. **Press STOP CAMERA.**
+   - **The browser's camera indicator must go out.** This is the one that
+     matters most.
+   - The readout disappears; the status returns to `POINTER`.
+   - In the console: `window.__labCam.report()` — `videoElementsInDocument: 0`,
+     `transientNodes: 0`, `tracks: []`, `samplingLoopRunning: false`.
+
+5. **Start it again, then leave with Escape.** The indicator must go out again.
+   Re-enter Presence: the status must read `POINTER`, not `CAMERA`.
+
+6. **Deny it.** Reset the site's camera permission, press USE CAMERA, and click
+   Block. The status must read `CAMERA DECLINED · POINTER STILL WORKS`, and the
+   pointer must still drive the field.
+
+7. **Unplug it.** With the camera running on an external webcam, unplug it. The
+   status must change to `CAMERA DISCONNECTED · POINTER STILL WORKS` rather
+   than freezing on `active`.
+
+## What a failure looks like
+
+Any of these is a defect worth stopping for:
+
+- The camera indicator stays on after STOP, after Escape, or after leaving the
+  Lab entirely.
+- `FRAMES READ` stops rising while the status still says active.
+- A `<video>` element survives in the DOM after teardown.
+- Any state that says something went wrong when the truthful answer is "this
+  needs HTTPS" or "there is no camera here".
+- Presence being unusable because the camera was declined.

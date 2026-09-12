@@ -213,3 +213,47 @@
     transition-duration: 1ms;
   }
 }
+
+/* ==========================================================================
+   THE CAMERA READOUT
+
+   Visible only while the camera runs, and set in the instrument's voice
+   because every value in it was measured — the resolution the browser actually
+   handed over, the live track state, the number of frames read. It exists so
+   that one screenshot answers the hardware acceptance sheet without anybody
+   opening a console.
+   ========================================================================== */
+
+.pr-diag {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: 4px 18px;
+  margin: var(--s-2) 0 0;
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--rule-faint);
+}
+
+.pr-diag > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: baseline;
+  border-bottom: 1px solid var(--rule-faint);
+  padding-bottom: 2px;
+}
+
+.pr-diag dt,
+.pr-diag dd {
+  font-family: var(--f-mono);
+  font-size: 0.625rem;
+  letter-spacing: var(--tr-mono-wide);
+  margin: 0;
+}
+
+.pr-diag dt {
+  color: var(--figure-dim);
+}
+
+.pr-diag dd {
+  color: var(--figure);
+}

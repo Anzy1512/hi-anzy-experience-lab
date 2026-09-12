@@ -11,7 +11,12 @@ import { spatialQuality } from '../../spatial/quality';
 import { SpatialCanvas } from '../../spatial/SpatialCanvas';
 import { clamp01, damp, lerp } from '../../spatial/projection';
 import { ParticleField } from '../matter/ParticleField';
-import { useCameraMotion, type PresenceSignal } from './useCameraMotion';
+import {
+  useCameraMotion,
+  type CameraDiagnostics,
+  type CameraStatus,
+  type PresenceSignal,
+} from './useCameraMotion';
 import './presence.css';
 
 /**
@@ -44,6 +49,26 @@ const COUNTS: Record<string, number> = {
 type Source = 'pointer' | 'camera';
 
 /**
+ * What each camera state says out loud.
+ *
+ * `insecure`, `nodevice` and `busy` used to be folded into a single "CAMERA
+ * UNAVAILABLE", which is the least useful true thing that could be said: one of
+ * them is fixed by loading over https, one by plugging a camera in, and one by
+ * closing the app that is already holding it.
+ */
+const CAMERA_LINE: Partial<Record<CameraStatus, string>> = {
+  active: 'CAMERA · LOCAL MOTION SENSING',
+  requesting: 'ASKING YOUR BROWSER…',
+  denied: 'CAMERA DECLINED · POINTER STILL WORKS',
+  unsupported: 'NO CAMERA API IN THIS BROWSER · POINTER STILL WORKS',
+  insecure: 'CAMERA NEEDS HTTPS · POINTER STILL WORKS',
+  nodevice: 'NO CAMERA ON THIS DEVICE · POINTER STILL WORKS',
+  busy: 'CAMERA IN USE BY ANOTHER APP · POINTER STILL WORKS',
+  lost: 'CAMERA DISCONNECTED · POINTER STILL WORKS',
+  error: 'CAMERA UNAVAILABLE · POINTER STILL WORKS',
+};
+
+/**
  * Where attraction becomes repulsion.
  *
  * Not a display constant: `forceRef.sign` is what the particle field is handed,
@@ -66,7 +91,7 @@ export default function PresenceMode({ onReady, scope }: ModeViewProps) {
   const [consentOpen, setConsentOpen] = useState(false);
 
   const signal = useRef<PresenceSignal>({ x: 0.5, y: 0.5, energy: 0 });
-  const { status, start, stop } = useCameraMotion(signal);
+  const { status, start, stop, diagRef } = useCameraMotion(signal);
   const forceRef = useRef({ x: 0, y: 0, sign: 0 });
   /*
    * CONTACT_GAP.
@@ -174,20 +199,36 @@ export default function PresenceMode({ onReady, scope }: ModeViewProps) {
     setSource('pointer');
   }, [stop]);
 
-  const statusLine =
-    status === 'active'
-      ? 'CAMERA · LOCAL MOTION SENSING'
-      : status === 'requesting'
-        ? 'ASKING YOUR BROWSER…'
-        : status === 'denied'
-          ? 'CAMERA DECLINED · POINTER STILL WORKS'
-          : status === 'unsupported'
-            ? 'NO CAMERA API HERE · POINTER STILL WORKS'
-            : status === 'error'
-              ? 'CAMERA UNAVAILABLE · POINTER STILL WORKS'
-              : coarse
-                ? 'TOUCH'
-                : 'POINTER';
+  /*
+   * One sentence per state, and every one of them ends with what still works.
+   * A visitor who cannot use the camera has not hit a dead end — the mode is
+   * fully usable from the pointer, and the line says so rather than leaving
+   * them looking at a failure.
+   */
+  const statusLine = CAMERA_LINE[status] ?? (coarse ? 'TOUCH' : 'POINTER');
+
+  /*
+   * The diagnostics live in a ref because they are written from the sampling
+   * loop, which must not render anything. This copies them out once a second —
+   * often enough that a frozen frame count is visible within a second of it
+   * freezing, rarely enough that reading the camera's own health never costs
+   * the field a frame.
+   */
+  /* A literal default rather than a read of the ref: the initialiser runs
+     during render, and nothing may look at a ref there. Before the camera is
+     started these are the true values anyway. */
+  const [diag, setDiag] = useState<CameraDiagnostics>({
+    permission: 'unknown',
+    videoW: 0,
+    videoH: 0,
+    frames: 0,
+    track: 'none',
+  });
+  useEffect(() => {
+    if (status !== 'active') return;
+    const id = window.setInterval(() => setDiag({ ...diagRef.current }), 1000);
+    return () => window.clearInterval(id);
+  }, [status, diagRef]);
 
   return (
     <div className="pr" data-armed={armed ? 'true' : 'false'}>
@@ -241,6 +282,46 @@ export default function PresenceMode({ onReady, scope }: ModeViewProps) {
             ENERGY {Math.round(energy * 100).toString().padStart(3, '0')}
           </p>
         </div>
+
+        {/*
+          THE CAMERA READOUT.
+
+          Live, and only while the camera is running. The point is that a single
+          screenshot answers every question on the hardware sheet without anybody
+          opening a console: what the browser says about permission, what
+          resolution it is actually handing over, whether the track is live, and
+          whether frames are still arriving. A frame count that has stopped
+          moving is the difference between "active" as a claim and "active" as a
+          fact — and it is the failure a status word alone can never show.
+        */}
+        {status === 'active' && (
+          <dl className="pr-diag" aria-label="Camera diagnostics">
+            <div>
+              <dt>PERMISSION</dt>
+              <dd>{diag.permission.toUpperCase()}</dd>
+            </div>
+            <div>
+              <dt>STREAM</dt>
+              <dd>{diag.videoW > 0 ? `${diag.videoW}×${diag.videoH}` : 'NO FRAMES YET'}</dd>
+            </div>
+            <div>
+              <dt>TRACK</dt>
+              <dd>{diag.track.toUpperCase()}</dd>
+            </div>
+            <div>
+              <dt>FRAMES READ</dt>
+              <dd>{diag.frames.toLocaleString('en')}</dd>
+            </div>
+            <div>
+              <dt>SAMPLED AT</dt>
+              <dd>32×24 · IN THIS TAB</dd>
+            </div>
+            <div>
+              <dt>SENT ANYWHERE</dt>
+              <dd className="t-signal">NO</dd>
+            </div>
+          </dl>
+        )}
 
         <div className="pr-controls">
           {source === 'camera' && status === 'active' ? (
