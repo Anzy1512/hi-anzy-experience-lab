@@ -111,6 +111,11 @@ export const ERAS: Era[] = [
 ];
 
 export const TM_COPY = {
+  recordTitle: 'HI ANZY’S OWN RECORD',
+  recordSpan: (first: string, last: string, commits: number) =>
+    `The seven views above are models of how interfaces have worked. This is the company’s own history, and it is short: ${commits} commits, ${first} to ${last}. Counted from the repository, not described.`,
+  recordBefore: (first: string) =>
+    `BEFORE ${first} — NOT RECORDED. NOT RECONSTRUCTED, NOT ESTIMATED, NOT KNOWN.`,
   title: 'TIME MACHINE',
   tagline: 'THE SAME INFORMATION THROUGH DIFFERENT ERAS OF THE WEB.',
   note: 'One source of content, seven interfaces. Nothing on this screen is duplicated per era: every view below renders the same object.',

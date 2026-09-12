@@ -711,3 +711,62 @@
     transition-duration: 1ms;
   }
 }
+
+/* ==========================================================================
+   THE RECORD
+
+   The one part of this mode that is not a model. It is set apart from the era
+   notes above it by a rule and by the instrument's voice, because those notes
+   describe how interfaces have worked and these lines are counted facts about
+   one repository.
+   ========================================================================== */
+
+.tm-record {
+  margin-top: var(--s-3);
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--rule);
+}
+
+.tm-record__title {
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--figure);
+}
+
+.tm-record__span {
+  margin-top: 5px;
+}
+
+.tm-record__list {
+  list-style: none;
+  margin: var(--s-2) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.tm-record__row {
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--rule-faint);
+}
+
+.tm-record__head {
+  letter-spacing: var(--tr-mono-wide);
+}
+
+.tm-record__subject {
+  margin-top: 2px;
+}
+
+.tm-record__counts {
+  margin-top: 3px;
+  letter-spacing: 0.08em;
+}
+
+/* The unrecorded span carries the warning colour, because an absence of
+   evidence is the most important thing on this panel. */
+.tm-record__flag {
+  margin-top: var(--s-2);
+  color: var(--signal);
+  letter-spacing: var(--tr-mono-wide);
+}

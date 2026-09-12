@@ -3,6 +3,12 @@ import type { ModeViewProps } from '../../experience/types';
 import { useReducedMotion } from '../../core/hooks';
 import { setPointerIntent } from '../../core/pointer';
 import { ERAS, SOURCE, TM_COPY, type EraId } from '../../content/eras';
+import {
+  CANONICAL_ERAS,
+  RECORD_COMMITS,
+  RECORD_FIRST,
+  RECORD_LAST,
+} from '../../content/canonicalEras';
 import './timemachine.css';
 
 /**
@@ -146,6 +152,47 @@ export default function TimeMachineMode({ onReady, scope }: ModeViewProps) {
         {era === '2035' && (
           <p className="t-mono t-mono-xs tm-notes__flag">{TM_COPY.speculative}</p>
         )}
+
+        {/*
+          THE RECORD.
+
+          The seven views above are models of how interfaces have worked, and
+          they say so. This is the other thing the mode owes: Hi Anzy's own
+          history, and the truth about it is short. The repository begins on
+          2026-08-20 and reaches its current head twelve days later, so there is
+          no decade to walk through and this does not invent one. What it shows
+          instead is countable — routes, pages, brand files at each commit — and
+          every number was taken by running git against that commit rather than
+          by being characterised.
+
+          Anything before the first date is NOT RECORDED. Not "early days", not
+          "the first site". Unrecorded, and named as such.
+        */}
+        <section className="tm-record">
+          <h3 className="t-mono t-mono-xs tm-record__title">{TM_COPY.recordTitle}</h3>
+          <p className="t-body-s t-dim tm-record__span">
+            {TM_COPY.recordSpan(RECORD_FIRST, RECORD_LAST, RECORD_COMMITS)}
+          </p>
+          <ol className="tm-record__list">
+            {CANONICAL_ERAS.map((e) => (
+              <li key={e.sha} className="tm-record__row">
+                <p className="t-mono t-mono-xs tm-record__head">
+                  <span className="t-signal">{e.date}</span>
+                  <span className="t-faint"> · </span>
+                  {e.sha}
+                </p>
+                <p className="t-body-s tm-record__subject">{e.subject}</p>
+                <p className="t-mono t-mono-xs t-dim tm-record__counts">
+                  {e.routes} ROUTES · {e.pages} PAGES · {e.brandAssets} BRAND FILES
+                  {e.changed
+                    ? ` · ${e.changed.commits} COMMITS, +${e.changed.insertions}/−${e.changed.deletions}`
+                    : ' · BASELINE'}
+                </p>
+              </li>
+            ))}
+          </ol>
+          <p className="t-mono t-mono-xs tm-record__flag">{TM_COPY.recordBefore(RECORD_FIRST)}</p>
+        </section>
       </aside>
     </div>
   );
