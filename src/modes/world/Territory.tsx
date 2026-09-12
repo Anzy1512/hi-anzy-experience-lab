@@ -8,6 +8,7 @@ import { groundAt } from './geography';
 import { buildDistrict, type PlateSink } from './districtForms';
 import { penFor, plain, type Box } from './pens';
 import { DATUM, buildDatum } from './landmarks';
+import { buildLandmark } from './districtLandmarks';
 import type { SpatialQuality } from '../../spatial/quality';
 
 /**
@@ -192,6 +193,13 @@ export function Territory({ quality, extent, groundHeight, activeId }: Props) {
       };
 
       const sink: PlateSink = {
+        /*
+         * The structure between the plates. The form said where; the pen says
+         * what of — a graphite post over-runs, an ink one triples, a cut one
+         * barely leaves the ground. A material with no riser has no vertical
+         * structure at all, which is a statement rather than an omission.
+         */
+        riser: (x, z, y0, y1) => draw.riser?.(x, z, y0, y1, emit),
         poly: (points) => {
           for (let i = 0; i < points.length; i++) {
             const a = points[i];
@@ -225,6 +233,9 @@ export function Territory({ quality, extent, groundHeight, activeId }: Props) {
         },
       };
       buildDistrict(dist, sink);
+      /* And the one thing in this district tall enough to steer by. Same sink,
+         so it is drawn by the same pen and lands in the same draw call. */
+      buildLandmark(dist, sink);
 
       // A registration target planted on the ground at each district.
       const r = 42;
@@ -271,6 +282,9 @@ export function Territory({ quality, extent, groundHeight, activeId }: Props) {
     {
       const dy = groundAt(DATUM.x, DATUM.z, extent, groundHeight);
       const sink: PlateSink = {
+        /* The datum is drawn, not built: it is an instrument the survey is
+           squared from, and giving it structure would make it a tenth place. */
+        riser: () => {},
         poly: (points) => {
           for (let i = 0; i < points.length; i++) {
             if (points.length === 2 && i === 1) break;

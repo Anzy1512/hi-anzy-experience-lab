@@ -79,7 +79,30 @@ export interface Pen {
   stroke: (a: Pt, b: Pt, emit: Emit) => void;
   /** What goes inside a closed plate. Omitted means nothing does. */
   fill?: (box: Box, emit: Emit) => void;
+  /**
+   * A vertical member, drawn the way this material would carry a load.
+   *
+   * ── WHY THE DISTRICTS NEEDED THIS ───────────────────────────────────────
+   *
+   * Every district was a stack of horizontal outlines floating at intervals —
+   * plans hanging in the air with nothing between them. From the overview
+   * station that reads as architecture, because from far enough away any
+   * stack of plans does. Walking up to one, which Explore now lets a visitor
+   * do, it stops reading as a building and starts reading as a drawing nobody
+   * finished: there is no edge going *up*.
+   *
+   * So each pen gains the one mark it was missing. `districtForms` decides
+   * where a member belongs — that is topology, and it is what makes STRATEGY
+   * a frame and TECHNOLOGY a lattice. This decides what the member is made
+   * of, which is the same division of labour `stroke` and `fill` already use.
+   * Nothing here draws a mesh; a construction is still entirely lines.
+   */
+  riser?: (x: number, z: number, y0: number, y1: number, emit: Emit) => void;
 }
+
+/** The plain vertical every riser is a variation on. */
+const post = (x: number, z: number, y0: number, y1: number, emit: Emit, lum = 1) =>
+  emit([x, y0, z], [x, y1, z], lum);
 
 /* -------------------------------------------------------------------------- */
 
@@ -153,6 +176,13 @@ export const PENS: Record<string, Pen> = {
       const over = Math.min(15 / length(a, b), 0.2);
       emit(at(a, b, -over), at(a, b, 1 + over), 1);
     },
+    /* A construction line does not stop where the thing it is measuring stops.
+       The post runs past both plates it connects, which is what makes STRATEGY
+       read as a frame someone is still deciding rather than a built floor. */
+    riser: (x, z, y0, y1, emit) => {
+      const over = (y1 - y0) * 0.16;
+      emit([x, y0 - over, z], [x, y1 + over, z], 0.9);
+    },
   },
 
   /**
@@ -169,6 +199,13 @@ export const PENS: Record<string, Pen> = {
       emit([a[0], a[1] - 3, a[2]], [b[0], b[1] - 3, b[2]], 0.3);
     },
     fill: (box, emit) => hatch(box, emit, 96, 0.3),
+    /* A sheet has two sides and a thickness — the same claim `stroke` makes
+       horizontally, made vertically. The pair reads as a folded edge seen
+       on end, which is what turns a stack of plans into stacked paper. */
+    riser: (x, z, y0, y1, emit) => {
+      post(x, z, y0, y1, emit, 0.85);
+      emit([x + 3, y0, z + 2], [x + 3, y1, z + 2], 0.3);
+    },
   },
 
   /**
@@ -185,6 +222,13 @@ export const PENS: Record<string, Pen> = {
       hatch(box, emit, 100, 0.28);
       hatch(box, emit, 100, 0.28, true);
     },
+    /* Not a post: a cell. The vertical is braced by a diagonal, so the lattice
+       is structural in section as well as in plan and TECHNOLOGY becomes a
+       frame that could actually stand rather than a grid printed in the air. */
+    riser: (x, z, y0, y1, emit) => {
+      post(x, z, y0, y1, emit, 0.8);
+      emit([x, y0, z], [x + 26, y1, z + 18], 0.34);
+    },
   },
 
   /**
@@ -198,6 +242,14 @@ export const PENS: Record<string, Pen> = {
     rise: 0.46,
     stroke: (a, b, emit) => emit(a, b, 1),
     fill: (box, emit) => hatch(box, emit, 44, 0.38),
+    /* Ink accumulates, and so does load. Three members where one would do,
+       tight enough to read as a single dense column at distance and as
+       clustered structure up close. Production carries weight. */
+    riser: (x, z, y0, y1, emit) => {
+      post(x, z, y0, y1, emit, 1);
+      post(x + 7, z + 4, y0, y1, emit, 0.55);
+      post(x - 6, z + 5, y0, y1, emit, 0.45);
+    },
   },
 
   /**
@@ -211,6 +263,17 @@ export const PENS: Record<string, Pen> = {
     rise: 0.5,
     stroke: (a, b, emit) => dashed(a, b, emit, 26, (t) => 0.85 - t * 0.4),
     fill: (box, emit) => hatch(box, emit, 140, 0.3),
+    /* A trace fades as it travels, including upward. The member is drawn in
+       decaying dashes so GROWTH reads as something that propagated to here
+       and has not yet finished arriving. */
+    riser: (x, z, y0, y1, emit) => {
+      const h = y1 - y0;
+      const n = Math.max(2, Math.round(h / 30));
+      for (let i = 0; i < n; i++) {
+        const t = i / n;
+        emit([x, y0 + h * t, z], [x, y0 + h * (t + 0.62 / n), z], 0.9 - t * 0.55);
+      }
+    },
   },
 
   /**
@@ -232,6 +295,17 @@ export const PENS: Record<string, Pen> = {
         }
       }
     },
+    /* The screen, seen edge-on: a column of countable marks rather than a
+       line. Up close CULTURE is perforated — you can see through it, which is
+       what a printed surface does when you get near enough to read the dots. */
+    riser: (x, z, y0, y1, emit) => {
+      const h = y1 - y0;
+      const n = Math.max(3, Math.round(h / 22));
+      for (let i = 0; i <= n; i++) {
+        const y = y0 + (h * i) / n;
+        emit([x - 2, y, z], [x + 2, y, z], 0.5);
+      }
+    },
   },
 
   /**
@@ -251,6 +325,18 @@ export const PENS: Record<string, Pen> = {
       emit(at(a, b, start + gap), b, 1);
     },
     fill: (box, emit) => hatch(box, emit, 86, 0.3),
+    /* A rack with something missing from it. The member is drawn in two
+       pieces with a hole between them, seeded per position so the same gap is
+       in the same place on every visit — a record that rewrites itself is not
+       an archive. */
+    riser: (x, z, y0, y1, emit) => {
+      const s = seedOf([x, y0, z], [x, y1, z]);
+      const h = y1 - y0;
+      const gap = 0.2 + s * 0.18;
+      const start = 0.24 + s * 0.3;
+      emit([x, y0, z], [x, y0 + h * start, z], 0.95);
+      emit([x, y0 + h * (start + gap), z], [x, y1, z], 0.95);
+    },
   },
 
   /**
@@ -268,6 +354,13 @@ export const PENS: Record<string, Pen> = {
       emit([a[0] + 7, a[1], a[2] + 5], [b[0] + 7, b[1], b[2] + 5], 0.5);
     },
     fill: (box, emit) => hatch(box, emit, 120, 0.28),
+    /* The same member, printed twice, out of true. Misalignment is the state;
+       the pair is the structure. Offset in both ground axes so the error is
+       legible from any approach rather than only in elevation. */
+    riser: (x, z, y0, y1, emit) => {
+      post(x, z, y0, y1, emit, 1);
+      post(x + 9, z + 6, y0, y1, emit, 0.45);
+    },
   },
 
   /**
@@ -279,6 +372,13 @@ export const PENS: Record<string, Pen> = {
     value: 0.18,
     rise: 0.1,
     stroke: (a, b, emit) => emit(a, b, 1),
+    /* Deliberately the least built thing in the territory. A member only at
+       the very bottom, so THE UNKNOWN has a footing and then stops — the
+       absence above it is the content, and filling it in would be the one
+       change that made this district say something it does not mean. */
+    riser: (x, z, y0, y1, emit) => {
+      emit([x, y0, z], [x, y0 + (y1 - y0) * 0.22, z], 0.7);
+    },
   },
 
   /** The Lab's accent has no district. Present so a lookup can never fail. */
@@ -300,5 +400,18 @@ export function penFor(material: string): Pen {
  * lost that a visitor on that tier could have seen.
  */
 export function plain(pen: Pen): Pen {
-  return { value: pen.value, rise: pen.rise, stroke: (a, b, emit) => emit(a, b, 1) };
+  return {
+    value: pen.value,
+    rise: pen.rise,
+    stroke: (a, b, emit) => emit(a, b, 1),
+    /*
+     * The lite tier keeps the structure and loses the technique. A district
+     * with no verticals is a stack of floating plans on every tier, not just
+     * the expensive one, and the simplification that removes the difference
+     * between materials should not also remove the difference between a
+     * building and a drawing. One segment per member is the cheapest mark
+     * there is — only a pen that draws nothing vertical keeps drawing nothing.
+     */
+    riser: pen.riser ? (x, z, y0, y1, emit) => post(x, z, y0, y1, emit, 0.9) : undefined,
+  };
 }

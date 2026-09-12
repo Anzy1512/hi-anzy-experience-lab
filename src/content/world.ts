@@ -290,4 +290,13 @@ export const WORLD_COPY = {
   exploreEnter: 'WALK THE TERRITORY',
   exploreLeave: 'BACK TO THE MAP · ESC',
   exploreKeys: 'DRAG TO LOOK · SCROLL TO MOVE · WASD OPTIONAL · R LEVELS THE HORIZON',
+  /*
+   * The third depth, named for what it does rather than for how hard it is.
+   * "ENTER DEEP" is the brief's own phrase and it survives the test the other
+   * two labels had to pass: it says where the visitor ends up, not what the
+   * software switches to.
+   */
+  deepEnter: 'ENTER DEEP',
+  deepLeave: 'BACK UP · ESC',
+  deepKeys: 'AT GROUND LEVEL · THE STRUCTURES ARE SOLID HERE · ESC STEPS BACK',
 } as const;

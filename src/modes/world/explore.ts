@@ -42,6 +42,51 @@ import { DISTRICTS } from '../../content/world';
 const EYE = 165;
 
 /**
+ * ENTER DEEP — the same walk, at the scale of the thing being walked through.
+ *
+ * Not a third camera and not a game. Everything below is the same solve, the
+ * same bounds and the same damped loop; three numbers change and one rule is
+ * added. The eye drops to roughly a third of a district storey, the pace slows
+ * to something you could look around at, and the structures stop being
+ * furniture you can walk through.
+ *
+ * What it buys is the one reading Explore cannot give: STRATEGY's frame is
+ * eleven plates tall, and standing at 165 units you are looking at its middle.
+ * At 62 you are underneath it, which is where a frame is actually legible as a
+ * frame. The districts were built to be stood under; this is the state that
+ * stands under them.
+ */
+const EYE_DEEP = 62;
+const WALK_DEEP_SCALE = 0.42;
+
+/**
+ * How close the visitor may get to a district's own footprint.
+ *
+ * Soft, not solid: the stance is pushed back out along the vector it came in
+ * on rather than stopped dead, so walking into a structure slides you around
+ * it instead of pinning you against it. There is no physics here and there is
+ * no body — it is the same clamp `clampPos` applies to the survey edge, with a
+ * different shape.
+ *
+ * Only in Deep. In Explore walking through a district is how you see the inside
+ * of it, and taking that away to be consistent would be consistency for its
+ * own sake.
+ */
+function pushOutOfDistricts(s: ExploreState): void {
+  for (const d of DISTRICTS) {
+    const rx = d.w * 0.52;
+    const rz = d.d * 0.52;
+    const dx = (s.px - d.x) / rx;
+    const dz = (s.pz - d.z) / rz;
+    const r = Math.hypot(dx, dz);
+    if (r >= 1 || r === 0) continue;
+    const k = 1 / r;
+    s.px = d.x + dx * rx * k;
+    s.pz = d.z + dz * rz * k;
+  }
+}
+
+/**
  * Where the visitor may stand.
  *
  * The survey is 3400 across and the districts occupy roughly x ∈ [−880, 1320],
@@ -120,8 +165,13 @@ const euler = new THREE.Euler(0, 0, 0, 'XYZ');
  * with whatever `WorldMode` is actually sampling the land with — the two must
  * agree or the eye floats.
  */
-export function viewForStance(s: ExploreState, extent: number, height: number): View {
-  const eyeY = groundAt(s.px, s.pz, extent, height) + EYE;
+export function viewForStance(
+  s: ExploreState,
+  extent: number,
+  height: number,
+  deep = false,
+): View {
+  const eyeY = groundAt(s.px, s.pz, extent, height) + (deep ? EYE_DEEP : EYE);
   q.set(s.px, eyeY, s.pz);
 
   const tilt = clampPitch(s.pitch);
@@ -157,9 +207,11 @@ export function advance(
   strafe: number,
   dt: number,
   running = false,
+  deep = false,
 ): void {
   if (!forward && !strafe) return;
-  const speed = WALK * (running ? RUN : 1) * Math.min(dt, 0.05);
+  const speed =
+    WALK * (running ? RUN : 1) * (deep ? WALK_DEEP_SCALE : 1) * Math.min(dt, 0.05);
   const rad = (s.yaw * Math.PI) / 180;
   const sin = Math.sin(rad);
   const cos = Math.cos(rad);
@@ -170,13 +222,15 @@ export function advance(
    */
   s.px = clampPos(s.px + (forward * sin + strafe * cos) * speed);
   s.pz = clampPos(s.pz + (-forward * cos + strafe * sin) * speed);
+  if (deep) pushOutOfDistricts(s);
 }
 
 /** Move along the facing without a key — used by the wheel. */
-export function dolly(s: ExploreState, amount: number): void {
+export function dolly(s: ExploreState, amount: number, deep = false): void {
   const rad = (s.yaw * Math.PI) / 180;
   s.px = clampPos(s.px + Math.sin(rad) * amount);
   s.pz = clampPos(s.pz - Math.cos(rad) * amount);
+  if (deep) pushOutOfDistricts(s);
 }
 
 /** How far the stance is from a district centre, in territory units. */

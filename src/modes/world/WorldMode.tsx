@@ -204,7 +204,7 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
    * assumed: the control was there.
    */
   const canExplore = !coarse && !reduced && !narrow && quality.scaffold;
-  const [nav, setNav] = useState<'guided' | 'explore'>('guided');
+  const [nav, setNav] = useState<'guided' | 'explore' | 'deep'>('guided');
   const exploreRef = useRef<ExploreState>(initialStance());
   const keysRef = useRef<Set<string>>(new Set());
   const navRef = useLatest(nav);
@@ -247,7 +247,9 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
        * here rather than in the key handler so movement is frame-rate
        * independent and so a key held across a dropped frame does not teleport.
        */
-      const exploring = navRef.current === 'explore';
+      const walking = navRef.current === 'explore' || navRef.current === 'deep';
+      const deep = navRef.current === 'deep';
+      const exploring = walking;
       if (exploring) {
         /* Held here rather than cleared on entry: the drag offsets belong to
            guided travel, and zeroing them once would let a stray pointer bias
@@ -259,8 +261,8 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
         const keys = keysRef.current;
         const fwd = (keys.has('w') || keys.has('arrowup') ? 1 : 0) - (keys.has('s') || keys.has('arrowdown') ? 1 : 0);
         const str = (keys.has('d') || keys.has('arrowright') ? 1 : 0) - (keys.has('a') || keys.has('arrowleft') ? 1 : 0);
-        advance(s, fwd, str, dt, keys.has('shift'));
-        targetRef.current = viewForStance(s, EXTENT, GROUND_HEIGHT);
+        advance(s, fwd, str, dt, keys.has('shift'), deep);
+        targetRef.current = viewForStance(s, EXTENT, GROUND_HEIGHT, deep);
       }
 
       const t = targetRef.current;
@@ -327,7 +329,7 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
          Yaw wraps freely because turning all the way round in a place you are
          standing in is not a violation of anything; pitch is clamped in
          `explore.ts`, which is also the only place that knows the limits. */
-      if (navRef.current === 'explore') {
+      if (navRef.current === 'explore' || navRef.current === 'deep') {
         const s = exploreRef.current;
         s.yaw += dx * scale * 1.9;
         s.pitch = clampPitch(s.pitch - dy * scale * 1.1);
@@ -386,6 +388,11 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
     [],
   );
 
+  const enterDeep = useCallback(() => {
+    keysRef.current.clear();
+    setNav('deep');
+  }, []);
+
   const leaveExplore = useCallback(() => {
     /* Leaving keeps the place: the guided station it returns to is the district
        the visitor was standing nearest, so stepping out of Explore does not
@@ -398,7 +405,7 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
   }, [travelTo]);
 
   useEffect(() => {
-    if (nav !== 'explore') return;
+    if (nav === 'guided') return;
     const keys = keysRef.current;
 
     const down = (e: KeyboardEvent) => {
@@ -414,7 +421,11 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
          */
         e.preventDefault();
         e.stopPropagation();
-        leaveExplore();
+        /* One step back, every time. Deep returns to Explore, Explore returns
+           to the map, and only then does Escape mean the reality — so a
+           visitor who went two levels in never loses two levels at once. */
+        if (navRef.current === 'deep') setNav('explore');
+        else leaveExplore();
         return;
       }
       if (k === 'r') {
@@ -440,17 +451,17 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
       window.removeEventListener('blur', blur);
       keys.clear();
     };
-  }, [nav, leaveExplore]);
+  }, [nav, leaveExplore, navRef]);
 
   /* The wheel walks, rather than zooming: there is no zoom in a place you are
      standing in, and a scroll that changed field of view would be the one
      control that broke the projection contract. */
   useEffect(() => {
     const root = rootRef.current;
-    if (!root || nav !== 'explore') return;
+    if (!root || nav === 'guided') return;
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
-      dolly(exploreRef.current, -e.deltaY * 1.15);
+      dolly(exploreRef.current, -e.deltaY * 1.15, nav === 'deep');
       invalidateRef.current?.();
     };
     root.addEventListener('wheel', onWheel, { passive: false });
@@ -459,7 +470,7 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
 
   /* ---- keyboard: step through districts ---------------------------------- */
   useEffect(() => {
-    if (nav === 'explore') return;
+    if (nav !== 'guided') return;
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const i = activeId ? visible.findIndex((d) => d.id === activeId) : -1;
@@ -553,22 +564,49 @@ export default function WorldMode({ onReady, scope }: ModeViewProps) {
         plan={narrow || !showCanvas}
         /* In Explore the index becomes a way of walking to a district rather
            than cutting to it: same list, same control, different vehicle. */
-        onSelect={nav === 'explore' ? (id) => { const s = id && stanceFacing(id); if (s) { exploreRef.current = s; setActiveId(id); } } : travelTo}
+        onSelect={nav !== 'guided' ? (id) => { const s = id && stanceFacing(id); if (s) { exploreRef.current = s; setActiveId(id); } } : travelTo}
         aside={
           showCanvas && canExplore ? (
             <div className="lw-nav">
+              {/* One control per step, never a mode picker. Guided offers the
+                  walk; walking offers going deeper and coming back; Deep only
+                  offers coming back. The ladder is always one rung either way,
+                  which is also what Escape does. */}
               <button
                 type="button"
                 className="lw-nav__btn t-mono t-mono-xs"
-                onClick={nav === 'guided' ? () => enterExplore(activeId) : leaveExplore}
+                onClick={
+                  nav === 'guided'
+                    ? () => enterExplore(activeId)
+                    : nav === 'explore'
+                      ? leaveExplore
+                      : () => setNav('explore')
+                }
                 onPointerEnter={() => setPointerIntent('enter')}
                 onPointerLeave={() => setPointerIntent('default')}
               >
-                {nav === 'guided' ? WORLD_COPY.exploreEnter : WORLD_COPY.exploreLeave}
+                {nav === 'guided'
+                  ? WORLD_COPY.exploreEnter
+                  : nav === 'explore'
+                    ? WORLD_COPY.exploreLeave
+                    : WORLD_COPY.deepLeave}
               </button>
+
               {nav === 'explore' && (
+                <button
+                  type="button"
+                  className="lw-nav__btn t-mono t-mono-xs"
+                  onClick={enterDeep}
+                  onPointerEnter={() => setPointerIntent('enter')}
+                  onPointerLeave={() => setPointerIntent('default')}
+                >
+                  {WORLD_COPY.deepEnter}
+                </button>
+              )}
+
+              {nav !== 'guided' && (
                 <p className="lw-nav__keys t-mono t-mono-xs" role="status">
-                  {WORLD_COPY.exploreKeys}
+                  {nav === 'deep' ? WORLD_COPY.deepKeys : WORLD_COPY.exploreKeys}
                 </p>
               )}
             </div>

@@ -488,3 +488,30 @@
   letter-spacing: var(--tr-mono-wide);
   line-height: 1.6;
 }
+
+/* ==========================================================================
+   THE CHROME NEEDS GROUND TO STAND ON — Phase 8.5
+
+   Explore lets a visitor walk right up to a specimen stand, and a stand is a
+   bone plate at native size. The mode host's own chrome is bone type on
+   whatever is behind it, so when the two meet — which they now do — the id and
+   the EXIT control sit on a field of almost exactly their own value and both
+   become hard to find.
+
+   Fixed locally rather than in the shared chrome: fifteen other realities have
+   no bone objects that can drift under their chrome, and giving all of them a
+   backplate to solve one mode's problem would be the wrong trade. A gradient
+   rather than a bar, so it reads as the sheet darkening under the type instead
+   of a panel arriving; and it sits behind the chrome rather than over the
+   world, so nothing is hidden and no control moves.
+   ========================================================================== */
+.modehost[data-mode='living-world'] .modehost__chrome::before {
+  content: '';
+  position: absolute;
+  /* Bleeds past the chrome's own box: the type sits near the trim, and a
+     backdrop that stopped at the text edge would draw its own hard rectangle. */
+  inset: calc(var(--trim) * -0.5) calc(var(--trim) * -1) calc(var(--trim) * -0.9);
+  z-index: -1;
+  background: linear-gradient(to bottom, rgba(16, 20, 19, 0.92), rgba(16, 20, 19, 0));
+  pointer-events: none;
+}
