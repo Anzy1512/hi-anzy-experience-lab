@@ -247,7 +247,21 @@ export const COMMANDS: Command[] = [
   { name: 'close', args: '<app>', help: 'Close a sheet.' },
   { name: 'run', args: '<reality>', help: 'Leave ANZY.OS and enter another reality.' },
   { name: 'status', help: 'Report system state.' },
-  { name: 'method', help: 'Print the five stages of the method.' },
+  /* The reference half. Every one of these reads the mirrored commercial
+     content file — see `content/canonical.ts`. */
+  { name: 'method', args: '[stage]', help: 'The five stages, or one of them in full.' },
+  { name: 'services', help: 'The six service categories.' },
+  { name: 'service', args: '<slug>', help: 'One category, with its capabilities.' },
+  { name: 'capabilities', args: '[term]', help: 'Search what the network can do.' },
+  { name: 'network', args: '[term]', help: 'Which disciplines carry a capability.' },
+  { name: 'areas', help: 'The diagnostic areas an audit covers.' },
+  { name: 'principles', help: 'How the company says it works.' },
+  /* The working half: these build something you can take away. */
+  { name: 'diagnose', args: '<situation>', help: 'Frame a problem against the method.' },
+  { name: 'brief', help: 'Print the brief built so far.' },
+  { name: 'export', args: 'brief [json]', help: 'Save the brief as a file.' },
+  { name: 'copy', help: 'Copy the brief to the clipboard.' },
+  { name: 'history', help: 'What you have typed this session.' },
   { name: 'clear', help: 'Clear this terminal.' },
   { name: 'about', help: 'What this operating environment is.' },
 ];

@@ -11,7 +11,9 @@ import {
 import { setPointerIntent } from '../../core/pointer';
 import { spatialQuality } from '../../spatial/quality';
 import { APPS, BOOT_LINES, OS_COPY, type AppId } from '../../content/os';
-import { execute, type OsLine } from './commands';
+import { complete, execute, type OsLine } from './commands';
+import { runFormat } from '../../artifacts/artifact';
+import { briefJson, briefMarkdown } from '../../system/brief';
 import { Sheet } from './Sheet';
 import { CapabilityBody, ServiceBody, TerminalBody } from './AppBody';
 import './os.css';
@@ -267,6 +269,29 @@ export default function OsMode({ onReady, scope }: ModeViewProps) {
         run: (realityId) => enterMode(realityId),
         profile: quality.profile,
         webgl: quality.webgl,
+        history: historyRef.current,
+        /*
+         * The shell asks for the export; the artifact layer decides whether it
+         * happened. Its answer is printed when it arrives rather than assumed,
+         * so a refused clipboard write reads as a refusal in the transcript
+         * instead of a line claiming the brief was copied.
+         */
+        exportBrief: (how) => {
+          const art = {
+            name: 'hi-anzy-problem-brief',
+            text: briefMarkdown(),
+            data: briefJson(),
+          };
+          void runFormat(how === 'copy' ? 'copy' : how, art).then((r) => {
+            print([
+              r.ok
+                ? how === 'copy'
+                  ? 'brief copied to the clipboard.'
+                  : `brief saved as ${how === 'json' ? '.json' : '.md'}.`
+                : `export failed: ${r.reason.toLowerCase()}`,
+            ]);
+          });
+        },
       });
       print(out);
     },
@@ -278,6 +303,22 @@ export default function OsMode({ onReady, scope }: ModeViewProps) {
       if (e.key === 'Enter') {
         e.preventDefault();
         submit(input);
+        return;
+      }
+      /*
+       * Tab completes rather than leaving the field, which is the behaviour
+       * anybody who has used a shell expects and the reason the command names
+       * can afford to be words rather than abbreviations. Shift+Tab is left
+       * alone so the keyboard can still get back out of the input.
+       */
+      if (e.key === 'Tab' && !e.shiftKey) {
+        e.preventDefault();
+        const { line, options } = complete(input);
+        if (line !== input) setInput(line);
+        if (options.length > 1) {
+          print([input], 'in');
+          print([options.join('  ')]);
+        }
         return;
       }
       const h = historyRef.current;
@@ -299,7 +340,7 @@ export default function OsMode({ onReady, scope }: ModeViewProps) {
         }
       }
     },
-    [input, submit],
+    [input, submit, print],
   );
 
   const submitRef = useLatest(submit);

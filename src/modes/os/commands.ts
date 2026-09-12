@@ -1,5 +1,15 @@
 import { APPS, COMMANDS, FUTURE_PROCESSES, OS_COPY, RUNNABLE, type AppId } from '../../content/os';
 import { APP_BODY } from '../../content/os';
+import {
+  DIAGNOSTIC_AREAS,
+  METHOD,
+  NETWORK_CAPABILITIES,
+  NETWORK_DISCIPLINES,
+  PRINCIPLES,
+  SERVICES,
+} from '../../content/canonical';
+import { DISCLAIMER, frame } from '../../system/diagnose';
+import { getBrief, setFrame } from '../../system/brief';
 
 /**
  * THE INTERPRETER.
@@ -28,6 +38,10 @@ export interface CommandContext {
   run: (realityId: string) => void;
   profile: string;
   webgl: boolean;
+  /** What has been typed this session, oldest first. */
+  history: string[];
+  /** Hand the brief to the artifact layer. Async, so it reports back itself. */
+  exportBrief: (how: 'copy' | 'markdown' | 'json') => void;
 }
 
 const APP_IDS = APPS.map((a) => a.id);
@@ -50,10 +64,15 @@ export function execute(raw: string, ctx: CommandContext): string[] {
     case 'help':
       return [
         'COMMANDS',
-        ...COMMANDS.map((c) => `  ${(c.name + ' ' + (c.args ?? '')).padEnd(16)}${c.help}`),
+        ...COMMANDS.map((c) => `  ${(c.name + ' ' + (c.args ?? '')).padEnd(20)}${c.help}`),
         '',
         `PROCESSES  ${APP_IDS.join('  ')}`,
         `REALITIES  ${[...new Set(Object.values(RUNNABLE))].join('  ')}`,
+        '',
+        'Every answer below comes out of the company’s own content file. This',
+        'shell makes no requests, runs no operating-system commands, and has no',
+        'model behind it — it matches words against a table and says so when it',
+        'cannot. Tab completes; the arrow keys walk back through what you typed.',
       ];
 
     case 'list':
@@ -95,11 +114,213 @@ export function execute(raw: string, ctx: CommandContext): string[] {
       return [`starting ${target}…`];
     }
 
-    case 'method':
+    case 'method': {
+      if (!arg) {
+        return [
+          'METHOD — five stages',
+          ...APP_BODY.method.map(([k, v], i) => `  ${String(i + 1).padStart(2, '0')}  ${k.padEnd(11)}${v}`),
+          '',
+          'try `method audit` for one stage in full.',
+        ];
+      }
+      const st = METHOD.find((m) => m.label.toLowerCase() === arg);
+      if (!st) return [`method: no stage called ${arg}. try \`method\`.`];
       return [
-        'METHOD — five stages',
-        ...APP_BODY.method.map(([k, v], i) => `  ${String(i + 1).padStart(2, '0')}  ${k.padEnd(11)}${v}`),
+        `${st.label} — ${st.title}`,
+        `    typical ${st.duration}`,
+        '',
+        `    ${st.page}`,
+        '',
+        '    OUTPUTS',
+        ...st.outputs.map((o) => `      · ${o}`),
       ];
+    }
+
+    /* ---- canonical reference -------------------------------------------- */
+
+    case 'services':
+      return [
+        'SERVICE CATEGORIES — the company’s own six',
+        ...SERVICES.map((sv) => `  ${sv.num}  ${sv.slug.padEnd(32)}${sv.title}`),
+        '',
+        'try `service <slug>` for one of them.',
+      ];
+
+    case 'service': {
+      if (!arg) return ['service: which one? try `services`'];
+      const sv =
+        SERVICES.find((x) => x.slug === arg) ??
+        SERVICES.find((x) => x.num === arg) ??
+        SERVICES.find((x) => x.title.toLowerCase().includes(arg));
+      if (!sv) return [`service: nothing called ${arg}. try \`services\`.`];
+      return [
+        `${sv.num}  ${sv.title}`,
+        `    ${sv.label} · stage ${sv.stage} · typical ${sv.typical}`,
+        '',
+        `    ${sv.copy}`,
+        '',
+        '    CAPABILITIES',
+        ...sv.capabilities.map((c) => `      · ${c}`),
+      ];
+    }
+
+    case 'capabilities': {
+      const entries = Object.entries(NETWORK_CAPABILITIES);
+      if (!arg) {
+        return [
+          'CAPABILITY GROUPS',
+          ...entries.map(([k, v]) => `  ${k.padEnd(16)}${v.length} listed`),
+          '',
+          'try `capabilities <term>` to search across all of them.',
+        ];
+      }
+      const hits = entries
+        .map(([k, v]) => [k, v.filter((c) => c.toLowerCase().includes(arg))] as const)
+        .filter(([k, v]) => v.length > 0 || k.toLowerCase().includes(arg));
+      if (!hits.length) return [`capabilities: nothing matching “${arg}”.`];
+      return hits.flatMap(([k, v]) => [
+        k,
+        ...(v.length ? v : NETWORK_CAPABILITIES[k]).map((c) => `  · ${c}`),
+      ]);
+    }
+
+    case 'network': {
+      if (!arg) {
+        return [
+          `NETWORK — ${NETWORK_DISCIPLINES.length} disciplines`,
+          ...NETWORK_DISCIPLINES.map((d) => `  · ${d}`),
+          '',
+          'try `network <term>` to see which disciplines carry a capability.',
+          'This lists kinds of specialist. It never names a person.',
+        ];
+      }
+      const hits = Object.entries(NETWORK_CAPABILITIES).filter(
+        ([k, v]) => k.toLowerCase().includes(arg) || v.some((c) => c.toLowerCase().includes(arg)),
+      );
+      if (!hits.length) return [`network: no discipline matching “${arg}”.`];
+      return [
+        `DISCIPLINES FOR “${arg}”`,
+        ...hits.map(([k, v]) => `  ${k.padEnd(16)}${v.join(', ')}`),
+        '',
+        'Kinds of specialist, not people. The roster is not in this product.',
+      ];
+    }
+
+    case 'areas':
+      return [
+        `DIAGNOSTIC AREAS — ${DIAGNOSTIC_AREAS.length}`,
+        ...DIAGNOSTIC_AREAS.map((a) => `  · ${a}`),
+      ];
+
+    case 'principles':
+      return [
+        'HOW THE COMPANY SAYS IT WORKS',
+        ...PRINCIPLES.map((p) => `  ${p.name.padEnd(20)}${p.short}`),
+      ];
+
+    /* ---- the working surface -------------------------------------------- */
+
+    /*
+     * `diagnose` is the one command that produces state rather than a lookup.
+     * It frames the sentence against the canonical areas and hands the result
+     * to the session brief, which SYSTEM.app reads — that is the whole of the
+     * cross-tool flow, and it is one small module rather than a bus.
+     */
+    case 'diagnose': {
+      const said = rest.join(' ').replace(/^["“]|["”]$/g, '').trim();
+      if (!said) {
+        return [
+          'diagnose: describe the situation in your own words.',
+          '  e.g. diagnose our website gets traffic but conversion is weak',
+        ];
+      }
+      const f = frame(said);
+      if (f.empty) {
+        return [
+          `no canonical area matched “${said}”.`,
+          '',
+          'This shell matches words, not meaning — it has no model and will not',
+          'guess. Try naming what is happening: traffic, conversion, margin,',
+          'churn, handover, reporting, brand, automation.',
+          '',
+          '`areas` lists everything it can map onto.',
+        ];
+      }
+      setFrame(f, 'terminal');
+      return [
+        'PROBLEM FRAME',
+        `  stated      ${f.statement}`,
+        `  areas       ${f.areas.join(' · ')}`,
+        ...f.areas.map((a) => `    ${a.padEnd(12)}matched on: ${f.matched[a].join(', ')}`),
+        '',
+        '  SEQUENCE',
+        ...f.sequence.map(
+          (m, i) => `    ${String(i + 1).padStart(2, '0')}  ${m.label.padEnd(11)}${m.title} (${m.duration})`,
+        ),
+        '',
+        '  CATEGORIES',
+        ...f.services.map((sv) => `    · ${sv.title}`),
+        '',
+        `  ${f.evidence.length} pieces of evidence still required, ${f.questions.length} open questions.`,
+        '  `brief` prints the whole thing. `export brief` saves it.',
+        '  SYSTEM.app has it too.',
+        '',
+        `  ${DISCLAIMER}`,
+      ];
+    }
+
+    case 'brief': {
+      const { frame: f, origin, selected } = getBrief();
+      if (!f) {
+        return [
+          'no brief yet.',
+          'run `diagnose <your situation>` first, or build one in AGENCY SIMULATOR.',
+        ];
+      }
+      return [
+        'HI ANZY — PROBLEM BRIEF',
+        `  origin      ${origin ?? 'unknown'}`,
+        `  stated      ${f.statement}`,
+        `  areas       ${f.areas.join(' · ')}`,
+        `  categories  ${f.services.map((sv) => sv.title).join(' · ') || 'none'}`,
+        `  sequence    ${f.sequence.map((m) => m.label).join(' → ') || 'none'}`,
+        `  selected    ${selected.length ? selected.join(', ') : 'nothing selected'}`,
+        '',
+        '  CAPABILITIES',
+        ...f.capabilities.map((c) => `    · ${c}`),
+        '',
+        '  EVIDENCE STILL REQUIRED',
+        ...f.evidence.map((e) => `    · ${e}`),
+        '',
+        '  OPEN QUESTIONS',
+        ...f.questions.map((q) => `    · ${q}`),
+        '',
+        '  `export brief` saves it as markdown, `export brief json` as data.',
+        `  ${DISCLAIMER}`,
+      ];
+    }
+
+    case 'export': {
+      if (!getBrief().frame) return ['export: no brief yet. run `diagnose <your situation>`.'];
+      const how = arg.includes('json') ? 'json' : arg.includes('copy') ? 'copy' : 'markdown';
+      ctx.exportBrief(how);
+      /* The outcome is printed by the callback rather than here: a download can
+         be refused and a clipboard write can reject, and saying "saved" before
+         the browser has agreed to save it is the kind of small lie this product
+         does not tell anywhere else. */
+      return [];
+    }
+
+    case 'copy': {
+      if (!getBrief().frame) return ['copy: no brief yet. run `diagnose <your situation>`.'];
+      ctx.exportBrief('copy');
+      return [];
+    }
+
+    case 'history':
+      return ctx.history.length
+        ? ctx.history.map((h, i) => `  ${String(i + 1).padStart(3, ' ')}  ${h}`)
+        : ['nothing typed yet this session.'];
 
     case 'status':
       return [
@@ -126,4 +347,86 @@ export function execute(raw: string, ctx: CommandContext): string[] {
     default:
       return [`${cmd}: unknown command. try \`help\`.`];
   }
+}
+
+/* -------------------------------------------------------------------------- */
+/* COMPLETION                                                                  */
+/* -------------------------------------------------------------------------- */
+
+const VERBS = [
+  'help', 'list', 'open', 'close', 'run', 'method', 'services', 'service',
+  'capabilities', 'network', 'areas', 'principles', 'diagnose', 'brief',
+  'export', 'copy', 'history', 'status', 'about', 'clear',
+];
+
+/**
+ * What the second word of a command can be.
+ *
+ * Only for commands whose argument is drawn from a closed set. `diagnose` is
+ * deliberately absent: its argument is the visitor's own sentence, and offering
+ * completions there would quietly push them toward the words the lexicon
+ * already knows — which is precisely the bias that would make the frame look
+ * cleverer than it is. It is better that an unmatched sentence returns nothing
+ * and says why.
+ */
+function argsFor(verb: string): string[] {
+  switch (verb) {
+    case 'open':
+    case 'close':
+      return [...APP_IDS, 'all'];
+    case 'run':
+      return Object.keys(RUNNABLE);
+    case 'method':
+      return METHOD.map((m) => m.label.toLowerCase());
+    case 'service':
+      return SERVICES.map((s) => s.slug);
+    case 'capabilities':
+    case 'network':
+      return Object.keys(NETWORK_CAPABILITIES).map((k) => k.toLowerCase());
+    case 'export':
+      return ['brief', 'brief json'];
+    default:
+      return [];
+  }
+}
+
+export interface Completion {
+  /** The line as it should now read. Unchanged when there is nothing to add. */
+  line: string;
+  /** Every candidate, when there is more than one. The caller prints these. */
+  options: string[];
+}
+
+/**
+ * Complete the word under the cursor.
+ *
+ * Completes to the longest common prefix rather than to the first match, which
+ * is what a shell does and what anybody who has used one expects: typing `se`
+ * and pressing Tab should get you to `service` and stop, not silently pick
+ * `services` for you.
+ */
+export function complete(raw: string): Completion {
+  const trailing = /\s$/.test(raw);
+  const parts = raw.trimStart().split(/\s+/).filter(Boolean);
+
+  if (parts.length === 0) return { line: raw, options: VERBS };
+
+  const completing = trailing ? '' : (parts[parts.length - 1] ?? '');
+  const isVerb = parts.length === 1 && !trailing;
+  const pool = isVerb ? VERBS : argsFor(parts[0].toLowerCase());
+  if (!pool.length) return { line: raw, options: [] };
+
+  const hits = pool.filter((c) => c.startsWith(completing.toLowerCase()));
+  if (hits.length === 0) return { line: raw, options: [] };
+
+  let common = hits[0];
+  for (const h of hits) {
+    let i = 0;
+    while (i < common.length && i < h.length && common[i] === h[i]) i++;
+    common = common.slice(0, i);
+  }
+
+  const head = isVerb ? '' : `${parts.slice(0, trailing ? parts.length : -1).join(' ')} `;
+  const line = `${head}${common}${hits.length === 1 ? ' ' : ''}`;
+  return { line, options: hits.length > 1 ? hits : [] };
 }
