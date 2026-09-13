@@ -30,8 +30,18 @@
   gap: 8px;
 }
 
+/*
+ * THE TAKE-AWAY CONTROLS.
+ *
+ * This strip is how a visitor gets anything out of any product in the Lab, so
+ * it is the worst place in the product to be a borderline target. It measured
+ * 28px — technically at the floor, actually under it once a border is rounded —
+ * on every tool at once. Height comes from a floor rather than from larger
+ * type, so the mono voice is unchanged and the buttons simply become hittable.
+ */
 .artifact__btn {
-  padding: 7px 12px;
+  padding: 8px 12px;
+  min-height: 32px;
   background: transparent;
   border: 1px solid var(--rule);
   color: var(--figure);

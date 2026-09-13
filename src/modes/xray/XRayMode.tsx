@@ -1,6 +1,8 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CanonicalSubject } from './CanonicalSubject';
 import { CANONICAL_PAGES, CANONICAL_PAGES_COMMIT } from '../../content/canonicalPages';
+import { claim, offered } from '../../system/handoff';
+import { getArtifact } from '../../system/project';
 import { ArtifactBar } from '../../artifacts/ArtifactBar';
 import { toMarkdown } from '../../artifacts/artifact';
 import type { ModeViewProps } from '../../experience/types';
@@ -55,6 +57,21 @@ const DepthField = lazy(() => import('./DepthField'));
  */
 const SEQUENCE = [0, 520, 800, 1050, 1280, 1500, 1700, 1880, 2080];
 
+/**
+ * Which canonical page a handed-over manifest names, or `-1` for the Lab's own
+ * specimen sheet. Pure: it reads the offer without taking it, which is what
+ * lets it run in a state initialiser React may invoke more than once.
+ */
+function routeIndex(handed: { data?: unknown } | null): number {
+  const route =
+    handed && typeof handed.data === 'object' && handed.data !== null
+      ? (handed.data as { route?: unknown }).route
+      : null;
+  if (typeof route !== 'string') return -1;
+  const i = CANONICAL_PAGES.findIndex((p) => p.route === route);
+  return i >= 0 ? i : -1;
+}
+
 export default function XRayMode({ onReady, scope }: ModeViewProps) {
   const capability = useCapability();
   const reduced = useReducedMotion();
@@ -79,7 +96,34 @@ export default function XRayMode({ onReady, scope }: ModeViewProps) {
    * subject re-measures, because the object table is derived from whatever DOM
    * is actually mounted.
    */
-  const [subject, setSubject] = useState(-1);
+  /*
+   * The subject, which the Compiler can choose for you.
+   *
+   * A manifest handed over from REALITY COMPILER names the route it took apart,
+   * and arriving at the instrument with a different page selected would make
+   * the continuation pointless — the two tools exist to be pointed at the same
+   * thing and to disagree about it in a useful way. Compiler reports what the
+   * source says; this reports what the browser did with it.
+   *
+   * Claimed once, in the initialiser, for the same reason Director claims its
+   * brief there: re-claiming on every render would consume the offer before it
+   * had been seen.
+   */
+  const [subject, setSubject] = useState(() => {
+    const h = offered('x-ray');
+    return routeIndex(h ? (getArtifact(h.artifactId) ?? null) : null);
+  });
+
+  /*
+   * Consume the offer once the instrument is mounted.
+   *
+   * The subject above was chosen from a PURE read of the pending slot, because
+   * a state initialiser can be invoked more than once and taking the offer
+   * there loses it. This is the side effect, and it belongs here.
+   */
+  useEffect(() => {
+    claim('x-ray');
+  }, []);
   const canonPage = subject >= 0 ? CANONICAL_PAGES[subject] : null;
 
   /* Swapping subject drops the acquired object with it: the record on the
@@ -361,7 +405,11 @@ export default function XRayMode({ onReady, scope }: ModeViewProps) {
                     : ''),
               );
               return {
-                name: `hi-anzy-specimen-report-${canonPage ? canonPage.route.replace(/\W+/g, '-') || 'home' : 'sheet'}`,
+                /* A title, not a file stem — the artifact layer slugs it on the
+                   way out. It is what the project ledger lists, and the old
+                   stem rendered as "hi-anzy-specimen-report--" for the home
+                   route, which told a reader nothing. */
+                name: `${canonPage ? canonPage.name : 'The Sheet'} — Specimen Report`,
                 text: toMarkdown({
                   title: 'HI ANZY — SYSTEM SPECIMEN REPORT',
                   standfirst: `Subject: ${subjectName}. MEASURED lines were read off live nodes in this browser window and describe this layout at this viewport — they are not measurements of the live site. SOURCED lines are quoted from the commercial repository at ${CANONICAL_PAGES_COMMIT}.`,

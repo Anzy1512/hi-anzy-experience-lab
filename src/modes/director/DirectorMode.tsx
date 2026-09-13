@@ -14,6 +14,10 @@ import { MODES, onlineCount } from '../../content/lab';
 import { specimenSrc } from '../../content/specimens';
 import { useAudio } from '../../audio/useAudio';
 import { degree, play, type Family } from '../../audio/voices';
+import { ArtifactBar } from '../../artifacts/ArtifactBar';
+import { artifactsOf, getArtifact } from '../../system/project';
+import { claim, offered } from '../../system/handoff';
+import { buildTreatment, treatmentMarkdown } from './treatment';
 import { Shot } from './Shot';
 import { gateFor } from './gate';
 import './director.css';
@@ -77,6 +81,40 @@ export default function DirectorMode({ onReady, onExit, scope }: ModeViewProps) 
   const { shots, cues, runtime } = cut === 'long' ? LONG_EDIT : PRIMARY_EDIT;
 
   const [stage, setStage] = useState<Stage>('offer');
+
+  /*
+   * ---- what this film is about -------------------------------------------
+   *
+   * A brief reaches Director the way anything reaches anything in this Lab:
+   * as a recorded artifact carried by a handoff. It is claimed once, on entry,
+   * and held — re-claiming on every render would consume the offer before the
+   * visitor had seen that one arrived.
+   *
+   * Falling back to the most recent brief in the project is deliberate. A
+   * visitor who ran the Simulator, walked to SYSTEM.app and then opened
+   * Director has plainly not withdrawn their brief, and making them send it
+   * twice would be the product forgetting something it is holding.
+   */
+  const [brief] = useState(() => {
+    const h = offered('director');
+    return (h ? (getArtifact(h.artifactId) ?? null) : null) ?? artifactsOf('brief')[0] ?? null;
+  });
+
+  /* Taking the offer is the side effect; choosing the subject above was a pure
+     read of it. See handoff.claim — a state initialiser is not a safe place to
+     consume anything, and X-Ray proved it by silently opening on the wrong
+     page. */
+  useEffect(() => {
+    claim('director');
+  }, []);
+
+  /* The treatment is the product; the film is its preview. Recomputed when the
+     cut changes, because a treatment that described the other edit would be
+     the one genuinely dishonest thing this mode could hand somebody. */
+  const treatment = useMemo(
+    () => buildTreatment(shots, runtime, cut, brief),
+    [shots, runtime, cut, brief],
+  );
   const [t, setT] = useState(0);
   const [wantSound, setWantSound] = useState(false);
 
@@ -341,6 +379,64 @@ export default function DirectorMode({ onReady, onExit, scope }: ModeViewProps) 
               {DIRECTOR_COPY.cutLong}
             </button>
           </div>
+
+          {/*
+            THE TREATMENT, BEFORE THE FILM.
+
+            This is the change that makes Director a product rather than a
+            demonstration of one: the visitor reads what the film is doing and
+            why each shot is in it, and can take that document away whether or
+            not they ever press play. The film is the preview of this — not the
+            other way round — which is also the order a director works in.
+
+            Nothing is drawn over the picture. Every word here is on the offer
+            sheet, and once the clock starts the gate is uncovered.
+          */}
+          <div className="dr-treatment">
+            <p className="t-mono t-mono-xs dr-treatment__source">{treatment.source}</p>
+            {treatment.blocks.map((b) => (
+              <section className="dr-treatment__block" key={b.head}>
+                <h3 className="t-mono t-mono-xs dr-treatment__head">{b.head}</h3>
+                {b.note && <p className="t-body-s t-dim dr-treatment__note">{b.note}</p>}
+                <ul className="dr-treatment__lines">
+                  {b.lines.map((l, i) => (
+                    <li className="t-body-s" key={`${b.head}-${i}`}>
+                      {/* Sequence lines carry the shot header and its intent on
+                          two lines; everything else is a single line. */}
+                      {l.includes('\n') ? (
+                        <>
+                          <span className="t-mono t-mono-xs dr-treatment__shot">
+                            {l.slice(0, l.indexOf('\n'))}
+                          </span>
+                          <span className="dr-treatment__intent">{l.slice(l.indexOf('\n') + 1).trim()}</span>
+                        </>
+                      ) : (
+                        l
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+
+          <ArtifactBar
+            formats={['copy', 'markdown', 'json']}
+            label="THE TREATMENT"
+            handoff={{
+              kind: 'treatment',
+              from: 'director',
+              to: 'anzy-os',
+              limits:
+                'A creative treatment for a film the browser performs live. It schedules nothing, budgets nothing and casts nobody, and there is no video file behind it. Where a brief was loaded, every gap in that brief is inherited by this document.',
+              sourceIds: brief ? [brief.id] : [],
+            }}
+            build={() => ({
+              name: `Hi Anzy Director Treatment — ${cut === 'long' ? 'long' : 'primary'} cut`,
+              text: treatmentMarkdown(treatment),
+              data: treatment,
+            })}
+          />
 
           <p className="t-body-s t-dim dr-offer__note">{DIRECTOR_COPY.soundNote}</p>
           <div className="dr-offer__actions">

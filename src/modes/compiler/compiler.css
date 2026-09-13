@@ -514,8 +514,22 @@
   gap: 6px;
 }
 
+/*
+ * THE PAGE PICKER — the one real input this tool has.
+ *
+ * These were 24px tall, which is under the Lab's own accessible floor and under
+ * every touch guideline going. Choosing which page to take apart is the whole
+ * INPUT half of the Compiler's contract, so its controls were the worst place
+ * in the product to be saving nine pixels.
+ *
+ * The type does not grow. Height comes from padding and a floor, so the chips
+ * stay the same small mono voice the rest of this band uses and simply become
+ * hittable — a coarse pointer gets the full target, and nothing about the
+ * visual language changes.
+ */
 .rc-source__btn {
-  padding: 5px 9px;
+  padding: 8px 11px;
+  min-height: 32px;
   background: transparent;
   border: 1px solid var(--rule);
   color: var(--figure-dim);

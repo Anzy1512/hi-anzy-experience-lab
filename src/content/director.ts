@@ -84,6 +84,19 @@ export interface Shot {
   /** Where a travelling crop ends. Ignored unless `lens` is `down` or `up`. */
   focusTo?: number;
   /**
+   * Why this shot is in the film.
+   *
+   * Not a caption and never drawn over the picture. It is the line a director
+   * would write beside a frame in a treatment, and it exists because the honest
+   * test of a cut is whether every shot can answer "what is this one doing" in
+   * one sentence. A shot that needs a paragraph is a weak shot; a shot with no
+   * answer should be cut. Writing these is how the primary edit gets audited.
+   *
+   * It is read by `treatment.ts` and printed in the exported treatment — the
+   * film itself stays uncovered.
+   */
+  intent?: string;
+  /**
    * A `SPECIMENS` id, for `kind: 'specimen'`.
    *
    * Four of these across six acts, and each one is chosen because the image
@@ -126,6 +139,7 @@ export const SHOTS_LONG: Shot[] = [
     lines: ['ONE COMPANY.', 'MULTIPLE REALITIES.'],
     still: true,
     anchor: 'left',
+    intent: 'State the thesis once, flat, with no motion. Everything after this is evidence for it.',
   },
   /* Two figures walking in step with cameras for heads. The act is called
      SIGNAL and the line before it is "one company, multiple realities" — this
@@ -155,6 +169,7 @@ export const SHOTS_LONG: Shot[] = [
     dur: 4.8,
     lines: ['MOST BRANDS ARE ASSEMBLED', 'FROM PARTS THAT NEVER MET.'],
     anchor: 'left',
+    intent: 'Name the problem the company exists to solve. The first line the viewer can disagree with.',
   },
   { kind: 'scatter', act: 1, dur: 6.2, caption: 'FOUR AGENCIES. FOUR ANSWERS. ONE COMPANY.' },
   {
@@ -179,6 +194,7 @@ export const SHOTS_LONG: Shot[] = [
     lens: 'close',
     focus: 0.27,
     anchor: 'left',
+    intent: 'A puzzle held, unfinished. The pivot from problem to method — it can be solved, and nobody has solved it yet.',
   },
 
   /* ---- ACT III — STRUCTURE ---------------------------------------------- */
@@ -200,6 +216,7 @@ export const SHOTS_LONG: Shot[] = [
     focus: 0.34,
     focusTo: 0.71,
     anchor: 'right',
+    intent: 'The thesis shot. A travelling crop finds a clock, then a wristwatch — the camera discovers the repetition instead of the caption asserting it. The longest shot in the cut because it is the one doing the most work.',
   },
   { kind: 'stages', act: 2, dur: 8.6, caption: 'THE METHOD', anchor: 'left' },
   {
@@ -247,6 +264,7 @@ export const SHOTS_LONG: Shot[] = [
     lens: 'up',
     focus: 0.55,
     focusTo: 0.13,
+    intent: 'Close on possibility rather than on a promise. The crop rises to a balloon that is still held — ambition with something anchoring it.',
   },
   { kind: 'end', act: 5, dur: 6.5, still: true },
 ];
@@ -296,7 +314,13 @@ export const SHOTS_LONG: Shot[] = [
  */
 export const SHOTS_PRIMARY: Shot[] = [
   /* ---- IDENTITY --------------------------------------------------------- */
-  { kind: 'wordmark', act: 0, dur: 4.0, anchor: 'centre' },
+  {
+    kind: 'wordmark',
+    act: 0,
+    dur: 4.0,
+    anchor: 'centre',
+    intent: 'Establish whose film this is before anything is claimed. The logotype is out of register and pulls into it — the company introducing itself by showing its own construction.',
+  },
   {
     kind: 'statement',
     act: 0,
@@ -314,6 +338,7 @@ export const SHOTS_PRIMARY: Shot[] = [
     caption: 'TWO WAYS OF LOOKING · ONE DIRECTION',
     lens: 'hold',
     anchor: 'right',
+    intent: 'Put people in the film early. Two figures walking the same way is the thesis as a picture rather than as a sentence.',
   },
 
   /* ---- PROBLEM ----------------------------------------------------------- */
@@ -324,7 +349,13 @@ export const SHOTS_PRIMARY: Shot[] = [
     lines: ['MOST BRANDS ARE ASSEMBLED', 'FROM PARTS THAT NEVER MET.'],
     anchor: 'left',
   },
-  { kind: 'scatter', act: 1, dur: 4.6, caption: 'FOUR AGENCIES. FOUR ANSWERS. ONE COMPANY.' },
+  {
+    kind: 'scatter',
+    act: 1,
+    dur: 4.6,
+    caption: 'FOUR AGENCIES. FOUR ANSWERS. ONE COMPANY.',
+    intent: 'Show the problem as behaviour: four disciplines answering separately and never converging. The scatter is the argument.',
+  },
   {
     kind: 'specimen',
     act: 1,
@@ -337,7 +368,13 @@ export const SHOTS_PRIMARY: Shot[] = [
   },
 
   /* ---- MEASURE ----------------------------------------------------------- */
-  { kind: 'grid', act: 2, dur: 4.2, caption: 'MEASURE FIRST' },
+  {
+    kind: 'grid',
+    act: 2,
+    dur: 4.2,
+    caption: 'MEASURE FIRST',
+    intent: 'The method begins with measurement, so the film draws the measure before it draws any answer.',
+  },
   /* The thesis shot. The camera finds the repetition instead of claiming it. */
   {
     kind: 'specimen',
@@ -352,14 +389,40 @@ export const SHOTS_PRIMARY: Shot[] = [
   },
 
   /* ---- METHOD ------------------------------------------------------------ */
-  { kind: 'stages', act: 2, dur: 6.6, caption: 'THE METHOD', anchor: 'left' },
+  {
+    kind: 'stages',
+    act: 2,
+    dur: 6.6,
+    caption: 'THE METHOD',
+    anchor: 'left',
+    intent: 'The five stages, named. The only shot that states process directly, and the reason it can be this long is that it is the one thing a viewer might write down.',
+  },
 
   /* ---- SYSTEM ------------------------------------------------------------ */
-  { kind: 'plate', act: 3, dur: 4.4, caption: 'ONE FIELD, RESOLVED' },
-  { kind: 'roster', act: 3, dur: 5.0, caption: 'THE SAME SYSTEM, RENDERED MANY WAYS', anchor: 'left' },
+  {
+    kind: 'plate',
+    act: 3,
+    dur: 4.4,
+    caption: 'ONE FIELD, RESOLVED',
+    intent: 'The scattered field from act one, now resolved into a single plate. The visual answer to the visual problem.',
+  },
+  {
+    kind: 'roster',
+    act: 3,
+    dur: 5.0,
+    caption: 'THE SAME SYSTEM, RENDERED MANY WAYS',
+    anchor: 'left',
+    intent: 'Breadth without a client list. Many renderings of one system is what the company can honestly show.',
+  },
 
   /* ---- WORLD ------------------------------------------------------------- */
-  { kind: 'statement', act: 4, dur: 3.8, lines: ['ENTER', 'HI ANZY.'] },
+  {
+    kind: 'statement',
+    act: 4,
+    dur: 3.8,
+    lines: ['ENTER', 'HI ANZY.'],
+    intent: 'The turn outward. Two words, short, because the film is about to stop explaining and start inviting.',
+  },
 
   /* ---- POSSIBILITY -------------------------------------------------------- */
   {
@@ -372,7 +435,13 @@ export const SHOTS_PRIMARY: Shot[] = [
     focus: 0.55,
     focusTo: 0.13,
   },
-  { kind: 'end', act: 5, dur: 5.0, still: true },
+  {
+    kind: 'end',
+    act: 5,
+    dur: 5.0,
+    still: true,
+    intent: 'Hold on the mark and let the film end without a call to action. The index is one keystroke away and does not need selling.',
+  },
 ];
 
 export interface Edit {

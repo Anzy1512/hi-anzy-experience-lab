@@ -353,9 +353,6 @@ export default function OsMode({ onReady, scope }: ModeViewProps) {
   useEffect(() => {
     if (!armed || seeded.current) return;
     seeded.current = true;
-    openSheet('system');
-    submitRef.current('help');
-
     /*
      * ARRIVING WITH SOMETHING IN HAND.
      *
@@ -363,18 +360,25 @@ export default function OsMode({ onReady, scope }: ModeViewProps) {
      * command — they are arriving to see what they sent. The bench seeds the
      * terminal with `help` and hands it the caret, which is right for somebody
      * who came here on purpose and exactly wrong for somebody handed a brief:
-     * the offer rendered on the SYSTEM sheet, underneath the terminal, and the
-     * continuation looked like it had done nothing.
+     * the offer renders on the SYSTEM sheet, and with the terminal opened last
+     * it sat underneath, so the continuation looked like it had done nothing.
      *
-     * So when a handoff is waiting, SYSTEM comes to the front and keeps the
-     * focus. The terminal is still open and still holds its command table.
+     * Order is the whole fix. `openSheet` brings its sheet to the front, so
+     * running `help` first and opening SYSTEM after leaves SYSTEM on top with
+     * the terminal still open behind it holding its command table. No second
+     * state write, and nothing to keep in step.
      */
-    if (offered('anzy-os')) {
-      focusSheet('system');
+    const waiting = Boolean(offered('anzy-os'));
+    if (waiting) {
+      submitRef.current('help');
+      openSheet('system');
       return;
     }
+
+    openSheet('system');
+    submitRef.current('help');
     if (!coarse) inputRef.current?.focus({ preventScroll: true });
-  }, [armed, openSheet, focusSheet, coarse, submitRef]);
+  }, [armed, openSheet, coarse, submitRef]);
 
   /* ---- keep the terminal at its newest line ------------------------------ */
   useEffect(() => {

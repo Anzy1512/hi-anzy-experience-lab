@@ -146,7 +146,7 @@ export const PRODUCTS: ProductEntry[] = [
       process: 'Reads each page’s section structure, grid, typographic roles, colours and imagery, then separates them into depth.',
       result: 'A structural decomposition: every part named, sourced and counted, including the parts that carry no readable content.',
       artifact: 'A transformation manifest, as Markdown or JSON.',
-      continue: 'SYSTEM.app.',
+      continue: 'SYSTEM.app; or X-RAY, which opens on the same page and measures what this browser actually rendered.',
     },
   },
   {
@@ -160,26 +160,21 @@ export const PRODUCTS: ProductEntry[] = [
       process: 'Rasterises the phrase, samples it into particles, and runs them under the current force model.',
       result: 'A rendered composition.',
       artifact: 'A PNG of the frame, and a recipe JSON of the settings that made it.',
-      /* No handoff exists. Phase 8.8 is where the recipe becomes something
-         Director or Portal can carry, and until it is written this stays null. */
-      continue: null,
+      continue: 'SYSTEM.app holds the recipe. The PNG is downloaded and never retained, so the settings are what travel.',
     },
   },
   {
     id: 'director',
     layer: 'PRODUCT',
     family: 'CREATION',
-    proposition: 'A film the browser performs live, from one clock and no video file.',
+    proposition: 'Turn a brief into a creative treatment, and watch the browser perform it.',
     contract: {
-      /* Director takes nothing and hands nothing over: it is a finished piece
-         of cinema wearing a product’s clothes. Phase 8.8 gives it a brief to
-         read and a treatment to hand back. Four nulls is the honest count. */
-      input: null,
-      context: null,
-      process: 'Performs a cut of 14 shots against a real clock, compositing type, specimens and rules in the document itself.',
-      result: 'A 1:05 primary cut, with the long edit available.',
-      artifact: null,
-      continue: null,
+      input: 'A system brief, sent from the Agency Simulator — or nothing, in which case the film runs on the studio’s own material and says so.',
+      context: 'The brief’s own stated problem, read from the artifact rather than from another mode’s live state. The shot intents are authored beside the shots in content/director.ts.',
+      process: 'Derives a treatment from the cut: acts become the message hierarchy, shot kinds become the visual system, and every shot states what it is doing. Then performs the cut against a real clock.',
+      result: 'A treatment you read before the film, and a 1:05 primary cut that previews it. The long edit stays available.',
+      artifact: 'DIRECTOR TREATMENT — copied text, Markdown or JSON.',
+      continue: 'SYSTEM.app.',
     },
   },
   {
@@ -191,9 +186,9 @@ export const PRODUCTS: ProductEntry[] = [
       input: 'A section of a real page to carry through the aperture.',
       context: 'The same canonical page source the Compiler reads.',
       process: 'Holds one section on both sides of a cut and changes only which facts about it are shown.',
-      result: 'The same material, seen as a page and then as a system record.',
-      artifact: null,
-      continue: 'REALITY COMPILER, for the whole page; LIVING WORLD, for the territory.',
+      result: 'The same material, seen as a page and then as a system record — and, on the far side, everything this project has produced, packaged.',
+      artifact: 'DELIVERY MANIFEST — a LOCAL package. Nothing is uploaded, hosted or published, and the manifest says so.',
+      continue: 'SYSTEM.app; REALITY COMPILER, for the whole page; LIVING WORLD, for the territory.',
     },
   },
 

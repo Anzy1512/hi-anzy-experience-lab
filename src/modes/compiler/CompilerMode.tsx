@@ -15,6 +15,8 @@ import { CompilerDocument } from './CompilerDocument';
 import { CANONICAL_PAGES, CANONICAL_PAGES_COMMIT } from '../../content/canonicalPages';
 import { ArtifactBar } from '../../artifacts/ArtifactBar';
 import { toMarkdown } from '../../artifacts/artifact';
+import { recordArtifact } from '../../system/project';
+import { offer } from '../../system/handoff';
 import { Scaffold } from './Scaffold';
 import { Terrain } from './Terrain';
 import { StageRail } from './StageRail';
@@ -450,7 +452,41 @@ export default function CompilerMode({ onReady, onExit, scope }: ModeViewProps) 
                 planes: page.sections,
               },
             })}
-          />
+          >
+            {/*
+              THE OTHER HALF OF THE ANSWER.
+
+              The Compiler reports what the SOURCE says; X-Ray reports what this
+              browser actually did with it. Those are two different kinds of
+              truth about one page and the Lab has always kept them apart —
+              until now there was no way to get from one to the other, so a
+              visitor had to know both modes existed and that they were about
+              the same thing.
+
+              The manifest is recorded and offered like any other continuation,
+              carrying the route. X-Ray claims it and opens on the same page,
+              because the instrument arriving pointed at something else would
+              make the comparison meaningless.
+            */}
+            <button
+              type="button"
+              className="t-mono t-mono-xs artifact__btn"
+              onClick={() => {
+                const record = recordArtifact({
+                  kind: 'manifest',
+                  title: `${page.name} — Transformation Manifest`,
+                  producer: 'reality-compiler',
+                  sourceIds: [],
+                  limits:
+                    'A structural read of committed source, handed to the instrument so it opens on the same page. Everything X-Ray adds is measured in this browser and describes this window, not the live site.',
+                  data: { route: page.route, file: page.file, commit: CANONICAL_PAGES_COMMIT },
+                });
+                if (offer(record.id, 'reality-compiler', 'x-ray')) enterMode('x-ray');
+              }}
+            >
+              INSPECT LIVE IN X-RAY
+            </button>
+          </ArtifactBar>
         </div>
       )}
 

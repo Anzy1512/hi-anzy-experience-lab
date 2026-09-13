@@ -35,6 +35,8 @@ const KIND_LABEL: Record<ArtifactRecord['kind'], string> = {
   specimen: 'SPECIMEN REPORT',
   recipe: 'MATTER RECIPE',
   session: 'SESSION REPORT',
+  treatment: 'DIRECTOR TREATMENT',
+  delivery: 'DELIVERY PACKAGE',
 };
 
 /** `14:32` — a time, not a date. Nothing here outlives the tab. */

@@ -53,7 +53,11 @@ export type ArtifactKind =
   /** Settings that produced a composition — Matter. */
   | 'recipe'
   /** Measured session values — Performance. */
-  | 'session';
+  | 'session'
+  /** A creative treatment for a film — Director. */
+  | 'treatment'
+  /** A packaged deliverable — Portal. */
+  | 'delivery';
 
 export interface ArtifactRecord {
   id: string;

@@ -76,6 +76,19 @@ export function offered(to: string): Handoff | null {
  *
  * Clears the pending slot: the offer has been accepted and leaving it set would
  * mean re-entering the mode later silently re-applies it.
+ *
+ * ── CALL THIS FROM AN EFFECT, NEVER FROM A RENDER ───────────────────────────
+ *
+ * Claiming is a side effect, and React is entitled to run a render — including
+ * a `useState` initialiser — more than once. It does exactly that in
+ * development, and X-Ray shipped with the claim in its initialiser: the first
+ * invocation took the offer and cleared the slot, the second got null, and the
+ * second answer is the one React kept. The instrument opened on its own
+ * specimen sheet instead of on the page the Compiler had just handed it, and
+ * nothing anywhere reported a failure.
+ *
+ * `offered()` is the pure read for deciding what to show or how to initialise.
+ * This is the consuming one, and it belongs in an effect.
  */
 export function claim(to: string): ArtifactRecord | null {
   if (!pending || pending.to !== to) return null;

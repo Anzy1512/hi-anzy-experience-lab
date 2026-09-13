@@ -6,6 +6,9 @@ import { onFrame } from '../../core/raf';
 import { pointer, setPointerIntent } from '../../core/pointer';
 import { damp, lerp } from '../../spatial/projection';
 import { CANONICAL_PAGES, CANONICAL_PAGES_COMMIT } from '../../content/canonicalPages';
+import { ArtifactBar } from '../../artifacts/ArtifactBar';
+import { useProject } from '../../system/project';
+import { buildPackage, deliveryMarkdown } from './delivery';
 import './portal.css';
 
 /**
@@ -82,6 +85,12 @@ export default function PortalMode({ onReady, scope }: ModeViewProps) {
    * page.
    */
   const [side, setSide] = useState<'before' | 'after'>('before');
+
+  /* What would actually leave the building. Derived from the project rather
+     than held here, so crossing back and forth cannot produce two packages
+     that disagree about what the project contains. */
+  const project = useProject();
+  const pkg = useMemo(() => buildPackage(project.artifacts), [project.artifacts]);
   const [subject, setSubject] = useState(0);
   const crossable = useMemo(
     () =>
@@ -379,6 +388,62 @@ export default function PortalMode({ onReady, scope }: ModeViewProps) {
             ? 'The same section is on the other side of the aperture. Nothing is swapped — only what is shown about it.'
             : `Read from ${carried?.sec.source ?? 'the commercial repository'} at ${CANONICAL_PAGES_COMMIT}. The website and this Lab are two renderings of one institution.`}
         </p>
+
+        {/*
+          THE FAR SIDE IS DELIVERY.
+
+          A crossing that ends in an idea is a demonstration. This is the thing
+          that would actually leave: everything the project has produced, what
+          each piece carries, and what is missing from the package — printed on
+          the side of the aperture where the system lives, because that is what
+          the crossing has always meant.
+
+          It appears only after the crossing. Offering a package on the near
+          side would be the mode answering a question the visitor has not been
+          shown yet.
+        */}
+        {side === 'after' && (
+          <div className="pt-package">
+            <p className="t-mono t-mono-xs pt-package__state">
+              PACKAGED · LOCAL · {pkg.items.length}{' '}
+              {pkg.items.length === 1 ? 'ITEM' : 'ITEMS'}
+            </p>
+            {pkg.items.length > 0 ? (
+              <ul className="pt-package__list">
+                {pkg.items.map((it) => (
+                  <li key={it.title}>
+                    <span className="t-mono t-mono-xs pt-package__kind">{it.kind}</span>
+                    <span className="t-body-s pt-package__title">{it.title}</span>
+                    <span className="t-body-s t-dim pt-package__carries">{it.carries}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="t-body-s t-dim pt-package__empty">
+                This project has produced nothing yet, so there is nothing to package. The
+                Agency Simulator, the Reality Compiler and Director all end in something that
+                can travel.
+              </p>
+            )}
+            <ArtifactBar
+              formats={['copy', 'markdown', 'json']}
+              label="THE DELIVERY MANIFEST"
+              handoff={{
+                kind: 'delivery',
+                from: 'portal',
+                to: 'anzy-os',
+                limits:
+                  'A manifest of a LOCAL package. Nothing in it has been uploaded, hosted, published or sent, and this product has no endpoint to send it to. It lists what the project holds, what each piece carries, and what is deliberately not included.',
+                sourceIds: project.artifacts.map((a) => a.id),
+              }}
+              build={() => ({
+                name: 'Hi Anzy Delivery Manifest',
+                text: deliveryMarkdown(pkg, project.id),
+                data: { ...pkg, projectId: project.id },
+              })}
+            />
+          </div>
+        )}
       </div>
 
       <header className="pt-head">

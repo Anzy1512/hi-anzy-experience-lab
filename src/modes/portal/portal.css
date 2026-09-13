@@ -682,3 +682,58 @@
     transform: none;
   }
 }
+
+/* ==========================================================================
+   THE DELIVERY PACKAGE — the far side of the crossing
+
+   Printed on the system side of the aperture, because that is what the
+   crossing has always meant: the near side is what a page shows you, the far
+   side is what the system holds and what would be delivered from it.
+   ========================================================================== */
+.pt-package {
+  margin-top: var(--s-3);
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule);
+}
+
+.pt-package__state {
+  margin: 0;
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--signal-text);
+}
+
+.pt-package__list {
+  list-style: none;
+  margin: var(--s-2) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-2);
+  max-height: 26vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.pt-package__list > li {
+  display: grid;
+  gap: 2px;
+  padding-bottom: var(--s-2);
+  border-bottom: var(--hair) solid var(--rule-faint);
+}
+
+.pt-package__kind {
+  letter-spacing: var(--tr-mono);
+  color: var(--text-secondary);
+}
+
+.pt-package__title {
+  color: var(--text);
+}
+
+.pt-package__carries,
+.pt-package__empty {
+  max-width: 58ch;
+}
+
+.pt-package__empty {
+  margin: var(--s-2) 0 0;
+}

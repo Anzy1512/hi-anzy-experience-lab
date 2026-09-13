@@ -39,11 +39,39 @@ export interface ReportLine {
   text: string;
 }
 
+/**
+ * A named block inside a stage.
+ *
+ * ── WHY STAGES GAINED STRUCTURE ─────────────────────────────────────────────
+ *
+ * A stage used to be a flat `ReportLine[]`, and the document that produced was
+ * sixty equal lines under five headings. Read as a founder would read it, the
+ * substance was there and the hierarchy was not: BUILD opened with the four
+ * method stages restated as "deliverables", ARCHITECT began "Priority —
+ * IDENTITY" with nothing saying what that meant, and the sharpest line in the
+ * whole brief — that a fixed date and a systems rebuild are pulling against
+ * each other — sat two thirds of the way down SCALE among twelve others.
+ *
+ * A group is a question the block answers. That is the entire change, and it is
+ * what turns a list into something somebody can take to a meeting.
+ */
+export interface ReportGroup {
+  head: string;
+  /** One line on what this block is for, where the heading is not enough. */
+  note?: string;
+  lines: ReportLine[];
+}
+
 /** One method stage, as the simulator works through it. */
 export interface ReportStage {
   label: string;
   title: string;
-  lines: ReportLine[];
+  groups: ReportGroup[];
+}
+
+/** Every line in a stage, in order. Groups are presentation, not content. */
+export function stageLines(stage: ReportStage): ReportLine[] {
+  return stage.groups.flatMap((g) => g.lines);
 }
 
 export interface BriefState {
@@ -154,43 +182,63 @@ export function briefMarkdown(s: BriefState = state): string {
         body: f && f.sequence.length ? 'The method stages these categories belong to, in the order the method runs them.' : undefined,
         items: f ? f.sequence.map((m, i) => `**${String(i + 1).padStart(2, '0')} ${m.label}** — ${m.title} (${m.duration})`) : [],
       },
-      {
-        head: 'LIKELY OUTPUTS',
-        items: f ? [...new Set(f.sequence.flatMap((m) => m.outputs))] : [],
-      },
-      {
-        head: 'RELEVANT CAPABILITIES',
-        items: f ? f.capabilities : [],
-      },
-      {
-        head: 'STATED CONSTRAINTS',
-        body: s.selected.length ? 'Chosen by the visitor. These are facts about the brief, not findings.' : undefined,
-        items: s.selected.map((x) => `FACT — ${x}`),
-      },
+      /*
+       * ── SAID ONCE ───────────────────────────────────────────────────────
+       *
+       * Everything below this point used to be printed twice. A finished brief
+       * carried LIKELY OUTPUTS and then the same twelve lines again inside
+       * BUILD; RELEVANT CAPABILITIES and then eight of the same inside CONNECT;
+       * EVIDENCE STILL REQUIRED after AUDIT had already listed it; OPEN
+       * QUESTIONS after SCALE had already asked them; STATED CONSTRAINTS before
+       * AUDIT restated each one as a FACT. Read end to end it was roughly a
+       * third padding, and padding in a document whose whole claim is candour
+       * costs more than length.
+       *
+       * So when there is a run, the run is the document: the stages carry the
+       * outputs, the capabilities, the evidence and the questions, each in the
+       * stage that actually produced them. The standalone sections remain for
+       * the case where there is a frame and no run — the Terminal's `diagnose`
+       * legitimately stops at the frame, and that reader still needs them.
+       */
+      ...(s.stages?.length
+        ? []
+        : [
+            {
+              head: 'LIKELY OUTPUTS',
+              items: f ? [...new Set(f.sequence.flatMap((m) => m.outputs))] : [],
+            },
+            { head: 'RELEVANT CAPABILITIES', items: f ? f.capabilities : [] },
+            {
+              head: 'EVIDENCE STILL REQUIRED',
+              body: f
+                ? 'None of the following has been established. They are what an audit would go and find.'
+                : undefined,
+              items: f ? f.evidence : [],
+            },
+            { head: 'OPEN QUESTIONS', items: f ? f.questions : [] },
+            {
+              head: 'NEXT ACTION',
+              body: f
+                ? 'Take this brief to a conversation. Every gap above is a thing to bring, not a thing to answer in advance.'
+                : undefined,
+            },
+          ]),
       /*
        * The run, when there was one. Each line keeps its provenance label in
        * the file as well as on screen: a document travels, and by the time
        * somebody forwards this the interface that colour-coded it is gone.
+       *
+       * Groups become sub-headings, so the exported file has the same shape the
+       * reader saw rather than collapsing back into one list per stage.
        */
-      ...(s.stages ?? []).map((st) => ({
-        head: `${st.label} — ${st.title}`,
-        items: st.lines.map((l) => `**${l.p}** — ${l.text}`),
-      })),
-      {
-        head: 'EVIDENCE STILL REQUIRED',
-        body: f ? 'None of the following has been established. They are what an audit would go and find.' : undefined,
-        items: f ? f.evidence : [],
-      },
-      {
-        head: 'OPEN QUESTIONS',
-        items: f ? f.questions : [],
-      },
-      {
-        head: 'NEXT ACTION',
-        body: f
-          ? 'Take this brief to a conversation. Every gap above is a thing to bring, not a thing to answer in advance.'
-          : undefined,
-      },
+      ...(s.stages ?? []).flatMap((st) => [
+        { head: `${st.label} — ${st.title}` },
+        ...st.groups.map((grp) => ({
+          head: `${st.label} · ${grp.head}`,
+          body: grp.note,
+          items: grp.lines.map((l) => `**${l.p}** — ${l.text}`),
+        })),
+      ]),
       {
         /*
          * Named categories and timings above come from the company's own
@@ -228,10 +276,17 @@ export function briefJson(s: BriefState = state): unknown {
     sequence: f?.sequence ?? [],
     capabilities: f?.capabilities ?? [],
     selected: s.selected,
+    /* Groups are carried into the JSON too. A consumer that only wants the
+       lines can flatten them; one that wants the document's shape — which is
+       what makes it readable — cannot put it back if it was thrown away. */
     stages: (s.stages ?? []).map((st) => ({
       stage: st.label,
       title: st.title,
-      lines: st.lines.map((l) => ({ provenance: l.p, text: l.text })),
+      groups: st.groups.map((grp) => ({
+        head: grp.head,
+        note: grp.note,
+        lines: grp.lines.map((l) => ({ provenance: l.p, text: l.text })),
+      })),
     })),
     evidenceRequired: f?.evidence ?? [],
     openQuestions: f?.questions ?? [],

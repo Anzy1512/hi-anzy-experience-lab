@@ -353,16 +353,31 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
                     <span className="t-faint"> · </span>
                     <span className="t-dim">{st.title}</span>
                   </h3>
-                  <ul className="sim-report__lines">
-                    {st.lines.map((l, i) => (
-                      <li key={`${st.label}-${i}`}>
-                        <span className="t-mono t-mono-xs sim-report__p" data-p={l.p}>
-                          {l.p}
-                        </span>
-                        <span className="t-body-s sim-report__text">{l.text}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  {/*
+                    A stage is blocks, not a list. Each block is a question the
+                    stage answers, and the note under a heading says what the
+                    block is for where the heading alone will not carry it —
+                    "WHAT IS PULLING HARDEST" needs to say that a weight counts
+                    answers rather than scoring the business.
+                  */}
+                  {st.groups.map((grp) => (
+                    <section className="sim-report__group" key={`${st.label}-${grp.head}`}>
+                      <h4 className="t-mono t-mono-xs sim-report__group-head">{grp.head}</h4>
+                      {grp.note && (
+                        <p className="t-body-s t-dim sim-report__group-note">{grp.note}</p>
+                      )}
+                      <ul className="sim-report__lines">
+                        {grp.lines.map((l, i) => (
+                          <li key={`${grp.head}-${i}`}>
+                            <span className="t-mono t-mono-xs sim-report__p" data-p={l.p}>
+                              {l.p}
+                            </span>
+                            <span className="t-body-s sim-report__text">{l.text}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
+                  ))}
                 </li>
               ))}
             </ol>

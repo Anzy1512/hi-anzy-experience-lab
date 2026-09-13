@@ -396,6 +396,23 @@ export default function MatterMode({ onReady, scope }: ModeViewProps) {
           <ArtifactBar
             formats={['copy', 'markdown', 'json', 'image']}
             label={MATTER_COPY.keepLabel}
+            /*
+             * Matter's CONTINUE.
+             *
+             * The recipe travels and the picture does not, and the limits line
+             * says so rather than letting somebody discover it in SYSTEM.app.
+             * A PNG is handed straight to the browser's download path and never
+             * retained — that is the whole reason the capture happens inside the
+             * frame loop — so what the project holds is the settings that
+             * reproduce the frame, which is the durable half anyway.
+             */
+            handoff={{
+              kind: 'recipe',
+              from: 'matter-engine',
+              to: 'anzy-os',
+              limits:
+                'The settings that produced one frame, not the frame itself. The PNG is downloaded and never kept, so this recipe is what travels — run it again and the same composition comes back, because the targets are sampled deterministically rather than randomly.',
+            }}
             build={() => {
               return {
                 name: `hi-anzy-matter-${state}`,

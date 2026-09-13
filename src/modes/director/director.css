@@ -481,6 +481,26 @@
   gap: var(--s-2);
   justify-items: start;
 }
+
+/*
+ * The offer sheet scrolls; the treatment inside it does not.
+ *
+ * `.dr` centres its child and clips what overflows, which was right when the
+ * offer was a title, a runtime and two buttons. The treatment made it taller
+ * than the viewport, so the top of the sheet — its own DIRECTOR eyebrow — was
+ * pushed up underneath the mode chrome and printed through it.
+ *
+ * One scroll region rather than two: a panel that scrolls inside a sheet that
+ * also scrolls is the kind of thing that makes people give up on a page.
+ */
+.dr-offer {
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Clear the mode chrome. The sheet scrolls under a fixed identity line, so
+     its own eyebrow has to start below where that line is printed. */
+  padding-top: calc(var(--trim) * 0.5 + 44px);
+}
 .dr-outro {
   justify-items: center;
   text-align: center;
@@ -773,8 +793,12 @@
   margin-top: var(--s-2);
 }
 
+/* Which cut to watch is one of only two real inputs this mode has. At 24px it
+   was the same mistake the Compiler's page picker made, and it takes the same
+   fix: height from padding and a floor, type untouched. */
 .dr-cut__btn {
-  padding: 5px 10px;
+  padding: 8px 11px;
+  min-height: 32px;
   background: transparent;
   border: 1px solid var(--rule);
   color: var(--figure-dim);
@@ -795,3 +819,70 @@
   color: var(--signal);
   border-color: var(--signal);
 }
+
+/* ==========================================================================
+   THE TREATMENT — what the film is doing, read before it runs
+
+   A director's document, not a synopsis panel. Blocks on rules, the sequence
+   set as shot header over intent, and nothing of it drawn over the picture:
+   once the clock starts the gate is uncovered, which is the whole reason the
+   treatment lives on the offer sheet.
+   ========================================================================== */
+.dr-treatment {
+  margin-top: var(--s-4);
+  border-top: var(--hair) solid var(--rule);
+}
+
+.dr-treatment__source {
+  margin: var(--s-2) 0 0;
+  max-width: 62ch;
+  color: var(--text-secondary);
+  letter-spacing: var(--tr-mono);
+}
+
+.dr-treatment__block {
+  margin-top: var(--s-4);
+}
+
+.dr-treatment__head {
+  margin: 0 0 5px;
+  padding-bottom: 4px;
+  border-bottom: var(--hair) solid var(--rule-faint);
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.dr-treatment__note {
+  margin: 0 0 6px;
+  max-width: 62ch;
+}
+
+.dr-treatment__lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.dr-treatment__lines > li {
+  max-width: 68ch;
+  color: var(--text);
+}
+
+/* A sequence entry: the shot's own header, then what it is doing. Two
+   registers so the cut can be read down the left edge at a glance. */
+.dr-treatment__shot {
+  display: block;
+  letter-spacing: var(--tr-mono);
+  color: var(--signal-text);
+}
+
+.dr-treatment__intent {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-secondary);
+}
+
+

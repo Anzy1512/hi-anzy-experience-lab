@@ -910,3 +910,37 @@
     gap: 1px;
   }
 }
+
+/* ==========================================================================
+   THE BRIEF HAS BLOCKS NOW
+
+   A stage used to be one flat list and the document read as sixty equal
+   lines. Each block is a question the stage answers, set on a rule so the
+   shape of the argument is visible before a word of it is read — which is
+   the difference between a document somebody takes to a meeting and a dump
+   they skim and close.
+   ========================================================================== */
+.sim-report__group {
+  margin-top: var(--s-4);
+}
+.sim-report__group:first-of-type {
+  margin-top: var(--s-2);
+}
+
+.sim-report__group-head {
+  margin: 0;
+  padding-bottom: 5px;
+  border-bottom: var(--hair) solid var(--rule);
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.sim-report__group-note {
+  margin: 6px 0 0;
+  max-width: 62ch;
+}
+
+.sim-report__group .sim-report__lines {
+  margin-top: 8px;
+}
