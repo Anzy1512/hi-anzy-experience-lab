@@ -728,7 +728,16 @@
 
 .rc-source {
   top: calc(var(--trim) * 0.72);
-  right: 220px;
+  /*
+   * Clear of EXIT, with the arithmetic written down rather than tuned by eye.
+   *
+   * EXIT is right-anchored at `--trim` and measures 203px wide — its label is
+   * fixed, so that width does not move with the viewport. 220px of reserve left
+   * its right edge at 1220 against EXIT's left edge at 1191: the Phase 8.10 QA
+   * sweep caught the WHY HI ANZY chip sitting 29px inside the exit control's
+   * box. 216 + trim puts it back with 13px of air.
+   */
+  right: calc(var(--trim) + 216px);
   max-width: min(660px, 52vw);
 }
 
@@ -764,6 +773,10 @@
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  /* The same argument the rule below makes about stage names: breaking is
+     better than clipping. In a 51px column at tablet width, QUESTION does not
+     fit on its own line and was being cut mid-word with nothing to say so. */
+  overflow-wrap: anywhere;
 }
 
 /* Twelve columns on a 1440 sheet is a ~100px measure, which is right for an

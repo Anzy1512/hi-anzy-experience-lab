@@ -259,9 +259,17 @@
   display: grid;
   gap: 5px;
 }
+/*
+ * The label column sizes to the longest label, not to a guess.
+ *
+ * It was 8.5ch — 86.7px — and INFRASTRUCTURE sets at 118px, so the one longest
+ * priority in the list printed straight across its own bar. `max-content` is
+ * shared by every row of the grid, so the column is exactly as wide as it has
+ * to be and the bars still line up with each other.
+ */
 .sim-bars li {
   display: grid;
-  grid-template-columns: 8.5ch 1fr 7ch;
+  grid-template-columns: max-content minmax(40px, 1fr) 7ch;
   align-items: center;
   gap: var(--s-2);
 }

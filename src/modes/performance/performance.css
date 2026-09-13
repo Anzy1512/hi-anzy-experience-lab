@@ -56,9 +56,18 @@
   display: grid;
   gap: 1px;
 }
+/*
+ * The key keeps its own width; the value is what yields.
+ *
+ * It was `minmax(0, 1fr) auto`, so a long value took everything it wanted and
+ * squeezed the key. CONVERGENCE's SURFACES ACCOUNTED line does exactly that:
+ * its value runs to four clauses, the key track collapsed to 26.6px, and
+ * "SURFACES ACCOUNTED" printed 63px wide straight over the number beside it.
+ * A readout whose labels can be crushed by their own data is not a readout.
+ */
 .pf-rows > div {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: max-content minmax(0, 1fr);
   align-items: baseline;
   gap: var(--s-2);
   padding: 3px 0;
@@ -78,6 +87,9 @@
   color: var(--figure);
   font-variant-numeric: tabular-nums;
   text-align: right;
+  /* A four-clause value wraps onto a second line rather than pushing the key
+     out of its own column. */
+  overflow-wrap: anywhere;
 }
 
 /* An unmeasured value is visibly a different kind of statement from a measured

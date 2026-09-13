@@ -24,7 +24,28 @@
   pointer-events: auto;
 }
 
+/*
+ * ---- THE CHROME STANDS ON ITS OWN GROUND --------------------------------
+ *
+ * Both of these used to be type and a hairline with nothing behind them, and
+ * every reality's content scrolls underneath. Measured in the Phase 8.10 QA
+ * sweep: the AGENCY SIMULATOR brief prints straight through EXIT — the body
+ * line "…Technology, Production and the rest" and the words EXIT EXPERIENCE
+ * occupying the same pixels, both illegible. LIVING WORLD does the same to the
+ * mode id with a district label.
+ *
+ * The way out is the one control this product guarantees is in the same place
+ * in every reality, forever. It cannot be conditionally readable.
+ *
+ * So each chrome item gets a plate of the reality's own ground. Not a panel and
+ * not a bar: two small opaque blocks, the size of their own type, in the
+ * material already on screen. That is the same move the onward-moves corner
+ * made in Phase 6 for the same reason, one step more opaque because this one
+ * carries the exit rather than a suggestion.
+ */
 .modehost__id {
+  padding: 0.35rem 0.6rem;
+  background: var(--ground);
   letter-spacing: var(--tr-mono-wide);
 }
 
@@ -32,7 +53,10 @@
   display: inline-flex;
   align-items: center;
   gap: var(--s-2);
-  padding: 0.5rem 0.8rem;
+  /* 32px of target from padding alone; the type is untouched. */
+  min-height: 32px;
+  padding: 0.6rem 0.8rem;
+  background: var(--ground);
   border: var(--hair) solid var(--rule);
   color: var(--figure);
   letter-spacing: var(--tr-mono-wide);

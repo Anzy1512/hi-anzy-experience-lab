@@ -482,9 +482,19 @@
 .os-sheet__sub {
   letter-spacing: var(--tr-mono-wide);
 }
+/*
+ * ---- 32px OF TARGET, NO CHANGE OF TYPE ------------------------------------
+ *
+ * Measured in the Phase 8.10 deep-state sweep at 19.6px. WCAG 2.5.8 puts the
+ * floor at 24x24 and this product's own floor is 32; the height comes from
+ * padding, so the small mono voice this band is set in is untouched.
+ */
 .os-sheet__close {
   margin-left: auto;
-  padding: 3px 7px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 8px 11px;
   border: var(--hair) solid var(--rule);
   color: var(--figure-dim);
   letter-spacing: var(--tr-mono-wide);
@@ -1177,9 +1187,17 @@
   flex: 0 0 auto;
   cursor: text;
 }
+/*
+ * ---- 32px OF TARGET, NO CHANGE OF TYPE ------------------------------------
+ *
+ * Measured in the Phase 8.10 deep-state sweep at 17.2px. WCAG 2.5.8 puts the
+ * floor at 24x24 and this product's own floor is 32; the height comes from
+ * padding, so the small mono voice this band is set in is untouched.
+ */
 .os-cmd__input {
   flex: 1 1 auto;
   min-width: 0;
+  min-height: 32px;
   background: none;
   border: 0;
   color: var(--figure);

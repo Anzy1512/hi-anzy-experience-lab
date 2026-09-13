@@ -507,6 +507,15 @@
   gap: 8px;
   flex: none;
 }
+/* Measured at 18px in the Phase 8.10 sweep — the size of its own 18px glyph,
+   with no box around it. The mark does not grow; the target does. */
+.xr-strip__target {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+}
 .xr-strip__target svg {
   fill: none;
   stroke: var(--figure-dim);
@@ -541,13 +550,17 @@
   min-width: 0;
   flex-wrap: wrap;
 }
+/* The layer switches. 19.6px in the Phase 8.10 sweep, which is under WCAG
+   2.5.8's 24px floor as well as this product's 32px one. Height from padding;
+   the swatch and its two lines of type are untouched. */
 .xr-patch {
   display: grid;
   grid-template-columns: auto auto;
   grid-template-rows: auto auto;
   align-items: center;
   gap: 2px 5px;
-  padding: 3px 5px 4px;
+  min-height: 32px;
+  padding: 7px 6px 8px;
   border: var(--hair) solid transparent;
   transition: border-color var(--d-1) var(--e-snap);
 }
@@ -605,8 +618,13 @@
   display: flex;
   gap: 2px;
 }
+/* Plate processes and layer presets. 19.6px in the Phase 8.10 sweep. Same
+   correction as the patches beside them: padding, not type. */
 .xr-proc {
-  padding: 3px 6px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 8px 9px;
   border: var(--hair) solid var(--rule);
   color: var(--figure-dim);
   letter-spacing: 0.06em;
@@ -757,10 +775,11 @@
     display: none;
   }
   .xr-patch {
-    padding: 3px 2px;
+    padding: 7px 2px;
     flex: 0 0 auto;
     /* comfortable tap target without inflating the faceplate */
     min-width: 38px;
+    min-height: 32px;
     justify-items: center;
   }
   .xr-patch__key {
@@ -972,8 +991,16 @@
   gap: 4px;
 }
 
+/*
+ * ---- 32px OF TARGET, NO CHANGE OF TYPE ------------------------------------
+ *
+ * Measured in the Phase 8.10 deep-state sweep at 19.6px. WCAG 2.5.8 puts the
+ * floor at 24x24 and this product's own floor is 32; the height comes from
+ * padding, so the small mono voice this band is set in is untouched.
+ */
 .xr-subject__btn {
-  padding: 3px 7px;
+  min-height: 32px;
+  padding: 8px 11px;
   background: transparent;
   border: 1px solid var(--rule);
   color: var(--figure-dim);
@@ -996,9 +1023,26 @@
 }
 
 @media (max-width: 900px) {
+  /*
+   * ---- THE SUBJECT PICKER GETS ITS OWN BAND -------------------------------
+   *
+   * It was `position: static`, which flowed it into the bottom band's grid and
+   * put it at the top of the mode — underneath the mode id and EXIT. Moving it
+   * down with a margin only traded one overlap for another: it landed on the
+   * specimen document instead, because static inside that band does not carry
+   * it above the surface.
+   *
+   * So at narrow widths it becomes its own fixed band, directly under the
+   * chrome, full width, on the instrument's UI layer. It already had a ground
+   * and a rule; it just needed a place of its own. The one real input this
+   * instrument has should not be sharing pixels with anything.
+   */
   .xr-subject {
-    position: static;
+    position: fixed;
+    top: calc(var(--trim) * 0.5 + 44px);
+    left: var(--trim);
+    right: var(--trim);
     width: auto;
-    margin: var(--s-2) var(--trim) 0;
+    z-index: var(--z-xray-ui);
   }
 }

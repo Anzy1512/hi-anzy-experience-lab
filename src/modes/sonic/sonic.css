@@ -304,8 +304,18 @@
   background: var(--signal);
   color: var(--c-ink);
 }
+/*
+ * ---- 32px OF TARGET, NO CHANGE OF TYPE ------------------------------------
+ *
+ * Measured in the Phase 8.10 deep-state sweep at 22.6px. WCAG 2.5.8 puts the
+ * floor at 24x24 and this product's own floor is 32; the height comes from
+ * padding, so the small mono voice this band is set in is untouched.
+ */
 .sn-btn--tiny {
-  padding: 3px 7px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 8px 10px;
 }
 .sn-btn[data-on='true'] {
   background: var(--signal);
