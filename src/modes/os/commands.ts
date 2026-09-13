@@ -10,6 +10,7 @@ import {
 } from '../../content/canonical';
 import { DISCLAIMER, frame } from '../../system/diagnose';
 import { getBrief, setFrame } from '../../system/brief';
+import { setStatement } from '../../system/project';
 
 /**
  * THE INTERPRETER.
@@ -247,6 +248,9 @@ export function execute(raw: string, ctx: CommandContext): string[] {
         ];
       }
       setFrame(f, 'terminal');
+      /* The project keeps the sentence, so the next tool the visitor opens
+         already knows what this is about and does not ask again. */
+      setStatement(said);
       return [
         'PROBLEM FRAME',
         `  stated      ${f.statement}`,

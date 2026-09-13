@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useRef, useState, useSyncExtern
 import { findMode, MODES } from '../../content/lab';
 import { groupMembers, INDEX_GROUPS } from '../../system/registry';
 import { ProductContract } from '../Product/ProductContract';
+import { WorkBand } from '../Work/WorkBand';
 import { EDGES } from '../../content/graph';
 import { INDEX_COPY, indexNote } from '../../content/brand';
 import { isEnterable, STATUS_LABEL, type ModeDefinition } from '../../experience/types';
@@ -364,6 +365,10 @@ export function LabIndex() {
         the cross-references and the Terminal all name realities by them — so a
         group can reorder the sheet without renumbering anything on it.
       */}
+      {/* The question before the catalogue. Three jobs with an outcome and one
+          open route, above sixteen rows that stay exactly where they were. */}
+      <WorkBand />
+
       <div className="index__groups" ref={listRef}>
         {INDEX_GROUPS.map((group) => {
           const members = groupMembers(group.key)

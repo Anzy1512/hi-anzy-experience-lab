@@ -28,6 +28,7 @@ import {
   type CompileState,
 } from './stages';
 import './compiler.css';
+import { useHandoffTarget } from '../../system/work';
 
 /**
  * REALITY COMPILER — TURN THE INTERFACE INTO A WORLD.
@@ -294,6 +295,9 @@ export default function CompilerMode({ onReady, onExit, scope }: ModeViewProps) 
   const showCanvas = quality.webgl && !glFailed && cells.length > 0;
   const atWorld = stageIndex >= STAGES.length - 1;
 
+  /* Where the manifest is carried when the visitor sends it on. */
+  const manifestTo = useHandoffTarget('reality-compiler', ['x-ray', 'anzy-os'], 'anzy-os');
+
   return (
     <div
       className="rc"
@@ -396,7 +400,11 @@ export default function CompilerMode({ onReady, onExit, scope }: ModeViewProps) 
             handoff={{
               kind: 'manifest',
               from: 'reality-compiler',
-              to: 'anzy-os',
+              /* X-RAY is the only other product that can use this: it points
+                 the instrument at the same page, so the two readings are of
+                 one thing. Outside that piece of work the manifest goes where
+                 everything else goes. */
+              to: manifestTo,
               limits:
                 'A structural read of committed source. It describes what the page is built from, not how it renders, how fast it is, or what it looks like — nothing here was measured in a browser.',
             }}

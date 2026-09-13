@@ -425,6 +425,26 @@ export default function PortalMode({ onReady, scope }: ModeViewProps) {
                 can travel.
               </p>
             )}
+            {/*
+              WHAT IS NOT IN IT, ON SCREEN.
+          
+              This lived only in the downloaded manifest, which meant the one
+              line that stops the package being read as more than it is —
+              "LIVE MEASUREMENT WAS NOT PERFORMED", when the page was taken
+              apart but never measured — was invisible to anybody who packaged
+              here and never opened the file. A manifest that lists only what
+              it has is half a manifest, and the missing half was the half that
+              qualifies the other one.
+            */}
+            <p className="t-mono t-mono-xs pt-package__head">WHAT IS NOT IN IT</p>
+            <ul className="pt-package__not">
+              {pkg.excluded.map((x) => (
+                <li key={x} className="t-body-s">
+                  {x}
+                </li>
+              ))}
+            </ul>
+
             <ArtifactBar
               formats={['copy', 'markdown', 'json']}
               label="THE DELIVERY MANIFEST"

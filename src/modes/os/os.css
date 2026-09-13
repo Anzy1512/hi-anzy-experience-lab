@@ -1482,3 +1482,164 @@
   margin: 3px 0 0;
   letter-spacing: var(--tr-mono);
 }
+
+/* ==========================================================================
+   THE ASSEMBLED PROJECT — five questions, answered
+
+   SYSTEM.app's sheet, so: paper stock, the OS's own rules, and the same
+   provenance vocabulary the Agency Simulator's report uses — the mark first,
+   the word always, the hue last. A reader who cannot separate amber from rust
+   still reads MEASURED against DERIVED against UNKNOWN, and still sees a solid
+   square against a hollow one.
+
+   Deliberately quieter than the ledger beneath it. The ledger is the record of
+   what exists; this is a reading of it, and a reading that shouted would make
+   the record look like the smaller thing.
+   ========================================================================== */
+
+.os-read {
+  margin-top: var(--s-4);
+}
+
+.os-read__h {
+  margin: 0 0 var(--s-2);
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule-faint);
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--text-secondary);
+}
+
+.os-read__none {
+  margin: 0;
+  max-width: 68ch;
+}
+
+/*
+ * The list is the grid and the rows are `display: contents`, so every register
+ * label shares ONE column track sized to the longest word in the block. A
+ * fixed measure was wrong twice over: at 11ch RECOMMENDATION ran straight into
+ * its own sentence, and widening it to fit the longest label would have taken
+ * that width off the prose in every block that never uses it.
+ */
+.os-read__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--s-2) var(--s-3);
+  align-items: start;
+  max-width: 78ch;
+}
+
+/* The register sits in its own column so the prose starts on one line down the
+   whole block. A label inline with the sentence reads as part of the sentence,
+   which is the one thing a provenance mark must never do. */
+.os-read__line {
+  display: contents;
+}
+
+.os-read__p {
+  position: relative;
+  padding-left: 13px;
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--prov-derived);
+}
+
+.os-read__p::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.36em;
+  width: 7px;
+  height: 7px;
+  border: 1px solid currentColor;
+  background: currentColor;
+}
+
+/* FACT is the visitor's own words — the only thing here the product did not
+   produce, and the only thing it gets the full figure weight for. */
+.os-read__line[data-p='FACT'] .os-read__p {
+  color: var(--prov-sourced);
+}
+
+/* MEASURED is the instrument's voice: photographic grey rather than the
+   company's ink, because a browser reading is not the company speaking. Its
+   mark is ruled rather than filled — a measurement is a line on a scale. */
+.os-read__line[data-p='MEASURED'] .os-read__p {
+  color: var(--prov-measured);
+}
+.os-read__line[data-p='MEASURED'] .os-read__p::before {
+  height: 3px;
+  top: 0.55em;
+  background: currentColor;
+}
+
+.os-read__line[data-p='UNKNOWN'] .os-read__p {
+  color: var(--prov-unknown);
+}
+.os-read__line[data-p='UNKNOWN'] .os-read__p::before {
+  background: var(--prov-mark-hollow);
+}
+
+.os-read__line[data-p='RECOMMENDATION'] .os-read__p {
+  color: var(--prov-recommend);
+}
+.os-read__line[data-p='RECOMMENDATION'] .os-read__p::before {
+  background: linear-gradient(135deg, currentColor 50%, transparent 50%);
+}
+
+/* ---- doors --------------------------------------------------------------- */
+
+.os-read__doors {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.os-read__door {
+  width: 100%;
+  display: grid;
+  gap: 2px;
+  padding: var(--s-2) var(--s-2) var(--s-2) 0;
+  min-height: 32px;
+  text-align: left;
+  border-top: var(--hair) solid var(--rule-faint);
+  transition: background-color var(--d-1) var(--e-snap);
+}
+.os-read__doors li:last-child .os-read__door {
+  border-bottom: var(--hair) solid var(--rule-faint);
+}
+.os-read__door:hover,
+.os-read__door:focus-visible {
+  background: var(--signal-soft);
+}
+
+.os-read__doorname {
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--signal-text);
+}
+
+.os-read__why {
+  max-width: 62ch;
+  color: var(--text-secondary);
+}
+
+/* A line with no register still has to occupy the prose column, or it would
+   sit under the labels. Nothing in this panel is unregistered today; this is
+   here so that adding one later cannot silently break the alignment. */
+.os-read__line > .t-body-s:first-child {
+  grid-column: 2;
+}
+
+@media (max-width: 620px) {
+  .os-read__list {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s-2);
+  }
+  .os-read__line > * {
+    grid-column: 1;
+  }
+}

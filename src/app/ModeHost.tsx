@@ -5,6 +5,8 @@ import type { ModeDefinition, ModeViewProps } from '../experience/types';
 import { useEscape, useFocusTrap } from '../core/hooks';
 import { setPointerIntent } from '../core/pointer';
 import { XRAY_COPY } from '../content/brand';
+import { WorkStrip } from '../components/Work/WorkStrip';
+import { useActiveWork } from '../system/work';
 import { edgesFrom } from '../content/graph';
 import { PATH, indexOfStop, reasonInto } from '../content/journey';
 import { journeyState, subscribeJourney } from '../experience/journey';
@@ -71,6 +73,18 @@ function ModeFallback({ title }: { title: string }) {
 function OnwardMoves({ fromId, phase }: { fromId: string; phase: string }) {
   const { enterMode } = useExperience();
   const journey = useSyncExternalStore(subscribeJourney, journeyState);
+  /*
+   * A visitor's own piece of work outranks both the curated route and the
+   * relation graph.
+   *
+   * Not for room — the work strip lives in the chrome band now and this corner
+   * is free. For the same reason the route already silences the graph below: a
+   * visitor part-way through turning a problem into a system, offered "MATTER
+   * ENGINE — the same field, without the argument", is being invited to
+   * abandon something they chose. The suggestion is not wrong; it is just not
+   * what they asked for, and the index is still one keystroke away.
+   */
+  const work = useActiveWork();
 
   /*
    * On the path, the route speaks instead of the graph.
@@ -91,6 +105,7 @@ function OnwardMoves({ fromId, phase }: { fromId: string; phase: string }) {
 
   const edges = edgesFrom(fromId);
   if (phase !== 'active') return null;
+  if (work) return null;
   if (!nextId && edges.length === 0) return null;
 
   const moves = nextId
@@ -174,6 +189,11 @@ export function ModeHost() {
           <span className="t-faint"> / </span>
           <span>{activeMode.title}</span>
         </p>
+
+        {/* The piece of work being followed, if any. It sits in the chrome
+            band because that is the only region sixteen full-bleed realities
+            have all been designed to keep clear — see WorkStrip. */}
+        <WorkStrip />
 
         <button
           type="button"

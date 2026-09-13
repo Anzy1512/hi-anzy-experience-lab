@@ -24,6 +24,7 @@ import { MATTER_COPY } from '../../content/matter';
 import { ArtifactBar } from '../../artifacts/ArtifactBar';
 import { toMarkdown } from '../../artifacts/artifact';
 import './matter.css';
+import { useHandoffTarget } from '../../system/work';
 
 /**
  * MATTER ENGINE — CONTROL DIGITAL MATTER.
@@ -58,6 +59,8 @@ export default function MatterMode({ onReady, scope }: ModeViewProps) {
   const reduced = useReducedMotion();
   const coarse = useCoarsePointer();
   const quality = useMemo(() => spatialQuality(capability), [capability]);
+  /* Where the recipe is carried when the visitor sends it on. */
+  const recipeTo = useHandoffTarget('matter-engine', ['director', 'anzy-os'], 'anzy-os');
 
   const count = COUNTS[quality.profile] ?? 0;
   const webgpu = useMemo(() => detectWebGPU(), []);
@@ -391,10 +394,24 @@ export default function MatterMode({ onReady, scope }: ModeViewProps) {
           the same phrase, state and profile rebuild the same formation, because
           the targets are sampled deterministically — and the PNG is the frame
           that was actually on screen when the button was pressed.
+
+          ---- IT IS OFFERED IN THE CALM VERSION TOO -------------------------
+
+          This used to be inside `active`, and `active` is false whenever the
+          profile is `lite` — which is what asking for reduced motion selects,
+          and what a phone selects, and what a machine without WebGL selects. So
+          a visitor who had stated a preference, or was holding a phone, was
+          quietly locked out of TURN A MESSAGE INTO MATTER altogether: the index
+          promised them a recipe and the mode had no button to make one.
+
+          A recipe is settings. The calm version has every one of them — the
+          state, the phrase, the force, the profile — because they are what the
+          visitor chose, not what the renderer produced. The one thing it does
+          not have is a picture, so the PNG is not offered and the document says
+          why rather than leaving somebody to wonder where it went.
         */}
-        {active && (
-          <ArtifactBar
-            formats={['copy', 'markdown', 'json', 'image']}
+        <ArtifactBar
+            formats={active ? ['copy', 'markdown', 'json', 'image'] : ['copy', 'markdown', 'json']}
             label={MATTER_COPY.keepLabel}
             /*
              * Matter's CONTINUE.
@@ -409,17 +426,28 @@ export default function MatterMode({ onReady, scope }: ModeViewProps) {
             handoff={{
               kind: 'recipe',
               from: 'matter-engine',
-              to: 'anzy-os',
-              limits:
-                'The settings that produced one frame, not the frame itself. The PNG is downloaded and never kept, so this recipe is what travels — run it again and the same composition comes back, because the targets are sampled deterministically rather than randomly.',
+              /* DIRECTOR can read the phrase out of this and make it the
+                 subject of a film. Nothing else can use it, so nothing else
+                 is offered it. */
+              to: recipeTo,
+              limits: active
+                ? 'The settings that produced one frame, not the frame itself. The PNG is downloaded and never kept, so this recipe is what travels — run it again and the same composition comes back, because the targets are sampled deterministically rather than randomly.'
+                : 'The settings for a formation this browser did not draw. The field is not rendered here — reduced motion was asked for, or this machine has no WebGL — so there is no picture to keep and none is claimed. Everything a machine that does draw it would need is in the recipe.',
             }}
             build={() => {
               return {
-                name: `hi-anzy-matter-${state}`,
+                /* A title a person would write, not a file stem — this is
+                   what the project ledger lists. The artifact layer slugs it
+                   on the way out to a file. */
+                name:
+                  state === 'type' && typed.trim()
+                    ? `Matter Recipe — “${typed.trim()}”`
+                    : `Matter Recipe — ${STATE_LABEL[state]}`,
                 text: toMarkdown({
                   title: 'HI ANZY — MATTER',
-                  standfirst:
-                    'A formation of the Lab’s particle field. The values below are what produced it; the same ones produce it again, because the targets are sampled deterministically rather than randomly.',
+                  standfirst: active
+                    ? 'A formation of the Lab’s particle field. The values below are what produced it; the same ones produce it again, because the targets are sampled deterministically rather than randomly.'
+                    : 'A formation of the Lab’s particle field, specified but not drawn here — this browser is running the calm version, which lists the material states rather than rendering them. The values below are what would produce it, and they produce it identically on a machine that draws it, because the targets are sampled deterministically rather than randomly.',
                   sections: [
                     {
                       head: 'THE FORMATION',
@@ -433,9 +461,11 @@ export default function MatterMode({ onReady, scope }: ModeViewProps) {
                     {
                       head: 'THE MACHINE',
                       items: [
-                        `Particles — ${count.toLocaleString('en')}`,
+                        active
+                          ? `Particles — ${count.toLocaleString('en')}`
+                          : 'Particles — NONE DRAWN. The field was not rendered in this browser.',
                         `Quality profile — ${quality.profile.toUpperCase()}`,
-                        `Draw calls — 1`,
+                        active ? 'Draw calls — 1' : 'Draw calls — NONE',
                         `Reduced motion — ${reduced ? 'REQUESTED' : 'NOT REQUESTED'}`,
                       ],
                     },
@@ -480,7 +510,6 @@ export default function MatterMode({ onReady, scope }: ModeViewProps) {
               };
             }}
           />
-        )}
       </div>
 
       <div className="mx-strip" data-disabled={!armed}>

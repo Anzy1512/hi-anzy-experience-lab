@@ -3,6 +3,8 @@ import { claim, dismiss, handoffsForCurrentProject, usePendingHandoff } from '..
 import { getArtifact, newProject, useProject, type ArtifactRecord } from '../../system/project';
 import { findMode } from '../../content/lab';
 import { resetBrief } from '../../system/brief';
+import { assemble } from '../../system/assemble';
+import { useExperience } from '../../experience/context';
 
 /**
  * THE PROJECT — what this session has actually produced.
@@ -28,14 +30,20 @@ import { resetBrief } from '../../system/brief';
  * receiving surface simply absorbed whatever it was handed.
  */
 
+/*
+ * What each kind of thing is called, wherever the producing tool is named
+ * beside it. So: RECIPE, not MATTER RECIPE — the panel prints "MATTER RECIPE
+ * FROM MATTER ENGINE" otherwise, and "DIRECTOR TREATMENT FROM DIRECTOR", which
+ * is the product stuttering its own name at somebody.
+ */
 const KIND_LABEL: Record<ArtifactRecord['kind'], string> = {
   frame: 'PROBLEM FRAME',
   brief: 'SYSTEM BRIEF',
   manifest: 'TRANSFORMATION MANIFEST',
   specimen: 'SPECIMEN REPORT',
-  recipe: 'MATTER RECIPE',
+  recipe: 'RECIPE',
   session: 'SESSION REPORT',
-  treatment: 'DIRECTOR TREATMENT',
+  treatment: 'TREATMENT',
   delivery: 'DELIVERY PACKAGE',
 };
 
@@ -47,6 +55,76 @@ function clock(at: number): string {
 
 function producerName(id: string): string {
   return findMode(id)?.title ?? id.toUpperCase();
+}
+
+/**
+ * The five questions, rendered.
+ *
+ * Only shown once the session has something to read back. Five headings over
+ * five apologies would be scaffolding pretending to be a document, which is the
+ * failure this whole pass exists to remove — so the panel below stays a single
+ * sentence until there is genuinely an assembled project to assemble.
+ */
+function Sections({ sections }: { sections: ReturnType<typeof assemble>['sections'] }) {
+  return (
+    <>
+      {sections.map((sec) => (
+        <section key={sec.head} className="os-read">
+          <h5 className="t-mono t-mono-xs os-read__h">{sec.head}</h5>
+          {sec.lines.length === 0 ? (
+            <p className="t-body-s t-dim os-read__none">{sec.empty}</p>
+          ) : (
+            <ul className="os-read__list">
+              {sec.lines.map((l, i) => (
+                <li key={`${sec.head}-${i}`} className="os-read__line" data-p={l.p ?? ''}>
+                  {l.p && (
+                    <span className="t-mono t-mono-xs os-read__p" aria-label={`${l.p}:`}>
+                      {l.p}
+                    </span>
+                  )}
+                  <span className="t-body-s">{l.text}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ))}
+    </>
+  );
+}
+
+/** The doors. A separate component because it needs the experience and the
+    sections above deliberately do not. */
+function Doors({ doors }: { doors: ReturnType<typeof assemble>['doors'] }) {
+  const { enterMode } = useExperience();
+  return (
+    <>
+      <section className="os-read">
+        <h5 className="t-mono t-mono-xs os-read__h">WHAT YOU CAN DO NEXT</h5>
+        {doors.length === 0 ? (
+          <p className="t-body-s t-dim os-read__none">
+            Nothing follows from what is here. Every reality is on the index and none of them
+            needs anything from this session to be worth opening.
+          </p>
+        ) : (
+          <ul className="os-read__doors">
+            {doors.map((d) => (
+              <li key={d.product}>
+                <button
+                  type="button"
+                  className="os-read__door"
+                  onClick={() => enterMode(d.product)}
+                >
+                  <span className="t-mono t-mono-xs os-read__doorname">{d.title}</span>
+                  <span className="t-body-s os-read__why">{d.because}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </>
+  );
 }
 
 export function ProjectPanel() {
@@ -78,6 +156,23 @@ export function ProjectPanel() {
 
   const history = handoffsForCurrentProject();
 
+  /*
+   * The session read back as five answers plus the ledger.
+   *
+   * `assemble` deliberately omits "what was made" — the ledger below is the
+   * better answer to it, and two lists of the same things would eventually
+   * disagree. So the reading is rendered in two halves with the ledger sitting
+   * between them, in the order somebody would actually ask the questions.
+   *
+   * Nothing renders at all until there is a session to read back. `statement`
+   * alone is enough: somebody who has described a problem and made nothing yet
+   * still has something to be told.
+   */
+  const read = assemble(project);
+  const has = project.statement !== null || project.artifacts.length > 0;
+  const before = read.sections.filter((x) => x.head === 'WHAT YOU TOLD US' || x.head === 'WHAT THIS WORKED OUT');
+  const after = read.sections.filter((x) => !before.includes(x));
+
   return (
     <>
       <h4 className="os-app__h t-mono t-mono-xs">PROJECT</h4>
@@ -100,6 +195,9 @@ export function ProjectPanel() {
         </div>
       )}
 
+      {has && <Sections sections={before} />}
+
+      <h5 className="t-mono t-mono-xs os-read__h">WHAT WAS MADE</h5>
       {project.artifacts.length === 0 ? (
         <p className="t-body-s t-dim os-app__foot">
           Nothing made yet. Anything the Terminal frames, the Agency Simulator runs or the
@@ -122,24 +220,36 @@ export function ProjectPanel() {
                 <p className="t-body-s t-dim os-art__limits">{a.limits}</p>
                 {a.sourceIds.length > 0 && (
                   <p className="t-mono t-mono-xs t-dim os-art__from">
-                    DEVELOPED FROM {a.sourceIds.length} EARLIER{' '}
-                    {a.sourceIds.length === 1 ? 'ARTIFACT' : 'ARTIFACTS'}
+                    MADE FROM {a.sourceIds.length} EARLIER{' '}
+                    {a.sourceIds.length === 1 ? 'RESULT' : 'RESULTS'}
                   </p>
                 )}
               </li>
             ))}
           </ol>
+          {/* Counted in plain words. "3 ARTIFACTS · 2 HANDOFFS" was the
+              machinery describing itself to somebody who never asked how it
+              was built. */}
           <p className="t-mono t-mono-xs t-dim os-app__foot">
-            {project.artifacts.length}{' '}
-            {project.artifacts.length === 1 ? 'ARTIFACT' : 'ARTIFACTS'} · {history.length}{' '}
-            {history.length === 1 ? 'HANDOFF' : 'HANDOFFS'} · HELD IN THIS TAB ONLY
+            {project.artifacts.length} MADE · {history.length} CARRIED BETWEEN TOOLS · HELD IN
+            THIS TAB ONLY
           </p>
-          <div className="os-offer__row">
-            <button type="button" className="t-mono t-mono-xs artifact__btn" onClick={startOver}>
-              NEW PROJECT
-            </button>
-          </div>
         </>
+      )}
+
+      {has && (
+        <>
+          <Sections sections={after} />
+          <Doors doors={read.doors} />
+        </>
+      )}
+
+      {project.artifacts.length > 0 && (
+        <div className="os-offer__row">
+          <button type="button" className="t-mono t-mono-xs artifact__btn" onClick={startOver}>
+            NEW PROJECT
+          </button>
+        </div>
       )}
     </>
   );

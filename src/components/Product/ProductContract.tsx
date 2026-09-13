@@ -16,15 +16,20 @@ import './product-contract.css';
  *
  * ── WHY THE GAPS ARE PRINTED TOO ────────────────────────────────────────────
  *
- * A row whose answer is null renders as NOT YET rather than being hidden. That
- * is the whole reason this component is worth having: a visitor opening
- * DIRECTOR should be told, on the way in, that it takes no input and hands
- * nothing back — because it currently does not, and a surface that quietly
- * omits the two rows it cannot fill is how a demo passes for a product.
+ * A row with no answer is still drawn, because a surface that quietly omits
+ * the rows it cannot fill is how a demonstration passes for a product.
  *
- * It also means the registry cannot drift. If Phase 8.8 gives Director a brief
- * to read and forgets to update the contract, the mode says NOT YET about a
- * thing it now does, which somebody will notice.
+ * It used to print NOT YET there. That was right in Phase 8.7, when four of
+ * these rows were genuinely unbuilt and the index needed to say so out loud.
+ * It is wrong now: the one product with empty rows is PRESENCE, which produces
+ * nothing **by design** — the camera contract is that frames are compared and
+ * discarded — and NOT YET promised a visitor a file that is never coming. A
+ * deliberate absence and an unfinished one read identically in two words, so
+ * the row now states the absence instead of dating it.
+ *
+ * The guard against the classification drifting out of step with what a mode
+ * actually does is `incompleteProducts()`, which runs in development. That was
+ * always the real check; the visitor-facing label was never going to be.
  *
  * ── EXPERIENCES ─────────────────────────────────────────────────────────────
  *
@@ -38,9 +43,27 @@ const ROWS: { key: keyof Contract; label: string }[] = [
   { key: 'context', label: 'CONTEXT' },
   { key: 'process', label: 'PROCESS' },
   { key: 'result', label: 'RESULT' },
-  { key: 'artifact', label: 'ARTIFACT' },
+  /* Five of these six are ordinary English already. This one was the
+     machinery's word for the thing, printed at the visitor. */
+  { key: 'artifact', label: 'YOU TAKE' },
   { key: 'continue', label: 'CONTINUE' },
 ];
+
+/*
+ * What an unanswered row means, said per row rather than generically.
+ *
+ * Only PRESENCE reaches these today, and for it every one of them is the plain
+ * truth rather than an apology: an instrument that keeps nothing has nothing to
+ * hand over and nowhere to send it.
+ */
+const UNMET: Record<keyof Contract, string> = {
+  input: 'Nothing. It works from what is already there.',
+  context: 'Nothing is carried in or held.',
+  process: 'Not stated.',
+  result: 'Nothing is determined. What you see is the whole of it.',
+  artifact: 'Nothing. This one keeps nothing, so there is nothing to take.',
+  continue: 'Nowhere. It produces nothing to carry on with.',
+};
 
 const LAYER_NOTE: Record<string, string> = {
   PRODUCT: 'A tool. It takes something and gives something back.',
@@ -83,11 +106,7 @@ export function ProductContract({ id, variant = 'full' }: Props) {
               <div key={key} className="pc__row" data-answered={answer ? 'true' : 'false'}>
                 <dt className="t-mono t-mono-xs pc__k">{label}</dt>
                 <dd className="t-body-s pc__v">
-                  {answer ?? (
-                    <span className="pc__unmet">
-                      NOT YET — this tool cannot answer that.
-                    </span>
-                  )}
+                  {answer ?? <span className="pc__unmet">{UNMET[key]}</span>}
                 </dd>
               </div>
             );

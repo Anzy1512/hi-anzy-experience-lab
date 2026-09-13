@@ -338,28 +338,40 @@ for (const [name, scope] of MATERIALS) {
      "canonical source, measured DOM, derived conclusion and UNKNOWN should be
      perceptually distinguishable" is about telling them apart from EACH OTHER. */
   /*
-   * WHICH PAIRS ACTUALLY HAVE TO BE TOLD APART.
+   * WHICH PAIRS ARE HELD TO A HUE FLOOR, AND WHICH ARE NOT.
    *
-   * Not all ten. Two documents exist and they draw from disjoint vocabularies:
-   *
-   *   a brief          FACT / DERIVED / UNKNOWN / RECOMMENDATION
-   *                    (system/diagnose.ts and system/brief.ts — no MEASURED)
-   *   a specimen report SOURCED / MEASURED
-   *                    (X-Ray — no DERIVED, no RECOMMENDATION)
-   *
-   * So MEASURED never shares a page with DERIVED, and holding those two to a
-   * separation floor would be inventing a requirement in order to fail it. The
-   * seven pairs that CAN co-occur are held to ΔE 18; the three that cannot are
-   * printed with their measured distance and the reason, because a number that
-   * is not a failure is still worth being able to see.
+   * ---- THE ARITHMETIC THAT DECIDED THIS -----------------------------------
    *
    * The floor is 18 and not higher because the space genuinely is not there.
    * Measured on the paper stock: AA caps a readable value at L* 39, the ink
    * sits at L* 16, and canonical supplies exactly two chromatic accents in
-   * between. Four separated registers fit. Five do not, on either material,
+   * between. FOUR separated registers fit. Five do not, on either material,
    * and no arrangement of the company's own colours changes that — which is
-   * why the fifth is carried by voice (mono, reserved for measured values) and
-   * by mark (solid, hollow, rule) rather than by hue.
+   * why the fifth, MEASURED, is carried by VOICE (mono, reserved for values
+   * this browser actually produced) and by MARK (solid square, hollow square,
+   * split square, rule) rather than by hue.
+   *
+   * ---- WHAT CHANGED IN PHASE 8.9 ------------------------------------------
+   *
+   * This block used to say MEASURED and DERIVED "never share a page", and it
+   * was true when it was written: two documents existed with disjoint
+   * vocabularies — the brief (FACT / DERIVED / UNKNOWN / RECOMMENDATION) and
+   * the specimen report (SOURCED / MEASURED). SYSTEM.app's assembled reading
+   * now sets all five in one list, because a session can hold a brief and an
+   * X-Ray reading at once and the entire point of that panel is to show them
+   * together.
+   *
+   * So the claim was retired rather than quietly kept. MEASURED's three pairs
+   * moved out of "cannot co-occur" and into "co-occurs, separated by mark and
+   * word rather than by hue" — which is the design decision above, stated
+   * where it can be checked instead of riding on an assertion about page
+   * layouts that had stopped being true.
+   *
+   * That exemption leans on the CSS, so it is worth naming what carries it:
+   * `.os-read__line[data-p='MEASURED'] .os-read__p::before` is a 3px rule
+   * where every other register is a 7px square, and the register's word is
+   * printed in full on every line. A reader who separates none of these hues
+   * still reads MEASURED against DERIVED.
    */
   const CO_OCCURS = [
     ['--prov-sourced', '--prov-derived'],
@@ -370,7 +382,10 @@ for (const [name, scope] of MATERIALS) {
     ['--prov-unknown', '--prov-recommend'],
     ['--prov-sourced', '--prov-measured'],
   ];
-  const APART = [
+  /* Co-occurring, but separated by mark and word rather than by hue. Reported
+     with the measured distance, because a number that is not a failure is
+     still worth being able to see. */
+  const MARK_SEPARATED = [
     ['--prov-measured', '--prov-derived'],
     ['--prov-measured', '--prov-unknown'],
     ['--prov-measured', '--prov-recommend'],
@@ -378,7 +393,7 @@ for (const [name, scope] of MATERIALS) {
   const dist = (a, b) =>
     deltaE(parse(resolve(scope, scope[a])), parse(resolve(scope, scope[b])));
 
-  console.log('\n  PROVENANCE SEPARATION — CIE76 ΔE, floor 18 for pairs that co-occur');
+  console.log('\n  PROVENANCE SEPARATION — CIE76 ΔE, floor 18 for pairs separated by hue');
   let worst = { d: Infinity, a: '', b: '' };
   for (const [a, b] of CO_OCCURS) {
     const d = dist(a, b);
@@ -390,11 +405,11 @@ for (const [name, scope] of MATERIALS) {
     }
   }
   console.log(
-    `    closest co-occurring pair  ΔE ${worst.d.toFixed(1)}  ${worst.a} vs ${worst.b}`,
+    `    closest hue-separated pair   ΔE ${worst.d.toFixed(1)}  ${worst.a} vs ${worst.b}`,
   );
-  for (const [a, b] of APART) {
+  for (const [a, b] of MARK_SEPARATED) {
     console.log(
-      `    ΔE ${dist(a, b).toFixed(1).padStart(5)}  NOT HELD — never on the same page   ${a} vs ${b}`,
+      `    ΔE ${dist(a, b).toFixed(1).padStart(5)}  NOT HELD — separated by mark and word   ${a} vs ${b}`,
     );
   }
 }

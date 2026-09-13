@@ -85,20 +85,33 @@ export default function DirectorMode({ onReady, onExit, scope }: ModeViewProps) 
   /*
    * ---- what this film is about -------------------------------------------
    *
-   * A brief reaches Director the way anything reaches anything in this Lab:
+   * A subject reaches Director the way anything reaches anything in this Lab:
    * as a recorded artifact carried by a handoff. It is claimed once, on entry,
    * and held — re-claiming on every render would consume the offer before the
    * visitor had seen that one arrived.
    *
-   * Falling back to the most recent brief in the project is deliberate. A
-   * visitor who ran the Simulator, walked to SYSTEM.app and then opened
-   * Director has plainly not withdrawn their brief, and making them send it
-   * twice would be the product forgetting something it is holding.
+   * Two kinds of thing can be about something: a **brief** states a problem, a
+   * **recipe** names a phrase somebody put into the particle field. Both are
+   * legitimate subjects for a film and both are read the same way, so Director
+   * sits at the end of two different pieces of work without knowing about
+   * either of them.
+   *
+   * Falling back to what the project already holds is deliberate. A visitor who
+   * ran the Simulator, walked to SYSTEM.app and then opened Director has plainly
+   * not withdrawn their brief, and making them send it twice would be the
+   * product forgetting something it is holding. A brief wins over a recipe when
+   * both exist, because a stated problem is the more specific subject.
    */
-  const [brief] = useState(() => {
-    const h = offered('director');
-    return (h ? (getArtifact(h.artifactId) ?? null) : null) ?? artifactsOf('brief')[0] ?? null;
-  });
+  const [incoming] = useState(
+    () =>
+      (() => {
+        const h = offered('director');
+        return h ? (getArtifact(h.artifactId) ?? null) : null;
+      })() ??
+      artifactsOf('brief')[0] ??
+      artifactsOf('recipe')[0] ??
+      null,
+  );
 
   /* Taking the offer is the side effect; choosing the subject above was a pure
      read of it. See handoff.claim — a state initialiser is not a safe place to
@@ -112,8 +125,8 @@ export default function DirectorMode({ onReady, onExit, scope }: ModeViewProps) 
      cut changes, because a treatment that described the other edit would be
      the one genuinely dishonest thing this mode could hand somebody. */
   const treatment = useMemo(
-    () => buildTreatment(shots, runtime, cut, brief),
-    [shots, runtime, cut, brief],
+    () => buildTreatment(shots, runtime, cut, incoming),
+    [shots, runtime, cut, incoming],
   );
   const [t, setT] = useState(0);
   const [wantSound, setWantSound] = useState(false);
@@ -428,8 +441,8 @@ export default function DirectorMode({ onReady, onExit, scope }: ModeViewProps) 
               from: 'director',
               to: 'anzy-os',
               limits:
-                'A creative treatment for a film the browser performs live. It schedules nothing, budgets nothing and casts nobody, and there is no video file behind it. Where a brief was loaded, every gap in that brief is inherited by this document.',
-              sourceIds: brief ? [brief.id] : [],
+                'A creative treatment for a film the browser performs live. It schedules nothing, budgets nothing and casts nobody, and there is no video file behind it. Where something was sent to this mode, every gap in that document is inherited by this one.',
+              sourceIds: incoming ? [incoming.id] : [],
             }}
             build={() => ({
               name: `Hi Anzy Director Treatment — ${cut === 'long' ? 'long' : 'primary'} cut`,

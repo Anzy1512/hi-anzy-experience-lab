@@ -1,4 +1,5 @@
 import { ACTS, type Shot } from '../../content/director';
+import { findMode } from '../../content/lab';
 import { specimen } from '../../content/specimens';
 import type { ArtifactRecord } from '../../system/project';
 
@@ -29,6 +30,16 @@ import type { ArtifactRecord } from '../../system/project';
  * subject and says which statement it came from. When one has not, it says the
  * film is running on the studio's own material — which is true, and is a better
  * answer than inventing a client.
+ *
+ * ── THE SUBJECT IS A PHRASE, NEVER A DOCUMENT ───────────────────────────────
+ *
+ * Director can be handed a brief (from the Simulator) or a recipe (from Matter
+ * Engine), and each of those is a whole report. A film is not about a report —
+ * it is about one thing, said in one line. So the subject is **selected** out of
+ * the incoming artifact: the statement from a brief, the phrase from a recipe.
+ * If what comes out is still long enough to be prose, it is cut to its first
+ * sentence and the treatment says it was shortened, because a visitor reading
+ * “WHAT THIS FILM IS FOR” has to be able to tell their own words from ours.
  */
 
 export interface TreatmentBlock {
@@ -78,31 +89,62 @@ const MATERIAL: Record<string, string> = {
   end: 'The mark, held, with nothing asked of the viewer.',
 };
 
+/** A named field read out of an artifact's `data`, which is `unknown` by
+    contract — it is whatever the producing tool put there, so it is narrowed
+    here rather than trusted. */
+function field(record: ArtifactRecord | null, key: string): string | null {
+  if (!record || typeof record.data !== 'object' || record.data === null) return null;
+  const value = (record.data as Record<string, unknown>)[key];
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+/**
+ * One line out of what may be several. Returns the phrase and whether cutting
+ * it changed anything, so the treatment can say so rather than quietly
+ * presenting an edit of somebody's sentence as their sentence.
+ */
+const SUBJECT_MAX = 150;
+function oneLine(text: string): { phrase: string; shortened: boolean } {
+  const first = text.split(/(?<=[.!?])\s+/)[0].trim() || text.trim();
+  if (first.length <= SUBJECT_MAX) {
+    return { phrase: first, shortened: first.length < text.trim().length };
+  }
+  const cut = first.slice(0, SUBJECT_MAX);
+  const at = cut.lastIndexOf(' ');
+  return { phrase: `${(at > 40 ? cut.slice(0, at) : cut).trim()}…`, shortened: true };
+}
+
 export function buildTreatment(
   shots: Shot[],
   runtime: number,
   cut: 'primary' | 'long',
-  brief: ArtifactRecord | null,
+  /** Whatever the visitor arrived with: a brief, a recipe, or nothing. */
+  incoming: ArtifactRecord | null,
 ): Treatment {
   /*
-   * The subject.
+   * The subject, selected rather than summarised.
    *
-   * A brief arrives as a recorded artifact, so the statement is read out of its
-   * own data rather than out of another mode's live state. `data` is `unknown`
-   * by contract — it is whatever the producing tool put there — so it is
-   * narrowed here rather than trusted.
+   * A brief states a problem; a recipe names a phrase somebody typed into the
+   * particle field. Either is one line about one thing, which is what a film
+   * can be about. Anything else that arrives is named by its title and nothing
+   * is guessed from its contents.
    */
-  const stated =
-    brief && typeof brief.data === 'object' && brief.data !== null
-      ? ((brief.data as { statement?: unknown }).statement ?? null)
-      : null;
-  const subject =
-    typeof stated === 'string' && stated.trim()
-      ? stated.trim()
-      : 'Hi Anzy itself — one company assembled from parts that usually never meet.';
-  const source = brief
-    ? `${brief.title}, produced by ${brief.producer.toUpperCase()} and carried here as an artifact.`
-    : 'No brief was sent to this mode. The film is running on the studio’s own material, which is what it was written for.';
+  const stated = field(incoming, 'statement') ?? field(incoming, 'phrase');
+  const chosen = stated ? oneLine(stated) : null;
+  const subject = chosen
+    ? chosen.phrase
+    : 'Hi Anzy itself — one company assembled from parts that usually never meet.';
+  const source = incoming
+    ? /* The product's NAME, not its id. `agency-simulator` is an internal
+         handle and printing it in a document somebody takes to a meeting is
+         the machinery showing through. */
+      `${incoming.title}, produced by ${findMode(incoming.producer)?.title ?? incoming.producer.toUpperCase()} and carried here as an artifact.` +
+      (chosen
+        ? chosen.shortened
+          ? ' The subject line above is the opening sentence of what was stated there, not the whole document.'
+          : ' The subject line above is stated there word for word.'
+        : ' It carries no single stated line, so the film runs on the studio’s own subject.')
+    : 'Nothing was sent to this mode. The film is running on the studio’s own material, which is what it was written for.';
 
   /* Acts, with the shots that belong to each. The message hierarchy is the act
      structure — it is not invented for the document. */
@@ -163,9 +205,9 @@ export function buildTreatment(
       lines: [
         'It does not schedule, budget or cast anything. No date, cost or availability appears in it.',
         'The film is performed by the browser from one clock. There is no video file, so there is nothing here to hand to an editor.',
-        brief
-          ? 'The subject came from a brief that is itself mostly DERIVED and UNKNOWN. This treatment inherits every one of those gaps.'
-          : 'No brief was loaded, so nothing here is tailored to a business. It describes the studio’s own film.',
+        incoming
+          ? `The subject came from ${incoming.title}, which states its own limits. This treatment inherits every one of them.`
+          : 'Nothing was sent to this mode, so nothing here is tailored to anybody. It describes the studio’s own film.',
         ...(unexplained
           ? [`${unexplained} shot${unexplained === 1 ? '' : 's'} in this cut carry no stated intent and are marked in the sequence above.`]
           : []),

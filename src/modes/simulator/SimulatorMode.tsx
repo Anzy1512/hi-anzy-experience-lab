@@ -8,6 +8,7 @@ import { fragmentsFor, run, type Answers } from './model';
 import { buildRun, chosenLabels, tally } from './report';
 import { ArtifactBar } from '../../artifacts/ArtifactBar';
 import { briefJson, briefMarkdown, setRun } from '../../system/brief';
+import { getProject, setStatement } from '../../system/project';
 import { DISCLAIMER, frame as buildFrame, type Frame } from '../../system/diagnose';
 import { FragmentTable } from './FragmentTable';
 import { SystemMap } from './SystemMap';
@@ -49,7 +50,20 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
   const [phase, setPhase] = useState<Phase>('brief');
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
-  const [said, setSaid] = useState('');
+  /*
+   * ---- THE PROBLEM IS STATED ONCE ----------------------------------------
+   *
+   * A visitor following a piece of work may have already typed their situation
+   * into the Terminal, and being asked for it again by the next tool is the
+   * product forgetting something it is holding. The project carries the
+   * statement, so this opens with it already in the box — editable, because it
+   * is still their sentence and they may want to sharpen it.
+   */
+  const [said, setSaid] = useState(() => getProject().statement ?? '');
+  /* What the project was already holding when this mode opened, captured once
+     so that stating a problem HERE does not make the panel claim the visitor
+     said it somewhere else. Never updated; that is the point. */
+  const [carriedIn] = useState(() => getProject().statement);
   const [frame, setFrameState] = useState<Frame | null>(null);
   const [noMatch, setNoMatch] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -71,6 +85,11 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
   );
   const counts = useMemo(() => (stages ? tally(stages) : null), [stages]);
 
+  /* True only while the box still holds exactly what arrived with the visitor.
+     Editing a single character makes it their sentence again, and the panel
+     goes back to asking rather than confirming. */
+  const carried = carriedIn !== null && said === carriedIn;
+
   /* ---- entry ------------------------------------------------------------- */
   useEffect(() => {
     setPointerIntent('default');
@@ -86,7 +105,17 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
       setPhase('brief');
       setStep(0);
       setAnswers({});
-      setSaid('');
+      /*
+       * Back to what the PROJECT holds, not to empty.
+       *
+       * The statement belongs to the session, not to this mode, so blanking it
+       * here is this mode throwing away something it does not own. It also
+       * silently defeated the seeding above: StrictMode double-invokes an
+       * effect's cleanup on mount, so this ran once before the visitor had done
+       * anything, and a problem stated in the Terminal arrived at an empty box
+       * with the product asking for it a second time.
+       */
+      setSaid(getProject().statement ?? '');
       setFrameState(null);
       setNoMatch(false);
     };
@@ -109,6 +138,10 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
     }
     setNoMatch(false);
     setFrameState(f);
+    /* The project learns the visitor's own words. Every later tool reads them
+       from here rather than from this component, which is what lets Director
+       name the subject of a film it was never told about directly. */
+    setStatement(text);
     setPhase('asking');
   }, [said]);
 
@@ -154,7 +187,9 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
     setPhase('brief');
     setStep(0);
     setAnswers({});
-    setSaid('');
+    /* START AGAIN restarts the simulation, not the session. Their sentence is
+       still their sentence. */
+    setSaid(getProject().statement ?? '');
     setFrameState(null);
     setNoMatch(false);
   }, []);
@@ -222,8 +257,12 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
 
         {phase === 'state' && (
           <section className="sim-state">
-            <h2 className="t-display t-display-m sim-ask__prompt">{SIM_COPY.stateTitle}</h2>
-            <p className="t-body-s t-dim sim-ask__note">{SIM_COPY.stateNote}</p>
+            <h2 className="t-display t-display-m sim-ask__prompt">
+              {carried ? SIM_COPY.stateCarriedTitle : SIM_COPY.stateTitle}
+            </h2>
+            <p className="t-body-s t-dim sim-ask__note">
+              {carried ? SIM_COPY.stateCarriedNote : SIM_COPY.stateNote}
+            </p>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -231,7 +270,7 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
               }}
             >
               <label className="sim-state__label t-mono t-mono-xs t-dim" htmlFor="sim-said">
-                THE PROBLEM
+                {carried ? 'THE PROBLEM — CARRIED IN' : 'THE PROBLEM'}
               </label>
               <textarea
                 id="sim-said"

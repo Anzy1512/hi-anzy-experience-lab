@@ -1,0 +1,169 @@
+/* ==========================================================================
+   WHAT DO YOU WANT TO DO
+
+   A ruled band above the plate list, in the system voice. Not cards, not a
+   stepper, not a progress bar: the orchestration layer has to stay quieter
+   than the products it orchestrates, so the only emphasis available to it is
+   a mark, a rule, and a count of things that actually exist.
+   ========================================================================== */
+
+.wb {
+  margin-bottom: var(--s-7);
+  padding-bottom: var(--s-4);
+  border-bottom: var(--hair) solid var(--rule);
+}
+
+.wb__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-1) var(--s-3);
+  padding-bottom: var(--s-2);
+}
+
+.wb__label {
+  margin: 0;
+  font-weight: 400;
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--text);
+}
+
+.wb__note {
+  margin: 0;
+  letter-spacing: var(--tr-mono);
+}
+
+.wb__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.wb__item {
+  border-top: var(--hair) solid var(--rule-faint);
+}
+.wb__item:last-child {
+  border-bottom: var(--hair) solid var(--rule-faint);
+}
+
+.wb__hit {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-1);
+  min-height: 32px;
+  text-align: left;
+  transition: background-color var(--d-1) var(--e-snap);
+}
+.wb__hit:hover,
+.wb__hit:focus-visible {
+  background: var(--signal-soft);
+}
+
+/*
+ * The state mark, which carries the status without relying on colour.
+ *
+ *   hollow   nothing made yet
+ *   half     under way
+ *   solid    every required step has produced something
+ *
+ * The same solid/hollow vocabulary the provenance registers use, for the same
+ * reason: a reader who cannot separate the hues still sees a filled mark
+ * against an empty one.
+ */
+.wb__mark {
+  margin-top: 0.35em;
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border: 1px solid var(--text-secondary);
+  background: transparent;
+}
+.wb__item[data-status='active'] .wb__mark {
+  background: linear-gradient(135deg, var(--signal) 50%, transparent 50%);
+  border-color: var(--signal);
+}
+.wb__item[data-status='complete'] .wb__mark {
+  background: var(--signal);
+  border-color: var(--signal);
+}
+.wb__item--open .wb__mark {
+  /* A route rather than a job: a rule, not a square. */
+  height: 1px;
+  width: 12px;
+  margin-top: 0.75em;
+  border: 0;
+  background: var(--text-secondary);
+}
+
+.wb__body {
+  display: grid;
+  gap: 3px;
+}
+
+.wb__title {
+  color: var(--text);
+  letter-spacing: var(--tr-display);
+}
+
+.wb__purpose {
+  max-width: 62ch;
+  color: var(--text-secondary);
+}
+
+.wb__state {
+  letter-spacing: var(--tr-mono);
+  color: var(--text-secondary);
+}
+.wb__item[data-status='active'] .wb__state,
+.wb__item[data-status='complete'] .wb__state {
+  color: var(--signal-text);
+}
+
+/* The standing reminder that something is being followed, with the way out of
+   it beside the fact — a route you cannot leave is a funnel. */
+.wb__following {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+  margin: var(--s-3) 0 0;
+  letter-spacing: var(--tr-mono);
+  color: var(--signal-text);
+}
+
+.wb__leave {
+  padding: 6px 10px;
+  min-height: 32px;
+  border: 1px solid var(--rule);
+  color: var(--text-secondary);
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-mono-wide);
+  transition:
+    border-color var(--d-1) var(--e-snap),
+    color var(--d-1) var(--e-snap);
+}
+.wb__leave:hover,
+.wb__leave:focus-visible {
+  border-color: var(--text);
+  color: var(--text);
+}
+
+@media (max-width: 620px) {
+  .wb__hit {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--s-2);
+    padding: var(--s-3) 0;
+  }
+}
+
+/* A product's name is one word however it is spelled. Without this a 390px
+   column breaks X-RAY at its own hyphen. */
+.wb__nobr {
+  white-space: nowrap;
+}

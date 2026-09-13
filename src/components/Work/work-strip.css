@@ -1,0 +1,117 @@
+/* ==========================================================================
+   THE WORK YOU ARE FOLLOWING — in the chrome band
+
+   Set in the mode host's own chrome scale and weight, between the mode's number
+   and EXIT, because that band is the only region sixteen full-bleed realities
+   have all been designed to keep clear. Two floating versions of this were
+   tried first and both printed over the product: under EXIT it covered AGENCY
+   SIMULATOR's headline, in the onward corner it covered the same mode's
+   capability clusters.
+
+   Quieter than EXIT by construction. EXIT is a bordered control that inverts on
+   hover; this is a label and two hairline controls, and the only orange in it
+   is the mark and the one thing that moves you on — which is the Lab's standing
+   rule about what orange is for.
+   ========================================================================== */
+
+/*
+ * Hard against the mode's own number, not centred.
+ *
+ * The chrome band is only clear at its two ends. Centred, this ran into
+ * REALITY COMPILER's five route tabs, which sit at x 716–887 on a 1440 screen
+ * — measured, not guessed. The zone between the mode id and the leftmost
+ * control a reality puts up is the widest genuinely empty run in the band, so
+ * the strip takes that and yields its title to an ellipsis rather than growing
+ * into anybody.
+ */
+.ws {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-width: 0;
+  max-width: min(42ch, 32vw);
+  margin-right: auto;
+}
+
+.ws__work {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  margin: 0;
+  letter-spacing: var(--tr-mono);
+  color: var(--figure-dim);
+}
+
+/* The half-filled mark the index band uses for work under way, so the two
+   surfaces agree about what a piece of work looks like. */
+.ws__mark {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background: linear-gradient(135deg, var(--signal) 50%, transparent 50%);
+  border: 1px solid var(--signal);
+}
+
+/* The title yields before the count does: knowing two of three things exist
+   matters more in a chrome band than reading the whole title, which the index
+   states in full. */
+.ws__title {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--figure);
+}
+
+.ws__count {
+  flex: none;
+}
+
+.ws__done {
+  flex: none;
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--signal-text);
+}
+
+.ws__btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 0.7rem;
+  min-height: 32px;
+  border: var(--hair) solid color-mix(in srgb, var(--rule) 60%, transparent);
+  color: var(--figure-dim);
+  letter-spacing: var(--tr-mono-wide);
+  transition:
+    border-color var(--d-2) var(--e-snap),
+    color var(--d-2) var(--e-snap);
+}
+.ws__btn:hover,
+.ws__btn:focus-visible {
+  border-color: var(--rule);
+  color: var(--figure);
+}
+
+/* The one control here that moves you on. */
+.ws__btn--go {
+  border-color: var(--signal);
+  color: var(--signal-text);
+}
+.ws__btn--go:hover,
+.ws__btn--go:focus-visible {
+  border-color: var(--signal);
+  color: var(--signal-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Below this the chrome band is the mode's number and the way out, and nothing
+   else fits beside them honestly. The index still carries the whole thing —
+   STOP FOLLOWING is one Escape away there, which is also the guarantee that a
+   route can never trap anybody. */
+@media (max-width: 1180px) {
+  .ws {
+    display: none;
+  }
+}

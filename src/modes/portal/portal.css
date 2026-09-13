@@ -647,6 +647,10 @@
   gap: 7px;
   padding: var(--s-1) var(--s-3) var(--s-1) var(--trim);
   background: var(--ground);
+  /* Anchored to the bottom and grown upward, so a tall package is the one
+     thing that can push this column behind the mode's own chrome. The ceiling
+     clears that band; the package below is the flex child that yields. */
+  max-height: calc(100vh - var(--trim) * 7);
 }
 
 .pt-cross__label {
@@ -690,10 +694,23 @@
    crossing has always meant: the near side is what a page shows you, the far
    side is what the system holds and what would be delivered from it.
    ========================================================================== */
+/*
+ * Printing WHAT IS NOT IN IT made this tall enough to push the whole crossing
+ * column off the top of the screen — the state line ended up behind the mode's
+ * own chrome. The column has the ceiling; this is the part that scrolls inside
+ * it, which is what every long surface in the Lab does.
+ */
 .pt-package {
   margin-top: var(--s-3);
   padding-top: var(--s-2);
   border-top: var(--hair) solid var(--rule);
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* The same thin rule ANZY.OS gives its sheets. A default scrollbar is the
+     loudest object on a bone sheet. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule) transparent;
 }
 
 .pt-package__state {
@@ -736,4 +753,46 @@
 
 .pt-package__empty {
   margin: var(--s-2) 0 0;
+}
+
+/* ---- the half that qualifies the other half ------------------------------ */
+
+.pt-package__head {
+  margin: var(--s-4) 0 0;
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule-faint);
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--text-secondary);
+}
+
+/*
+ * Set as absences, not as warnings. Each line is a hollow mark and plain body
+ * copy — the same vocabulary the brief uses for UNKNOWN, because it is the same
+ * class of statement: a thing that is not established, said out loud rather
+ * than left for somebody to discover.
+ */
+.pt-package__not {
+  list-style: none;
+  margin: var(--s-2) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-2);
+  max-width: 58ch;
+}
+
+.pt-package__not > li {
+  position: relative;
+  padding-left: 15px;
+  color: var(--text-secondary);
+}
+
+.pt-package__not > li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.45em;
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--prov-unknown);
+  background: var(--prov-mark-hollow);
 }

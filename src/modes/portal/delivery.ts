@@ -1,3 +1,4 @@
+import { findMode } from '../../content/lab';
 import type { ArtifactRecord } from '../../system/project';
 
 /**
@@ -54,19 +55,60 @@ function carriage(a: ArtifactRecord): string {
   if (a.text && a.data) return 'Full document and structured data.';
   if (a.text) return 'Full document.';
   if (a.data) return 'Structured data only.';
-  return 'Reference only — this artifact recorded no payload.';
+  return 'A reference only — nothing was recorded with it.';
+}
+
+/**
+ * ABSENCES THAT FOLLOW FROM WHAT IS THERE.
+ *
+ * A manifest without a specimen is the case this exists for. REALITY COMPILER
+ * reads committed source; X-RAY measures what a browser did with it. They are
+ * different claims, and a package holding only the first one looks — to anybody
+ * who was not in the room — like a page that was examined. Skipping X-Ray is
+ * legitimate and takes no telling off. It just has to be **named**, because the
+ * alternative is a document that is accurate line by line and misleading as a
+ * whole.
+ *
+ * Everything below is derived from what the project holds, so declining a
+ * continuation writes its own consequence into the manifest without any step
+ * having to record that it was declined.
+ */
+function derivedGaps(artifacts: ArtifactRecord[]): string[] {
+  const has = (kind: string) => artifacts.some((a) => a.kind === kind);
+  const gaps: string[] = [];
+
+  if (has('manifest') && !has('specimen')) {
+    gaps.push(
+      'LIVE MEASUREMENT WAS NOT PERFORMED. The page in this package was read from its committed source only. Nothing here reports what a browser actually did with it — no computed type sizes, no measured spacing, no real element boxes. X-RAY is the instrument that takes those, and it was not run.',
+    );
+  }
+  if (has('specimen') && !has('manifest')) {
+    gaps.push(
+      'The measurements in this package were taken off one browser, at one viewport, on one machine. Nothing here reads the page’s source, so what the page is *built from* is not in the package.',
+    );
+  }
+  if (!has('brief')) {
+    gaps.push(
+      'No problem was stated to this system, so nothing in the package is a response to one. The AGENCY SIMULATOR is where a situation becomes a structured brief.',
+    );
+  }
+  return gaps;
 }
 
 export function buildPackage(artifacts: ArtifactRecord[]): DeliveryPackage {
   const items = artifacts.map((a) => ({
     title: a.title,
     kind: a.kind.toUpperCase(),
-    producer: a.producer.toUpperCase(),
+    /* The product's NAME. `reality-compiler` is an internal handle, and a
+       manifest somebody sends on should read like a document rather than like
+       a database row. */
+    producer: findMode(a.producer)?.title ?? a.producer.toUpperCase(),
     limits: a.limits,
     carries: carriage(a),
   }));
 
   const excluded = [
+    ...derivedGaps(artifacts),
     'Nothing is uploaded, hosted or shared. This package exists in this tab and in whatever you download from it.',
     'No rendered image travels. Pictures are downloaded individually; a recipe describes how to make one again.',
     'Nothing is scheduled, priced or committed to. No date, cost or availability appears anywhere in it.',

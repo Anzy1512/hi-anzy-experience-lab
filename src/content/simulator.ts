@@ -408,6 +408,16 @@ export const SIM_COPY = {
   stateEmpty: 'Nothing matched. Try naming what is happening rather than how it feels — traffic, conversion, margin, churn, reporting, handover, brand, automation.',
   stateExample: 'USE AN EXAMPLE',
 
+  /*
+   * Shown instead of the cold prompt when the visitor has already described
+   * the situation somewhere else in the system — the terminal, usually. The
+   * product is holding their sentence, so asking for it again would be the
+   * product admitting it forgot.
+   */
+  stateCarriedTitle: 'THIS IS WHAT YOU SAID',
+  stateCarriedNote:
+    'You described this already, so it is here rather than being asked for twice. Change it if it was not quite right.',
+
   /* ---- the run ---------------------------------------------------------- */
   runTitle: 'HI ANZY — PROBLEM BRIEF',
   runGo: 'PRODUCE THE BRIEF',
