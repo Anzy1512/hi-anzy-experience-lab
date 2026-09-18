@@ -85,6 +85,12 @@ function modeTitle(id: string): string {
   return findMode(id)?.title ?? id.toUpperCase();
 }
 
+/** `14:32` — a time, not a date. A project is read on the day it is opened. */
+function clock(at: number): string {
+  const d = new Date(at);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
 /**
  * The reading.
  *
@@ -292,6 +298,20 @@ export function assemble(project: Project): Assembled {
     });
   }
 
+  /* ---- 6 · how it got here ------------------------------------------------ */
+  /*
+   * The history, trimmed to what explains the current state.
+   *
+   * Every entry is kept in the project and every one is in the export; this is
+   * the panel's reading of it, and a panel that printed forty lines of log
+   * would be the same mistake the UNKNOWN section made before it was cut down.
+   * The most recent dozen, newest last, because the question is "how did we get
+   * here" and here is the end of the list.
+   */
+  const story: AssembledLine[] = project.history
+    .slice(-12)
+    .map((h) => ({ p: 'FACT', text: `${clock(h.at)} · ${h.note}` }));
+
   const sections: AssembledSection[] = [
     {
       head: 'WHAT YOU TOLD US',
@@ -307,6 +327,11 @@ export function assemble(project: Project): Assembled {
       head: 'WHAT IS STILL UNKNOWN',
       empty: 'Nothing has been claimed yet, so nothing is outstanding.',
       lines: unknown,
+    },
+    {
+      head: 'HOW IT GOT HERE',
+      empty: 'Nothing has happened to this project yet.',
+      lines: story,
     },
     {
       head: 'WHAT IS RECOMMENDED',

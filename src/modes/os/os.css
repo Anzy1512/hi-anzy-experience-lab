@@ -1661,3 +1661,173 @@
     grid-column: 1;
   }
 }
+
+/* ==========================================================================
+   THE PROJECT, NAMED AND LOCATED
+
+   The header of SYSTEM.app's project view. It is the first surface in this
+   product that has ever had to say where a visitor's data physically is, so it
+   is set plainly: a name, two values, one sentence of fact, and the controls.
+
+   Deliberately not a dashboard. No cards, no tiles, no counters in boxes — the
+   project is a document with an identity, and this is its masthead.
+   ========================================================================== */
+
+.os-prj {
+  margin-bottom: var(--s-4);
+  padding-bottom: var(--s-3);
+  border-bottom: var(--hair) solid var(--rule);
+}
+
+.os-prj__name {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  min-height: 32px;
+  padding: var(--s-1) var(--s-1) var(--s-1) 0;
+  text-align: left;
+  transition: background-color var(--d-1) var(--e-snap);
+}
+.os-prj__name:hover,
+.os-prj__name:focus-visible {
+  background: var(--signal-soft);
+}
+
+.os-prj__title {
+  color: var(--text);
+  max-width: 40ch;
+}
+
+/* An unnamed project shows its own opening sentence. DERIVED sits beside it so
+   a fallback is never mistaken for something somebody chose. */
+.os-prj__rename {
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--text-secondary);
+}
+
+.os-prj__name-form {
+  display: grid;
+  gap: var(--s-2);
+  padding-bottom: var(--s-2);
+}
+
+.os-prj__name-input {
+  width: 100%;
+  min-height: 32px;
+  padding: 6px 8px;
+  background: var(--surface-raised);
+  border: var(--hair) solid var(--rule);
+  color: var(--text);
+}
+.os-prj__name-input::placeholder {
+  color: var(--text-muted);
+}
+
+.os-prj__kv {
+  margin-top: var(--s-2);
+}
+
+.os-prj__where {
+  margin: var(--s-2) 0 0;
+  max-width: 66ch;
+}
+
+/* A notice is a fact about their data, not an alert. Marked by a rule in the
+   signal colour rather than a panel, because nothing has gone wrong with the
+   product — something has happened to the storage under it. */
+.os-prj__notice {
+  margin: var(--s-3) 0 0;
+  padding-left: var(--s-2);
+  border-left: 2px solid var(--signal);
+  max-width: 66ch;
+  color: var(--text);
+}
+
+.os-prj__dismiss {
+  padding: 4px 7px;
+  min-height: 32px;
+  border: var(--hair) solid var(--rule);
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--text-secondary);
+}
+.os-prj__dismiss:hover,
+.os-prj__dismiss:focus-visible {
+  color: var(--text);
+  border-color: var(--text);
+}
+
+/* ---- the destructive pair ------------------------------------------------ */
+
+.os-prj__danger-row {
+  margin-top: var(--s-3);
+  align-items: baseline;
+}
+
+/* The warning is prose, not a shout. It names the project, says what goes, and
+   says what to do first — which is more use than a colour. */
+.os-prj__warn {
+  flex: 1 1 22ch;
+  max-width: 56ch;
+  color: var(--text);
+}
+
+.os-saved__danger {
+  border-color: var(--signal-hot);
+  color: var(--signal-text);
+}
+.os-saved__danger:hover,
+.os-saved__danger:focus-visible {
+  background: var(--signal-hot);
+  border-color: var(--signal-hot);
+  color: var(--c-bone);
+}
+
+/* ---- the other projects -------------------------------------------------- */
+
+.os-saved {
+  list-style: none;
+  margin: var(--s-2) 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.os-saved__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px var(--s-3);
+  padding: var(--s-2) 0;
+  border-top: var(--hair) solid var(--rule-faint);
+}
+.os-saved__row:last-child {
+  border-bottom: var(--hair) solid var(--rule-faint);
+}
+
+.os-saved__title {
+  color: var(--text);
+  min-width: 0;
+}
+
+.os-saved__meta {
+  letter-spacing: var(--tr-mono);
+  color: var(--text-secondary);
+  text-align: right;
+}
+
+.os-saved__acts {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+  padding-top: 4px;
+}
+
+@media (max-width: 620px) {
+  .os-saved__row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .os-saved__meta {
+    text-align: left;
+  }
+}

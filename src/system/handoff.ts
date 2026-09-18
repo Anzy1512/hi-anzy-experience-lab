@@ -27,7 +27,7 @@
  */
 
 import { useSyncExternalStore } from 'react';
-import { getArtifact, getProject, type ArtifactRecord } from './project';
+import { getArtifact, note, getProject, type ArtifactRecord } from './project';
 
 export interface Handoff {
   artifactId: string;
@@ -56,6 +56,7 @@ export function offer(artifactId: string, from: string, to: string): boolean {
   if (!artifact) return false;
   pending = { artifactId, projectId: artifact.projectId, from, to, at: Date.now() };
   log.push(pending);
+  note('HANDOFF_OFFERED', `${artifact.title} carried from ${modeName(from)} to ${modeName(to)}.`, artifactId);
   emit();
   return true;
 }
@@ -93,7 +94,21 @@ export function offered(to: string): Handoff | null {
 export function claim(to: string): ArtifactRecord | null {
   if (!pending || pending.to !== to) return null;
   const artifact = getArtifact(pending.artifactId);
+  const taken = pending;
   pending = null;
+  /*
+   * The project remembers the move, not just the slot.
+   *
+   * The pending slot itself is session-only and stays that way — an offer is a
+   * gesture in flight, and resuming a project tomorrow to find a button still
+   * waiting to be pressed from yesterday would be a stale prompt, not memory.
+   * What deserves to survive is the fact that it happened.
+   */
+  note(
+    'HANDOFF_ACCEPTED',
+    `${artifact?.title ?? 'A result'} taken into ${modeName(taken.to)}.`,
+    taken.artifactId,
+  );
   emit();
   return artifact ?? null;
 }
@@ -101,8 +116,19 @@ export function claim(to: string): ArtifactRecord | null {
 /** Decline without taking. The log keeps the record that it was offered. */
 export function dismiss(): void {
   if (!pending) return;
+  const declined = pending;
   pending = null;
+  note(
+    'HANDOFF_DECLINED',
+    `An offer to ${modeName(declined.to)} was declined. Nothing was lost — the result stays in the project.`,
+    declined.artifactId,
+  );
   emit();
+}
+
+/** A mode id, as a person would say it. */
+function modeName(id: string): string {
+  return id.toUpperCase().replace(/-/g, ' ');
 }
 
 /**

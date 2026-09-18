@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import type { ArtifactKind, Project } from './project';
-import { getProject, subscribeProject } from './project';
+import { getProject, note, subscribeProject } from './project';
+import { attachWorkAdopter, rememberWork, rememberedWork } from './projects';
 
 /**
  * A PIECE OF WORK — several tools, one job, one outcome.
@@ -272,6 +273,11 @@ const emit = () => listeners.forEach((l) => l());
 export function startWork(id: string): void {
   if (chosen === id) return;
   chosen = workById(id) ? id : null;
+  /* The one stored thing is now also a persisted thing. Which job somebody is
+     doing is exactly what a resumed project should put back. */
+  rememberWork(chosen);
+  const def = workById(chosen);
+  if (def) note('WORK_CHOSEN', `Following ${def.title}.`, def.id);
   emit();
 }
 
@@ -284,13 +290,33 @@ export function startWork(id: string): void {
  */
 export function leaveWork(): void {
   if (chosen === null) return;
+  const was = workById(chosen);
   chosen = null;
+  rememberWork(null);
+  if (was) note('WORK_LEFT', `Stopped following ${was.title}. Everything made is still in the project.`, was.id);
   emit();
 }
 
 export function activeWorkId(): string | null {
   return chosen;
 }
+
+/**
+ * Adopt the work a resumed project was following.
+ *
+ * Called once the stored project is installed. `chosen` is module state and a
+ * reload empties it, so without this a visitor resumes their project and finds
+ * the route they were following quietly dropped.
+ */
+export function adoptStoredWork(): void {
+  const id = rememberedWork();
+  const next = id && workById(id) ? id : null;
+  if (chosen === next) return;
+  chosen = next;
+  emit();
+}
+
+attachWorkAdopter(adoptStoredWork);
 
 function subscribe(fn: () => void): () => void {
   listeners.add(fn);

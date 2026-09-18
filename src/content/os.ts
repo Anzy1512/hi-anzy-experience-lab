@@ -261,6 +261,13 @@ export const COMMANDS: Command[] = [
   { name: 'brief', help: 'Print the brief built so far.' },
   { name: 'export', args: 'brief [json]', help: 'Save the brief as a file.' },
   { name: 'copy', help: 'Copy the brief to the clipboard.' },
+  /* The project half. Added in Phase 8.10, when a project first became a thing
+     that outlives the tab it was made in. */
+  { name: 'project', args: '[history|export]', help: 'This project: what it is and how it got here.' },
+  { name: 'projects', help: 'Every project saved in this browser.' },
+  { name: 'resume', args: '<number>', help: 'Open a saved project by its number.' },
+  { name: 'new', help: 'Start a new project. The current one stays saved.' },
+  { name: 'save', help: 'Write this project to the browser now.' },
   { name: 'history', help: 'What you have typed this session.' },
   { name: 'clear', help: 'Clear this terminal.' },
   { name: 'about', help: 'What this operating environment is.' },

@@ -8,7 +8,7 @@ import { fragmentsFor, run, type Answers } from './model';
 import { buildRun, chosenLabels, tally } from './report';
 import { ArtifactBar } from '../../artifacts/ArtifactBar';
 import { briefJson, briefMarkdown, setRun } from '../../system/brief';
-import { getProject, setStatement } from '../../system/project';
+import { clearConstraints, getProject, setConstraint, setStatement } from '../../system/project';
 import { DISCLAIMER, frame as buildFrame, type Frame } from '../../system/diagnose';
 import { FragmentTable } from './FragmentTable';
 import { SystemMap } from './SystemMap';
@@ -49,7 +49,18 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
 
   const [phase, setPhase] = useState<Phase>('brief');
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<Answers>({});
+  /*
+   * ---- AND THE FIVE CHOICES ARE MADE ONCE TOO -----------------------------
+   *
+   * These used to be born and die with this component. They are not component
+   * state: they are the constraints the visitor stated, the project keeps them,
+   * and a resumed project opens with them already chosen. The entire five-stage
+   * brief is a pure function of these plus the sentence, which is why the
+   * project stores 200 bytes of choices rather than 25 kB of report.
+   */
+  const [answers, setAnswers] = useState<Answers>(() =>
+    Object.fromEntries(getProject().constraints.map((c) => [c.question, c.option])),
+  );
   /*
    * ---- THE PROBLEM IS STATED ONCE ----------------------------------------
    *
@@ -104,7 +115,7 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
     const reset = () => {
       setPhase('brief');
       setStep(0);
-      setAnswers({});
+      setAnswers(Object.fromEntries(getProject().constraints.map((c) => [c.question, c.option])));
       /*
        * Back to what the PROJECT holds, not to empty.
        *
@@ -142,14 +153,25 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
        from here rather than from this component, which is what lets Director
        name the subject of a film it was never told about directly. */
     setStatement(text);
-    setPhase('asking');
-  }, [said]);
+    /*
+     * A resumed project already answered these.
+     *
+     * Walking somebody back through five questions they have already answered,
+     * to arrive at a reading the project has been holding all along, is the
+     * same failure as asking for the statement twice — one level further in.
+     */
+    setPhase(Object.keys(answers).length >= QUESTIONS.length ? 'system' : 'asking');
+  }, [said, answers]);
 
   /* ---- flow -------------------------------------------------------------- */
   const choose = useCallback(
     (optionId: string) => {
       const q = QUESTIONS[step];
       setAnswers((a) => ({ ...a, [q.id]: optionId }));
+      /* The project records the decision, in the words the visitor saw. A
+         question id and an option id would be a fact nobody could read back. */
+      const opt = q.options.find((o) => o.id === optionId);
+      setConstraint(q.id, optionId, `${q.prompt} — ${opt?.label ?? optionId}`);
       if (step + 1 >= QUESTIONS.length) {
         // A beat before the table sorts itself: the last fragments have to land.
         window.setTimeout(() => setPhase('system'), reduced ? 120 : 700);
@@ -187,8 +209,11 @@ export default function SimulatorMode({ onReady, scope }: ModeViewProps) {
     setPhase('brief');
     setStep(0);
     setAnswers({});
+
     /* START AGAIN restarts the simulation, not the session. Their sentence is
-       still their sentence. */
+       still their sentence; the five choices are not, because starting again is
+       exactly the gesture that withdraws them. */
+    clearConstraints();
     setSaid(getProject().statement ?? '');
     setFrameState(null);
     setNoMatch(false);

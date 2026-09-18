@@ -14,6 +14,9 @@ import { APPS, BOOT_LINES, OS_COPY, type AppId } from '../../content/os';
 import { complete, execute, type OsLine } from './commands';
 import { runFormat } from '../../artifacts/artifact';
 import { briefJson, briefMarkdown } from '../../system/brief';
+import { getProject, note } from '../../system/project';
+import { openProject as openStoredProject, projectTitle } from '../../system/projects';
+import { exportProject as buildProjectExport } from '../../system/exportProject';
 import { offered } from '../../system/handoff';
 import { Sheet } from './Sheet';
 import { CapabilityBody, ServiceBody, TerminalBody } from './AppBody';
@@ -291,6 +294,41 @@ export default function OsMode({ onReady, scope }: ModeViewProps) {
                   : `brief saved as ${how === 'json' ? '.json' : '.md'}.`
                 : `export failed: ${r.reason.toLowerCase()}`,
             ]);
+          });
+        },
+
+        /*
+         * The same artifact path the panel uses, so a project exported from the
+         * shell and one exported from SYSTEM.app are byte-identical documents.
+         * There is no second composer behind the terminal.
+         */
+        exportProject: (how) => {
+          const out = buildProjectExport(getProject());
+          void runFormat(how === 'copy' ? 'copy' : how, {
+            name: out.name,
+            text: out.markdown,
+            data: out.json,
+          }).then((r) => {
+            if (r.ok) note('PROJECT_EXPORTED', `The whole project was exported as ${how}.`);
+            print([
+              r.ok
+                ? how === 'copy'
+                  ? 'project copied to the clipboard.'
+                  : `project saved as ${how === 'json' ? '.json' : '.md'}.`
+                : `export failed: ${r.reason.toLowerCase()}`,
+            ]);
+          });
+        },
+
+        /* Reading a body is asynchronous and can fail, so the shell prints what
+           actually happened rather than what was asked for. */
+        openProject: (id) => {
+          void openStoredProject(id).then((problem) => {
+            print(
+              problem
+                ? [problem]
+                : [`opened “${projectTitle(getProject()).text}”.`, 'SYSTEM.app has it.'],
+            );
           });
         },
       });

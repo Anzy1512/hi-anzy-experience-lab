@@ -39,6 +39,7 @@
  */
 
 import { useSyncExternalStore } from 'react';
+import type { HistoryEntry, HistoryKind, StoredConstraint, StoredProject } from './schema';
 
 /** What kind of thing an artifact is. Drives how a receiver reads it. */
 export type ArtifactKind =
@@ -92,6 +93,17 @@ export interface ArtifactRecord {
 export interface Project {
   id: string;
   createdAt: number;
+  /** Last time anything in it changed. What the project list sorts on. */
+  updatedAt: number;
+  /**
+   * What the visitor called it, or null when nobody has.
+   *
+   * Null is a real answer rather than a missing one, and every surface that
+   * shows a project has to say so instead of printing a derived name as though
+   * somebody chose it. `projectTitle()` in `schema.ts` is the one place that
+   * decides what to show in its place.
+   */
+  title: string | null;
   /**
    * The visitor's own words about their own problem, if they have given any.
    *
@@ -101,7 +113,19 @@ export interface Project {
    * the brief store to find out whether a project has a subject yet.
    */
   statement: string | null;
+  /**
+   * The five choices the Agency Simulator asked for, kept as the choices.
+   *
+   * These used to live in a component and die with it. They are not component
+   * state: they are the visitor's stated constraints, and the entire five-stage
+   * brief is a pure function of them plus the statement. Storing the inputs and
+   * rebuilding the document is what keeps a 25 kB report out of the database
+   * — see the note at the top of `schema.ts`.
+   */
+  constraints: StoredConstraint[];
   artifacts: ArtifactRecord[];
+  /** How the project got into this state. Never an event log — see `schema.ts`. */
+  history: HistoryEntry[];
 }
 
 /* -------------------------------------------------------------------------- */
@@ -121,7 +145,17 @@ function id(prefix: string): string {
 }
 
 function fresh(): Project {
-  return { id: id('prj'), createdAt: Date.now(), statement: null, artifacts: [] };
+  const at = Date.now();
+  return {
+    id: id('prj'),
+    createdAt: at,
+    updatedAt: at,
+    title: null,
+    statement: null,
+    constraints: [],
+    artifacts: [],
+    history: [{ at, kind: 'PROJECT_CREATED', note: 'Project started.' }],
+  };
 }
 
 let state: Project = fresh();
@@ -130,6 +164,68 @@ const emit = () => listeners.forEach((l) => l());
 
 export function getProject(): Project {
   return state;
+}
+
+/* -------------------------------------------------------------------------- */
+/* EVERY CHANGE GOES THROUGH ONE DOOR                                          */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Apply a change, stamp the clock, tell everybody, and save.
+ *
+ * Every mutator below goes through here so that three things cannot drift apart:
+ * `updatedAt`, the subscribers, and what is on disk. A mutator that set `state`
+ * directly would be a mutator whose change silently does not survive a reload,
+ * and that is precisely the bug this phase exists to make impossible.
+ *
+ * Saving is fire-and-forget by design. A write that fails reports itself through
+ * the storage state — which SYSTEM.app prints — and the visitor keeps working
+ * with an intact in-memory project either way. Persistence is a feature that can
+ * be missing; it is never something a product waits for.
+ */
+let persist: ((p: Project) => void) | null = null;
+
+/**
+ * Handed in by the persistence layer at start-up.
+ *
+ * Injected rather than imported so this module keeps knowing nothing about
+ * storage. It is also what lets a resumed project be installed without the act
+ * of installing it writing itself straight back out again.
+ */
+export function attachPersistence(fn: ((p: Project) => void) | null): void {
+  persist = fn;
+}
+
+function commit(next: Project, entry?: { kind: HistoryKind; note: string; ref?: string }): void {
+  const at = Date.now();
+  state = {
+    ...next,
+    updatedAt: at,
+    history: entry ? [...next.history, { at, ...entry }] : next.history,
+  };
+  emit();
+  persist?.(state);
+}
+
+/**
+ * Put a project back the way it was found, without recording that as a change.
+ *
+ * `commit` would stamp `updatedAt` and write it out again, so resuming a project
+ * would keep bumping its position in the list without anything having happened
+ * to it. Opening something is not editing it.
+ */
+export function installProject(p: StoredProject): void {
+  state = {
+    id: p.id,
+    createdAt: p.createdAt,
+    updatedAt: p.updatedAt,
+    title: p.title,
+    statement: p.statement,
+    constraints: p.constraints,
+    artifacts: p.artifacts,
+    history: p.history,
+  };
+  emit();
 }
 
 /**
@@ -141,8 +237,10 @@ export function getProject(): Project {
  * reach into them, for the same reason products do not reach into each other.
  */
 export function newProject(): Project {
-  state = fresh();
+  const next = fresh();
+  state = next;
   emit();
+  persist?.(state);
   return state;
 }
 
@@ -150,8 +248,54 @@ export function newProject(): Project {
 export function setStatement(statement: string): void {
   const trimmed = statement.trim();
   if (!trimmed || trimmed === state.statement) return;
-  state = { ...state, statement: trimmed };
-  emit();
+  commit({ ...state, statement: trimmed }, {
+    kind: 'STATEMENT_SET',
+    note: `Stated: “${trimmed.length > 90 ? `${trimmed.slice(0, 89)}…` : trimmed}”`,
+  });
+}
+
+/**
+ * Name the project, or take the name off again.
+ *
+ * The only field in the whole model a visitor sets for its own sake. Clearing it
+ * returns the project to being unnamed rather than naming it something empty,
+ * so "has anybody named this" stays a question with an answer.
+ */
+export function setTitle(title: string | null): void {
+  const trimmed = title?.trim() || null;
+  if (trimmed === state.title) return;
+  commit({ ...state, title: trimmed }, {
+    kind: 'STATEMENT_SET',
+    note: trimmed ? `Named “${trimmed}”.` : 'Name removed.',
+  });
+}
+
+/**
+ * Record a decision the visitor made, as the decision rather than its effect.
+ *
+ * Re-answering a question replaces that answer instead of appending a second
+ * one: the constraint list is what they currently think, not a transcript of
+ * them changing their mind. The transcript is the history.
+ */
+export function setConstraint(question: string, option: string, note: string): void {
+  const existing = state.constraints.find((c) => c.question === question);
+  if (existing && existing.option === option) return;
+  const constraints = [
+    ...state.constraints.filter((c) => c.question !== question),
+    { question, option, at: Date.now() },
+  ];
+  commit({ ...state, constraints }, { kind: 'DECISION_ACCEPTED', note, ref: question });
+}
+
+/** Forget the constraints without touching the statement. Used by START AGAIN. */
+export function clearConstraints(): void {
+  if (!state.constraints.length) return;
+  commit({ ...state, constraints: [] });
+}
+
+/** Something worth explaining later happened. */
+export function note(kind: HistoryKind, text: string, ref?: string): void {
+  commit({ ...state }, { kind, note: text, ...(ref ? { ref } : {}) });
 }
 
 /**
@@ -170,8 +314,11 @@ export function recordArtifact(
     createdAt: Date.now(),
     projectId: state.id,
   };
-  state = { ...state, artifacts: [...state.artifacts, record] };
-  emit();
+  commit({ ...state, artifacts: [...state.artifacts, record] }, {
+    kind: 'ARTIFACT_CREATED',
+    note: `${record.title} — made in ${record.producer.toUpperCase().replace(/-/g, ' ')}.`,
+    ref: record.id,
+  });
   return record;
 }
 

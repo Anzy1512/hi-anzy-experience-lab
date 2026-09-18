@@ -10,7 +10,9 @@ import {
 } from '../../content/canonical';
 import { DISCLAIMER, frame } from '../../system/diagnose';
 import { getBrief, setFrame } from '../../system/brief';
-import { setStatement } from '../../system/project';
+import { getProject, setStatement } from '../../system/project';
+import { beginProject, flushNow, projectStatus, projectTitle, storageSentence, workspace } from '../../system/projects';
+import { storageState } from '../../system/storage';
 
 /**
  * THE INTERPRETER.
@@ -43,6 +45,16 @@ export interface CommandContext {
   history: string[];
   /** Hand the brief to the artifact layer. Async, so it reports back itself. */
   exportBrief: (how: 'copy' | 'markdown' | 'json') => void;
+  /** Same path, for the whole project rather than one document. */
+  exportProject: (how: 'copy' | 'markdown' | 'json') => void;
+  /** Reading a project body is asynchronous, so it reports back itself too. */
+  openProject: (id: string) => void;
+}
+
+/** `14:32` — a time, not a date. A shell session is one sitting. */
+function hhmm(at: number): string {
+  const d = new Date(at);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
 const APP_IDS = APPS.map((a) => a.id);
@@ -321,6 +333,103 @@ export function execute(raw: string, ctx: CommandContext): string[] {
       return [];
     }
 
+    /* ---- the project ----------------------------------------------------- */
+
+    /*
+     * These call the same services SYSTEM.app's panel calls. There is no second
+     * persistence implementation behind the terminal and there must never be
+     * one: a shell that could write projects by a different route would be a
+     * shell that could write them differently.
+     */
+    case 'projects': {
+      const ws = workspace();
+      if (!ws.ready) return ['projects: still reading what this browser has stored.'];
+      if (!ws.projects.length) {
+        return [
+          'nothing saved in this browser yet.',
+          '',
+          'A project starts keeping itself the moment you state something or make',
+          'something. Until then nothing is written and closing the tab leaves',
+          'nothing behind.',
+        ];
+      }
+      const here = getProject().id;
+      return [
+        `SAVED IN THIS BROWSER — ${ws.projects.length}`,
+        ...ws.projects.map((p, i) => {
+          const t = projectTitle({ title: p.title, statement: p.excerpt });
+          const mark = p.id === here ? '›' : ' ';
+          return `${mark} ${String(i + 1).padStart(2, '0')}  ${t.text.slice(0, 46).padEnd(48)}${String(p.artifactCount).padStart(2)} made`;
+        }),
+        '',
+        '`resume <number>` opens one. `project` describes the one you are in.',
+      ];
+    }
+
+    case 'project': {
+      const p = getProject();
+      const ws = workspace();
+      const sub = arg.toLowerCase();
+
+      if (sub.startsWith('history')) {
+        return p.history.length
+          ? ['HOW THIS PROJECT GOT HERE', ...p.history.map((h) => `  ${hhmm(h.at)}  ${h.kind.padEnd(18)}${h.note}`)]
+          : ['nothing has happened to this project yet.'];
+      }
+      if (sub.startsWith('export')) {
+        const how = sub.includes('json') ? 'json' : sub.includes('copy') ? 'copy' : 'markdown';
+        ctx.exportProject(how);
+        return [];
+      }
+
+      const t = projectTitle(p);
+      return [
+        'THIS PROJECT',
+        `  name        ${t.text}${t.named ? '' : '   (derived — nobody has named it)'}`,
+        `  state       ${projectStatus(p)}`,
+        `  stated      ${p.statement ?? 'nothing yet'}`,
+        `  constraints ${p.constraints.length} of 5`,
+        `  made        ${p.artifacts.length}`,
+        `  saved       ${ws.storage.kind !== 'READY' ? 'NO' : ws.saved ? 'yes, in this browser only' : 'not yet'}`,
+        '',
+        `  ${storageSentence(ws.storage)}`,
+        '',
+        '`project history` prints how it got here. `project export` saves it.',
+      ];
+    }
+
+    /* `open` already opens an application sheet, so this is `resume`, which is
+       also the better word for what it does to a project. */
+    case 'resume': {
+      const n = Number.parseInt(arg, 10);
+      const ws = workspace();
+      if (!arg) return ['resume: which one? `projects` lists them by number.'];
+      if (!Number.isFinite(n) || n < 1 || n > ws.projects.length) {
+        return [`resume: there is no project ${arg}. \`projects\` lists them by number.`];
+      }
+      const target = ws.projects[n - 1];
+      ctx.openProject(target.id);
+      /* Reading a project body is asynchronous and can fail. The outcome is
+         printed when it arrives, for the same reason `export` says nothing
+         here: claiming success before the read has happened is a small lie. */
+      return [];
+    }
+
+    case 'new':
+      beginProject();
+      return [
+        'new project started.',
+        'The previous one is saved and still listed — `projects` shows it.',
+      ];
+
+    case 'save':
+      flushNow();
+      return [
+        storageState().kind === 'READY'
+          ? 'written to this browser.'
+          : `not written. ${storageSentence()}`,
+      ];
+
     case 'history':
       return ctx.history.length
         ? ctx.history.map((h, i) => `  ${String(i + 1).padStart(3, ' ')}  ${h}`)
@@ -389,6 +498,8 @@ function argsFor(verb: string): string[] {
       return Object.keys(NETWORK_CAPABILITIES).map((k) => k.toLowerCase());
     case 'export':
       return ['brief', 'brief json'];
+    case 'project':
+      return ['history', 'export', 'export json'];
     default:
       return [];
   }

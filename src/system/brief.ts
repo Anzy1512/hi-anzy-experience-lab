@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { toMarkdown } from '../artifacts/artifact';
 import { CANONICAL_SOURCE, POSITION } from '../content/canonical';
-import { DISCLAIMER, type Frame } from './diagnose';
+import { DISCLAIMER, frame, type Frame } from './diagnose';
 
 /**
  * THE SESSION BRIEF — the one thing tools hand to each other.
@@ -120,6 +120,34 @@ export function setSelected(selected: string[]): void {
 
 export function resetBrief(): void {
   state = { frame: null, selected: [], origin: null };
+  emit();
+}
+
+/**
+ * REBUILD THE FRAME FROM WHAT THE PROJECT KEPT.
+ *
+ * ── WHY THIS IS NOT A DESERIALISER ──────────────────────────────────────────
+ *
+ * A resumed project does not carry a stored frame. It carries the SENTENCE, and
+ * `frame()` is a deterministic lookup over canonical data with no clock and no
+ * randomness in it — so the frame is recomputed here by the code that is
+ * running now. If the lexicon is corrected between one visit and the next, the
+ * visitor's reading is corrected with it, rather than being a replay of an
+ * answer this build no longer stands behind.
+ *
+ * The five-stage working is NOT rebuilt here, and deliberately so: `buildRun`
+ * lives in the Simulator's own lazily loaded chunk, and dragging it into the
+ * shared brief chunk to service a resume would put a report builder in front of
+ * every visitor who never opens the Simulator. It comes back in two ways
+ * instead — the Simulator rebuilds it the moment it is opened with the stored
+ * answers, and SYSTEM.app reads the stages off the brief artifact that is
+ * already in the ledger.
+ */
+export function rehydrateBrief(statement: string | null, origin: BriefState['origin']): void {
+  if (!statement) return;
+  const f = frame(statement);
+  if (f.empty) return;
+  state = { frame: f, selected: state.selected, origin, stages: undefined };
   emit();
 }
 

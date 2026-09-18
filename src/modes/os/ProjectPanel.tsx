@@ -1,9 +1,22 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { claim, dismiss, handoffsForCurrentProject, usePendingHandoff } from '../../system/handoff';
-import { getArtifact, newProject, useProject, type ArtifactRecord } from '../../system/project';
+import { getArtifact, useProject, type ArtifactRecord } from '../../system/project';
 import { findMode } from '../../content/lab';
-import { resetBrief } from '../../system/brief';
 import { assemble } from '../../system/assemble';
+import {
+  beginProject,
+  dismissNotice,
+  forgetEverything,
+  forgetProject,
+  openProject,
+  projectStatus,
+  projectTitle,
+  storageSentence,
+  useWorkspace,
+} from '../../system/projects';
+import { note, setTitle } from '../../system/project';
+import { exportProject } from '../../system/exportProject';
+import { ArtifactBar } from '../../artifacts/ArtifactBar';
 import { useExperience } from '../../experience/context';
 
 /**
@@ -127,6 +140,285 @@ function Doors({ doors }: { doors: ReturnType<typeof assemble>['doors'] }) {
   );
 }
 
+/**
+ * WHOSE PROJECT THIS IS, AND WHERE IT LIVES.
+ *
+ * The header of the project view, and the first thing that has ever needed to
+ * exist in this product: a project that survives being closed has to be able to
+ * say what it is, when it was last touched, and — plainly, without a claim —
+ * where its data is.
+ *
+ * The name is editable in place and may be empty. An unnamed project shows its
+ * opening sentence with DERIVED beside it, so nobody mistakes a fallback for a
+ * name somebody chose.
+ */
+function Identity({ project }: { project: ReturnType<typeof useProject> }) {
+  const ws = useWorkspace();
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState('');
+  const title = projectTitle(project);
+  const status = projectStatus(project);
+
+  const begin = useCallback(() => {
+    setDraft(project.title ?? '');
+    setEditing(true);
+  }, [project.title]);
+
+  const commit = useCallback(() => {
+    setTitle(draft);
+    setEditing(false);
+  }, [draft]);
+
+  return (
+    <section className="os-prj">
+      {editing ? (
+        <form
+          className="os-prj__name-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            commit();
+          }}
+        >
+          <label className="t-mono t-mono-xs t-dim" htmlFor="os-prj-name">
+            NAME THIS PROJECT
+          </label>
+          <input
+            id="os-prj-name"
+            className="t-body-s os-prj__name-input"
+            value={draft}
+            autoComplete="off"
+            placeholder="Leave it empty to go back to no name"
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') setEditing(false);
+            }}
+          />
+          <div className="os-offer__row">
+            <button type="submit" className="t-mono t-mono-xs artifact__btn artifact__btn--send">
+              SAVE NAME
+            </button>
+            <button type="button" className="t-mono t-mono-xs artifact__btn" onClick={() => setEditing(false)}>
+              CANCEL
+            </button>
+          </div>
+        </form>
+      ) : (
+        <button type="button" className="os-prj__name" onClick={begin}>
+          <span className="t-display t-display-s os-prj__title">{title.text}</span>
+          <span className="t-mono t-mono-xs t-dim os-prj__rename">
+            {title.named ? 'RENAME' : 'DERIVED · NAME IT'}
+          </span>
+        </button>
+      )}
+
+      <dl className="os-kv os-prj__kv">
+        <div>
+          <dt className="t-mono t-mono-xs">STATE</dt>
+          <dd className="t-mono t-mono-xs">{status}</dd>
+        </div>
+        <div>
+          <dt className="t-mono t-mono-xs">SAVED</dt>
+          <dd className="t-mono t-mono-xs">
+            {ws.storage.kind !== 'READY' ? 'NO' : ws.saved ? 'YES · IN THIS BROWSER' : 'NOT YET'}
+          </dd>
+        </div>
+      </dl>
+
+      {/* Never a security claim. Only what is true about where the bytes are. */}
+      <p className="t-body-s t-dim os-prj__where">{storageSentence(ws.storage)}</p>
+
+      {ws.notice && (
+        <p className="t-body-s os-prj__notice" role="status">
+          {ws.notice}{' '}
+          <button type="button" className="t-mono t-mono-xs os-prj__dismiss" onClick={dismissNotice}>
+            UNDERSTOOD
+          </button>
+        </p>
+      )}
+    </section>
+  );
+}
+
+/**
+ * The other projects this browser holds.
+ *
+ * Not a dashboard: a list of things that exist, with the two operations that
+ * make sense on one you are not currently in. It is not shown at all when there
+ * is nothing else, which is most visitors most of the time.
+ */
+function SavedProjects({ currentId }: { currentId: string }) {
+  const ws = useWorkspace();
+  const others = ws.projects.filter((p) => p.id !== currentId);
+  const [confirming, setConfirming] = useState<string | null>(null);
+
+  if (!ws.ready && !others.length) return null;
+  if (!others.length) return null;
+
+  return (
+    <section className="os-read">
+      <h5 className="t-mono t-mono-xs os-read__h">ALSO SAVED IN THIS BROWSER</h5>
+      <ul className="os-saved">
+        {others.map((p) => {
+          /* The summary carries an excerpt rather than the whole statement, so
+             the title is derived from that. Same rule, less to read. */
+          const t = projectTitle({ title: p.title, statement: p.excerpt });
+          return (
+            <li key={p.id} className="os-saved__row">
+              <span className="t-body-s os-saved__title">
+                {t.text}
+                {t.named ? null : <span className="t-mono t-mono-xs t-dim"> · DERIVED</span>}
+              </span>
+              <span className="t-mono t-mono-xs t-dim os-saved__meta">
+                {p.artifactCount} MADE · {new Date(p.updatedAt).toLocaleDateString()}
+              </span>
+              <span className="os-saved__acts">
+                <button
+                  type="button"
+                  className="t-mono t-mono-xs artifact__btn"
+                  onClick={() => void openProject(p.id)}
+                >
+                  OPEN
+                </button>
+                {confirming === p.id ? (
+                  <>
+                    <button
+                      type="button"
+                      className="t-mono t-mono-xs artifact__btn os-saved__danger"
+                      onClick={() => {
+                        void forgetProject(p.id);
+                        setConfirming(null);
+                      }}
+                    >
+                      DELETE FOR GOOD
+                    </button>
+                    <button
+                      type="button"
+                      className="t-mono t-mono-xs artifact__btn"
+                      onClick={() => setConfirming(null)}
+                    >
+                      KEEP IT
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    className="t-mono t-mono-xs artifact__btn"
+                    onClick={() => setConfirming(p.id)}
+                  >
+                    DELETE
+                  </button>
+                )}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+/**
+ * ---- THE FOUR THINGS THAT ARE NOT THE SAME OPERATION ----------------------
+ *
+ * A visitor has several ways to get rid of something, and they are different
+ * sizes. Treating them as one control is how people lose work:
+ *
+ *   START AGAIN      inside the Simulator. Clears that tool's run. The project,
+ *                    its statement and everything made are untouched.
+ *   NEW PROJECT      starts a second project. The first one is saved, listed,
+ *                    and can be opened again. Nothing is deleted.
+ *   DELETE           removes ONE saved project from this browser, for good.
+ *   CLEAR EVERYTHING removes every saved project from this browser, for good.
+ *
+ * The two that destroy require a second, differently worded press. The two that
+ * do not, do not — a confirmation on a safe action teaches people to click
+ * through confirmations.
+ */
+function ProjectActions({ project }: { project: ReturnType<typeof useProject> }) {
+  const ws = useWorkspace();
+  const [confirm, setConfirm] = useState<'none' | 'this' | 'all'>('none');
+
+  const startOver = useCallback(() => {
+    beginProject();
+  }, []);
+
+  return (
+    <>
+      <ArtifactBar
+        formats={['copy', 'markdown', 'json']}
+        label="THE WHOLE PROJECT"
+        build={() => {
+          const out = exportProject(project);
+          note('PROJECT_EXPORTED', 'The whole project was exported.');
+          return { name: out.name, text: out.markdown, data: out.json };
+        }}
+      >
+        <button type="button" className="t-mono t-mono-xs artifact__btn" onClick={startOver}>
+          NEW PROJECT
+        </button>
+      </ArtifactBar>
+
+      <div className="os-offer__row os-prj__danger-row">
+        {confirm === 'this' ? (
+          <>
+            <span className="t-body-s os-prj__warn">
+              Delete “{projectTitle(project).text}” from this browser? Everything in it goes, and
+              nothing here can bring it back. Export it first if you want to keep it.
+            </span>
+            <button
+              type="button"
+              className="t-mono t-mono-xs artifact__btn os-saved__danger"
+              onClick={() => {
+                void forgetProject(project.id);
+                setConfirm('none');
+              }}
+            >
+              DELETE FOR GOOD
+            </button>
+            <button type="button" className="t-mono t-mono-xs artifact__btn" onClick={() => setConfirm('none')}>
+              KEEP IT
+            </button>
+          </>
+        ) : confirm === 'all' ? (
+          <>
+            <span className="t-body-s os-prj__warn">
+              Remove all {ws.projects.length} saved{' '}
+              {ws.projects.length === 1 ? 'project' : 'projects'} from this browser? This is
+              everything, not just the one you are looking at.
+            </span>
+            <button
+              type="button"
+              className="t-mono t-mono-xs artifact__btn os-saved__danger"
+              onClick={() => {
+                void forgetEverything();
+                setConfirm('none');
+              }}
+            >
+              CLEAR EVERYTHING
+            </button>
+            <button type="button" className="t-mono t-mono-xs artifact__btn" onClick={() => setConfirm('none')}>
+              KEEP THEM
+            </button>
+          </>
+        ) : (
+          <>
+            {ws.saved && (
+              <button type="button" className="t-mono t-mono-xs artifact__btn" onClick={() => setConfirm('this')}>
+                DELETE THIS PROJECT
+              </button>
+            )}
+            {ws.projects.length > 0 && (
+              <button type="button" className="t-mono t-mono-xs artifact__btn" onClick={() => setConfirm('all')}>
+                CLEAR ALL LOCAL DATA
+              </button>
+            )}
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
 export function ProjectPanel() {
   const project = useProject();
   const pending = usePendingHandoff();
@@ -138,20 +430,6 @@ export function ProjectPanel() {
 
   const take = useCallback(() => {
     claim('anzy-os');
-  }, []);
-
-  /*
-   * A new project clears the working brief too.
-   *
-   * The project store deliberately does not reach into other stores — but the
-   * environment that owns both surfaces can, and must: starting again while
-   * SYSTEM.app still displays the previous problem's frame would be the exact
-   * "document that looks assembled and describes something else" failure the
-   * brief store was written to prevent.
-   */
-  const startOver = useCallback(() => {
-    newProject();
-    resetBrief();
   }, []);
 
   const history = handoffsForCurrentProject();
@@ -176,6 +454,8 @@ export function ProjectPanel() {
   return (
     <>
       <h4 className="os-app__h t-mono t-mono-xs">PROJECT</h4>
+
+      <Identity project={project} />
 
       {waiting && offered && (
         <div className="os-offer" role="status">
@@ -244,13 +524,9 @@ export function ProjectPanel() {
         </>
       )}
 
-      {project.artifacts.length > 0 && (
-        <div className="os-offer__row">
-          <button type="button" className="t-mono t-mono-xs artifact__btn" onClick={startOver}>
-            NEW PROJECT
-          </button>
-        </div>
-      )}
+      {has && <ProjectActions project={project} />}
+
+      <SavedProjects currentId={project.id} />
     </>
   );
 }
