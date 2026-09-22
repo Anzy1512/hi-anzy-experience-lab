@@ -335,29 +335,45 @@ function SavedProjects({ currentId }: { currentId: string }) {
  * through confirmations.
  */
 function ProjectActions({ project }: { project: ReturnType<typeof useProject> }) {
-  const ws = useWorkspace();
-  const [confirm, setConfirm] = useState<'none' | 'this' | 'all'>('none');
-
   const startOver = useCallback(() => {
     beginProject();
   }, []);
 
   return (
-    <>
-      <ArtifactBar
-        formats={['copy', 'markdown', 'json']}
-        label="THE WHOLE PROJECT"
-        build={() => {
-          const out = exportProject(project);
-          note('PROJECT_EXPORTED', 'The whole project was exported.');
-          return { name: out.name, text: out.markdown, data: out.json };
-        }}
-      >
-        <button type="button" className="t-mono t-mono-xs artifact__btn" onClick={startOver}>
-          NEW PROJECT
-        </button>
-      </ArtifactBar>
+    <ArtifactBar
+      formats={['copy', 'markdown', 'json']}
+      label="THE WHOLE PROJECT"
+      build={() => {
+        const out = exportProject(project);
+        note('PROJECT_EXPORTED', 'The whole project was exported.');
+        return { name: out.name, text: out.markdown, data: out.json };
+      }}
+    >
+      <button type="button" className="t-mono t-mono-xs artifact__btn" onClick={startOver}>
+        NEW PROJECT
+      </button>
+    </ArtifactBar>
+  );
+}
 
+/**
+ * The two controls that destroy, kept apart from the export bar.
+ *
+ * These follow what the BROWSER is holding, not what the open draft contains.
+ * They used to sit inside `ProjectActions`, which only renders once the current
+ * project has a statement or an artifact — so a visitor who arrived with three
+ * saved projects and an empty draft was shown no way to clear their local data
+ * at all, which is precisely the person most likely to want one. The condition
+ * belonged to the export bar and had been applied to the whole block.
+ */
+function LocalData({ project }: { project: ReturnType<typeof useProject> }) {
+  const ws = useWorkspace();
+  const [confirm, setConfirm] = useState<'none' | 'this' | 'all'>('none');
+
+  if (!ws.saved && !ws.projects.length) return null;
+
+  return (
+    <>
       <div className="os-offer__row os-prj__danger-row">
         {confirm === 'this' ? (
           <>
@@ -525,6 +541,9 @@ export function ProjectPanel() {
       )}
 
       {has && <ProjectActions project={project} />}
+      {/* Not behind `has`: clearing local data is about the browser, not the
+          draft. See LocalData. */}
+      <LocalData project={project} />
 
       <SavedProjects currentId={project.id} />
     </>

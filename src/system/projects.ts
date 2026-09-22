@@ -104,6 +104,20 @@ export function dismissNotice(): void {
   if (ws.notice) set({ notice: null });
 }
 
+/**
+ * Add something the visitor should know without deleting what was already
+ * there.
+ *
+ * Boot can produce two true sentences in a row — "the list was unreadable" and
+ * then "two projects were put back" — and a plain assignment showed only the
+ * second, so the corruption that caused the repair went unmentioned. Both are
+ * kept, in the order they happened.
+ */
+function addNotice(s: string): void {
+  if (!s) return;
+  set({ notice: ws.notice && !ws.notice.includes(s) ? `${ws.notice} ${s}` : s });
+}
+
 /* -------------------------------------------------------------------------- */
 /* WRITING                                                                     */
 /* -------------------------------------------------------------------------- */
@@ -187,8 +201,18 @@ async function flush(p: Project): Promise<void> {
   if (!worthKeeping(p)) return;
   const stored = toStored(p);
   const ok = await putProject(stored);
+
+  /**
+   * `saved` describes the project currently in memory, and this write may have
+   * outlived it: NEW PROJECT flushes the outgoing one and then swaps, so a
+   * flush that resolves afterwards was reporting on a project the visitor has
+   * already left. It printed "SAVED — YES · IN THIS BROWSER" over a brand new
+   * empty project that had never been written. Caught by the two-tab test.
+   */
+  const stillOpen = () => getProject().id === stored.id;
+
   if (!ok) {
-    set({ storage: storageState(), saved: false });
+    set({ storage: storageState(), ...(stillOpen() ? { saved: false } : {}) });
     return;
   }
   const rows = [summarise(stored), ...index.projects.filter((r) => r.id !== stored.id)].sort(
@@ -196,7 +220,7 @@ async function flush(p: Project): Promise<void> {
   );
   index = { schemaVersion: SCHEMA_VERSION, projects: rows, last: stored.id };
   writeIndex(index);
-  set({ projects: rows, storage: storageState(), saved: true });
+  set({ projects: rows, storage: storageState(), ...(stillOpen() ? { saved: true } : {}) });
 }
 
 /** Write immediately — used when the page is going away. */
@@ -238,10 +262,19 @@ export function startWorkspace(): void {
   set({ projects: index.projects, notice: first.problem, storage: storageState() });
 
   void (async () => {
+    /* Data from a newer build. Reconciling would re-list the bodies this build
+       can parse and write a version-1 index over a version-N one, and resuming
+       would open a project read through the wrong shape. Both are the
+       reinterpretation the refusal exists to prevent, so neither happens. */
+    if (first.refused) {
+      set({ ready: true, storage: storageState() });
+      return;
+    }
+
     const repaired = await reconcile(index);
     index = repaired.index;
     set({ projects: index.projects });
-    if (repaired.note) set({ notice: repaired.note });
+    if (repaired.note) addNotice(repaired.note);
 
     if (index.last) {
       const r = await loadProject(index.last);
@@ -258,7 +291,7 @@ export function startWorkspace(): void {
       } else {
         /* The row stays in the list. Losing somebody's project because one read
            failed is the only move here that cannot be undone. */
-        set({ notice: r.problem });
+        addNotice(r.problem);
       }
     }
     set({ ready: true, storage: storageState() });
@@ -440,5 +473,7 @@ export function storageSentence(s: StorageState = ws.storage): string {
       return `Nothing is being saved. ${s.why}`;
     case 'FULL':
       return s.why;
+    case 'REFUSED':
+      return `Nothing is being saved. ${s.why}`;
   }
 }

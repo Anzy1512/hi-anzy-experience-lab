@@ -415,12 +415,22 @@ export function execute(raw: string, ctx: CommandContext): string[] {
       return [];
     }
 
-    case 'new':
+    /* The second line used to say the previous project was saved and listed,
+       always. In a browser that refuses storage — or one holding data from a
+       newer build — that was the shell claiming a save that had not happened,
+       which is the one thing the storage copy is not allowed to do. */
+    case 'new': {
+      const kept = workspace().saved;
       beginProject();
       return [
         'new project started.',
-        'The previous one is saved and still listed — `projects` shows it.',
+        kept
+          ? 'The previous one is saved and still listed — `projects` shows it.'
+          : storageState().kind === 'READY'
+            ? 'The previous one had nothing in it, so nothing was kept.'
+            : `The previous one was not saved. ${storageSentence()}`,
       ];
+    }
 
     case 'save':
       flushNow();

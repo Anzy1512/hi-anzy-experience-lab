@@ -55,7 +55,13 @@ export type StorageState =
   /** The index works; project bodies do not. Nothing is silently lost. */
   | { kind: 'DEGRADED'; why: string }
   /** Out of room. Existing projects are intact; new writes are refused. */
-  | { kind: 'FULL'; why: string };
+  | { kind: 'FULL'; why: string }
+  /**
+   * This browser holds data written by a NEWER build of the Lab.
+   *
+   * Terminal, and the only state that stops reads AND writes. See `refuse()`.
+   */
+  | { kind: 'REFUSED'; why: string };
 
 let state: StorageState = { kind: 'READY' };
 const watchers = new Set<(s: StorageState) => void>();
@@ -94,8 +100,32 @@ export function watchStorage(fn: (s: StorageState) => void): () => void {
   return () => watchers.delete(fn);
 }
 function setState(next: StorageState): void {
+  /* REFUSED is terminal. The bytes on disk do not change while this tab is
+     open, so nothing that happens later can make them readable — and an
+     async probe resolving after the refusal must not be able to report
+     READY over the top of it and re-open the writes. */
+  if (state.kind === 'REFUSED') return;
   if (next.kind === state.kind && 'why' in next === 'why' in state) return;
   state = next;
+  watchers.forEach((w) => w(state));
+}
+
+/**
+ * Stop touching this origin's data, permanently, for this tab.
+ *
+ * Called when something on disk was written by a schema version this build
+ * does not know. Every write below returns false from here on: the index is
+ * not rewritten, no body is stored, and nothing is deleted. The visitor keeps
+ * a fully working Lab for the session and can still export.
+ *
+ * The alternative — carrying on — is what the failure matrix caught this
+ * doing: a v99 index was replaced with a v1 one written from the bodies this
+ * build happened to recognise, which is a silent downgrade of somebody's
+ * project list by a stale tab.
+ */
+function refuse(why: string): void {
+  if (state.kind === 'REFUSED') return;
+  state = { kind: 'REFUSED', why };
   watchers.forEach((w) => w(state));
 }
 
@@ -119,34 +149,55 @@ function ls(): Storage | null {
 
 const EMPTY_INDEX: StoredIndex = { schemaVersion: SCHEMA_VERSION, projects: [], last: null };
 
-export function readIndex(): { index: StoredIndex; problem: string | null } {
+export interface IndexRead {
+  index: StoredIndex;
+  problem: string | null;
+  /**
+   * The stored list was written by a newer build and this one will not guess
+   * at it. Callers must not reconcile, resume or write when this is true —
+   * every one of those would be a reinterpretation.
+   */
+  refused: boolean;
+}
+
+export function readIndex(): IndexRead {
   const s = ls();
-  if (!s) return { index: EMPTY_INDEX, problem: 'This browser is not letting the Lab store anything.' };
+  if (!s) {
+    return { index: EMPTY_INDEX, problem: 'This browser is not letting the Lab store anything.', refused: false };
+  }
   let raw: string | null;
   try {
     raw = s.getItem(INDEX_KEY);
   } catch {
-    return { index: EMPTY_INDEX, problem: 'The project list could not be read.' };
+    return { index: EMPTY_INDEX, problem: 'The project list could not be read.', refused: false };
   }
-  if (!raw) return { index: EMPTY_INDEX, problem: null };
+  if (!raw) return { index: EMPTY_INDEX, problem: null, refused: false };
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
   } catch {
-    return { index: EMPTY_INDEX, problem: 'The project list is unreadable and was left untouched.' };
+    return { index: EMPTY_INDEX, problem: 'The project list is unreadable and was left untouched.', refused: false };
   }
   if (typeof parsed !== 'object' || parsed === null) {
-    return { index: EMPTY_INDEX, problem: 'The project list is not in a shape this build understands.' };
+    return {
+      index: EMPTY_INDEX,
+      problem: 'The project list is not in a shape this build understands.',
+      refused: false,
+    };
   }
   const o = parsed as Record<string, unknown>;
   const v = typeof o.schemaVersion === 'number' ? o.schemaVersion : -1;
   if (v > SCHEMA_VERSION) {
-    return {
-      index: EMPTY_INDEX,
-      problem: `The saved projects were written by a newer version of this product (${v}). This build reads version ${SCHEMA_VERSION} and will not guess at them. Nothing has been changed or deleted.`,
-    };
+    /* Refusing is not enough on its own: the bodies are still on disk, and
+       re-listing the ones this build can parse would rebuild a version-1 list
+       over the top of a version-N one. So the whole origin goes read-only. */
+    const why = `These saved projects were written by a newer version of the Lab (version ${v}); this build reads version ${SCHEMA_VERSION}. Nothing has been read, changed or deleted, and nothing new will be saved here — open the newer version to get back to your work. You can still work in this tab and export.`;
+    refuse(why);
+    return { index: EMPTY_INDEX, problem: why, refused: true };
   }
-  if (v < 0) return { index: EMPTY_INDEX, problem: 'The project list carries no version and was left untouched.' };
+  if (v < 0) {
+    return { index: EMPTY_INDEX, problem: 'The project list carries no version and was left untouched.', refused: false };
+  }
 
   const rows = Array.isArray(o.projects) ? o.projects : [];
   const projects: ProjectSummary[] = rows.flatMap((r) => {
@@ -182,10 +233,12 @@ export function readIndex(): { index: StoredIndex; problem: string | null } {
       last: typeof o.last === 'string' ? o.last : null,
     },
     problem: deduped.length !== projects.length ? 'Two saved projects shared an id; the older row was dropped.' : null,
+    refused: false,
   };
 }
 
 export function writeIndex(index: StoredIndex): boolean {
+  if (state.kind === 'REFUSED') return false;
   const s = ls();
   if (!s) {
     setState({ kind: 'UNAVAILABLE', why: 'This browser is not letting the Lab store anything.' });
@@ -296,6 +349,10 @@ function tx<T>(mode: IDBTransactionMode, run: (store: IDBObjectStore) => IDBRequ
 }
 
 export async function putProject(p: StoredProject): Promise<boolean> {
+  /* A body written under a refused index would be unreachable — the list that
+     points at it cannot be updated — so it would be litter in somebody else's
+     database rather than a saved project. */
+  if (state.kind === 'REFUSED') return false;
   const ok = await tx('readwrite', (s) => s.put({ ...p, schemaVersion: SCHEMA_VERSION }));
   if (ok !== null && state.kind !== 'FULL') setState({ kind: 'READY' });
   return ok !== null;
@@ -318,7 +375,9 @@ export async function loadProject(id: string): Promise<
       ok: false,
       problem:
         read.reason === 'FUTURE_VERSION'
-          ? `${read.detail}. It has been left exactly as it is.`
+          ? /* `detail` opens with the word "project", so it is lifted into a
+               sentence rather than printed as a fragment. */
+            `This ${read.detail}. It has been left exactly as it is, and nothing else has been touched.`
           : `That project's record could not be read (${read.detail}). It has been left exactly as it is.`,
     };
   }
@@ -326,6 +385,9 @@ export async function loadProject(id: string): Promise<
 }
 
 export async function deleteProject(id: string): Promise<boolean> {
+  /* Deleting a newer build's project is the one move here that cannot be
+     undone, so a build that cannot even read the list does not get to do it. */
+  if (state.kind === 'REFUSED') return false;
   const r = await tx<undefined>('readwrite', (s) => s.delete(id));
   return r !== null;
 }
