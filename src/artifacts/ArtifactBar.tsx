@@ -34,11 +34,20 @@ const LABELS: Record<ArtifactFormat, string> = {
   image: 'DOWNLOAD .PNG',
 };
 
+/*
+ * DOWNLOADED, not SAVED.
+ *
+ * This product uses SAVED for one specific thing — a project written into this
+ * browser's storage, which SYSTEM.app reports as "SAVED — YES · IN THIS
+ * BROWSER". A download writes a file to the visitor's machine and puts nothing
+ * in the project ledger, so answering it with the same word said the opposite
+ * of what had happened. One verb, one class of action.
+ */
 const DONE: Record<ArtifactFormat, string> = {
   copy: 'COPIED',
-  markdown: 'SAVED .MD',
-  json: 'SAVED .JSON',
-  image: 'SAVED .PNG',
+  markdown: 'DOWNLOADED .MD',
+  json: 'DOWNLOADED .JSON',
+  image: 'DOWNLOADED .PNG',
 };
 
 /**
@@ -213,6 +222,32 @@ export function ArtifactBar({
         )}
         {children}
       </div>
+
+      {/*
+        THE DIFFERENCE BETWEEN THESE CONTROLS, SAID OUT LOUD.
+
+        A download and a send sit in one row as equal siblings, and they do not
+        do the same thing: the copy is a file on your machine and nothing else,
+        while sending composes the result, records it against the project with
+        its provenance and its limits, and then carries it. Only one of them
+        leaves a trace in WHAT WAS MADE.
+
+        The code comment above has said this since Phase 8.8 — "taking a copy
+        is an ending; sending it on is the product working" — to developers
+        only. A visitor had no way to know which control kept their result,
+        which made the ledger look arbitrary the first time something they had
+        downloaded was not in it.
+
+        Shown only when there is actually a send to contrast against.
+      */}
+      {handoff && (
+        <p className="t-body-s t-dim artifact__note">
+          A copy leaves with you and nothing is kept.{' '}
+          <span className="t-mono t-mono-xs">SEND</span> also records it in this project, with
+          where it came from and what it cannot tell you.
+        </p>
+      )}
+
       {/*
         `role="status"` rather than an alert: these are confirmations of
         something the visitor just did on purpose, and an assertive live region

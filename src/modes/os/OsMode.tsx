@@ -291,7 +291,7 @@ export default function OsMode({ onReady, scope }: ModeViewProps) {
               r.ok
                 ? how === 'copy'
                   ? 'brief copied to the clipboard.'
-                  : `brief saved as ${how === 'json' ? '.json' : '.md'}.`
+                  : `brief downloaded as ${how === 'json' ? '.json' : '.md'}.`
                 : `export failed: ${r.reason.toLowerCase()}`,
             ]);
           });
@@ -314,7 +314,7 @@ export default function OsMode({ onReady, scope }: ModeViewProps) {
               r.ok
                 ? how === 'copy'
                   ? 'project copied to the clipboard.'
-                  : `project saved as ${how === 'json' ? '.json' : '.md'}.`
+                  : `project downloaded as ${how === 'json' ? '.json' : '.md'}.`
                 : `export failed: ${r.reason.toLowerCase()}`,
             ]);
           });

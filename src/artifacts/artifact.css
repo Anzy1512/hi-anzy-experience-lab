@@ -71,6 +71,14 @@
    non-breaking space: an empty status region should be empty to a screen
    reader, not a blank announcement.
 */
+/* What the two kinds of control here actually do. Sits between the row and its
+   receipt, in the body voice rather than the machine one — it is a sentence to
+   a person, not a value the system measured. */
+.artifact__note {
+  margin: var(--s-2) 0 0;
+  max-width: 62ch;
+}
+
 .artifact__msg {
   min-height: 1.5em;
   letter-spacing: var(--tr-mono-wide);
