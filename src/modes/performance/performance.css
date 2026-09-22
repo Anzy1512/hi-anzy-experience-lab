@@ -113,6 +113,11 @@
 }
 
 .pf-btn {
+  /* Phase 8.11 interaction floor: 32px of target from padding alone.
+     The type, the border and the horizontal rhythm are untouched. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
   padding: 7px 13px;
   margin-bottom: var(--s-3);
   border: var(--hair) solid var(--rule);

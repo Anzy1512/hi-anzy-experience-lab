@@ -43,10 +43,25 @@
  * made in Phase 6 for the same reason, one step more opaque because this one
  * carries the exit rather than a suggestion.
  */
+/* Now a control rather than a caption — it opens the orientation sheet — so it
+   takes the same 32px floor and the same plate of ground as EXIT. The type is
+   untouched; the height comes from padding, as everywhere else. */
 .modehost__id {
-  padding: 0.35rem 0.6rem;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0.6rem 0.7rem;
   background: var(--ground);
+  border: var(--hair) solid transparent;
+  color: var(--figure);
   letter-spacing: var(--tr-mono-wide);
+  text-align: left;
+  transition: border-color var(--d-2) var(--e-snap);
+}
+.modehost__id:hover,
+.modehost__id:focus-visible,
+.modehost__id[aria-expanded='true'] {
+  border-color: var(--rule);
 }
 
 .modehost__exit {

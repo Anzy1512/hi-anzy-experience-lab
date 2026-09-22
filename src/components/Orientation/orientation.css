@@ -1,0 +1,163 @@
+/*
+ * THE ORIENTATION SHEET.
+ *
+ * A sheet of the reality's own ground, dropped from the chrome band it opens
+ * from. Not a modal over a dimmed world: the reality stays lit and stays where
+ * it was, because this answers "what am I looking at" and dimming the answer's
+ * subject to show the answer is self-defeating.
+ *
+ * It is anchored top-left under the chrome rather than centred, for the same
+ * reason WorkStrip lives in the band — the left end of the chrome is the one
+ * region every one of the sixteen full-bleed realities keeps clear.
+ */
+
+.ori {
+  position: fixed;
+  top: calc(var(--trim) * 0.5 + 2.4rem);
+  left: var(--trim);
+  z-index: var(--z-chrome);
+  width: min(52ch, calc(100vw - var(--trim) * 2));
+  max-height: calc(100vh - var(--trim) * 2 - 3.4rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--ground);
+  border: var(--hair) solid var(--rule);
+  /* The one shadow in the product, and it is doing structural work: this sheet
+     sits over sixteen different materials and has to read as above them. */
+  box-shadow: 0 1px 0 var(--rule);
+}
+
+.ori__sheet {
+  padding: var(--s-4) var(--s-4) var(--s-3);
+  display: grid;
+  gap: var(--s-4);
+}
+
+.ori__head {
+  display: grid;
+  gap: var(--s-1);
+}
+.ori__title {
+  margin: 0;
+}
+.ori__tagline {
+  margin: 0;
+}
+
+.ori__h {
+  margin: 0 0 var(--s-2);
+  padding-bottom: var(--s-1);
+  border-bottom: var(--hair) solid var(--rule);
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--figure);
+}
+
+.ori__project {
+  display: block;
+}
+
+.ori__kv {
+  margin: 0;
+  display: grid;
+  gap: var(--s-2);
+}
+.ori__kv > div {
+  display: grid;
+  grid-template-columns: 7ch 1fr;
+  gap: var(--s-3);
+  align-items: baseline;
+}
+.ori__kv dt {
+  color: var(--figure);
+  opacity: 0.62;
+  letter-spacing: var(--tr-mono-wide);
+}
+.ori__kv dd {
+  margin: 0;
+}
+
+.ori__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding-top: var(--s-3);
+  border-top: var(--hair) solid var(--rule);
+}
+.ori__out {
+  margin: 0;
+  flex: 1 1 auto;
+}
+
+.ori__close {
+  flex: 0 0 auto;
+  /* The floor comes from padding, as everywhere else. The type is untouched. */
+  min-height: 32px;
+  padding: 0.6rem 0.9rem;
+  background: transparent;
+  border: var(--hair) solid var(--rule);
+  color: var(--figure);
+  letter-spacing: var(--tr-mono-wide);
+  transition:
+    background-color var(--d-2) var(--e-snap),
+    border-color var(--d-2) var(--e-snap),
+    color var(--d-2) var(--e-snap);
+}
+.ori__close:hover,
+.ori__close:focus-visible {
+  background: var(--signal-hot);
+  border-color: var(--signal-hot);
+  color: var(--c-bone);
+}
+
+/* ---- the toggle, in the chrome band ------------------------------------- */
+
+.modehost__id-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.4em;
+  margin-left: var(--s-2);
+  padding-left: var(--s-2);
+  border-left: var(--hair) solid currentColor;
+  opacity: 0.66;
+}
+.modehost__id[aria-expanded='true'] .modehost__id-mark,
+.modehost__id:hover .modehost__id-mark,
+.modehost__id:focus-visible .modehost__id-mark {
+  opacity: 1;
+  color: var(--signal-hot);
+}
+
+/* ---- narrow ------------------------------------------------------------- */
+
+@media (max-width: 640px) {
+  .ori {
+    left: var(--trim);
+    right: var(--trim);
+    width: auto;
+  }
+  .ori__sheet {
+    padding: var(--s-3);
+    gap: var(--s-3);
+  }
+  .ori__kv > div {
+    /* Seven characters of label beside a statement is a two-word column at this
+       width. Stacked, the value gets the whole measure. */
+    grid-template-columns: 1fr;
+    gap: var(--s-1);
+  }
+  .ori__foot {
+    flex-wrap: wrap;
+  }
+}
+
+/* ---- reduced motion ------------------------------------------------------ */
+
+/*
+ * There is no travel here to remove — the sheet appears where it will stay.
+ * The colour transitions on the close control are colour only, which is the
+ * house rule, so nothing below is conditional on the preference. Stated rather
+ * than left implicit, because "no rule needed" and "rule forgotten" look
+ * identical in a stylesheet.
+ */

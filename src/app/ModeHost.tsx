@@ -1,4 +1,13 @@
-import { Suspense, lazy, useEffect, useRef, useSyncExternalStore, type ComponentType } from 'react';
+import {
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ComponentType,
+} from 'react';
 import { useExperience } from '../experience/context';
 import { MODES } from '../content/lab';
 import type { ModeDefinition, ModeViewProps } from '../experience/types';
@@ -6,6 +15,7 @@ import { useEscape, useFocusTrap } from '../core/hooks';
 import { setPointerIntent } from '../core/pointer';
 import { XRAY_COPY } from '../content/brand';
 import { WorkStrip } from '../components/Work/WorkStrip';
+import { Orientation, OrientationToggle } from '../components/Orientation/Orientation';
 import { useActiveWork } from '../system/work';
 import { edgesFrom } from '../content/graph';
 import { PATH, indexOfStop, reasonInto } from '../content/journey';
@@ -154,7 +164,31 @@ export function ModeHost() {
 
   const LazyMode = activeMode ? (LAZY_MODES[activeMode.id] ?? null) : null;
 
-  useEscape(true, exitMode);
+  /**
+   * The orientation sheet, and the single owner of Escape.
+   *
+   * Two listeners racing for one key is how a panel closes the mode behind it,
+   * so there is still exactly one `useEscape` here: it closes the sheet when
+   * the sheet is open, and leaves the reality when it is not. The way out is
+   * never more than two presses away and never fails to be the second one.
+   */
+  /*
+   * Held as the id the sheet is open FOR, not as a boolean.
+   *
+   * A sheet describing one reality must not survive into the next one, and the
+   * obvious way to get that — clear a boolean in an effect when the mode
+   * changes — is a setState in an effect, which is both a lint error here and
+   * an extra render. Keyed on the id, the sheet simply is not open for a
+   * reality it was not opened for, and no effect is needed.
+   */
+  const [oriFor, setOriFor] = useState<string | null>(null);
+  const oriOpen = activeMode !== null && oriFor === activeMode.id;
+  const closeOri = useCallback(() => setOriFor(null), []);
+  const toggleOri = useCallback(() => {
+    setOriFor((cur) => (activeMode && cur === activeMode.id ? null : (activeMode?.id ?? null)));
+  }, [activeMode]);
+
+  useEscape(true, oriOpen ? closeOri : exitMode);
   useFocusTrap(phase === 'active', containerRef);
 
   /**
@@ -184,11 +218,17 @@ export function ModeHost() {
       tabIndex={-1}
     >
       <div className="modehost__chrome">
-        <p className="modehost__id t-mono t-mono-xs">
-          <span className="t-signal">{activeMode.index}</span>
-          <span className="t-faint"> / </span>
-          <span>{activeMode.title}</span>
-        </p>
+        {/* The plate number and title were inert text — the one part of the
+            chrome that looked like a label and behaved like one. They are now
+            the way into the orientation sheet, which is where "what is this
+            and what can I do here" finally lives inside the reality rather
+            than one navigation away on the index. */}
+        <OrientationToggle
+          mode={activeMode}
+          open={oriOpen}
+          onToggle={toggleOri}
+          panelId="lab-orientation"
+        />
 
         {/* The piece of work being followed, if any. It sits in the chrome
             band because that is the only region sixteen full-bleed realities
@@ -211,6 +251,13 @@ export function ModeHost() {
           </span>
         </button>
       </div>
+
+      <Orientation
+        mode={activeMode}
+        open={oriOpen}
+        onClose={closeOri}
+        panelId="lab-orientation"
+      />
 
       <Suspense fallback={<ModeFallback title={activeMode.title} />}>
         <LazyMode onReady={reportReady} onExit={exitMode} scope={scope} />

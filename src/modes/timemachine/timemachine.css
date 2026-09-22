@@ -47,6 +47,10 @@
   align-items: stretch;
 }
 .tm-scrub__stop {
+  /* Phase 8.11 interaction floor: 32px of target from padding alone.
+     The type, the border and the horizontal rhythm are untouched. */
+  min-height: 32px;
+  justify-content: center;
   flex: 1 1 0;
   display: flex;
   flex-direction: column;

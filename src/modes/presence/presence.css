@@ -147,6 +147,11 @@
 .pr-controls { display: flex; gap: var(--s-1); }
 
 .pr-btn {
+  /* Phase 8.11 interaction floor: 32px of target from padding alone.
+     The type, the border and the horizontal rhythm are untouched. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
   padding: 6px 11px;
   border: var(--hair) solid var(--rule);
   font-family: var(--f-mono);

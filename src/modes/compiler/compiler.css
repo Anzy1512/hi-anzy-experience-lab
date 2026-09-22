@@ -299,6 +299,10 @@
 }
 
 .rc-stop {
+  /* Phase 8.11 interaction floor: 32px of target from padding alone.
+     The type, the border and the horizontal rhythm are untouched. */
+  min-height: 32px;
+  align-content: center;
   width: 100%;
   display: grid;
   gap: 4px;
@@ -359,6 +363,11 @@
   padding-top: var(--s-1);
 }
 .rc-act {
+  /* Phase 8.11 interaction floor: 32px of target from padding alone.
+     The type, the border and the horizontal rhythm are untouched. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
   padding: 5px 9px;
   border: var(--hair) solid var(--rule);
   font-family: var(--f-mono);

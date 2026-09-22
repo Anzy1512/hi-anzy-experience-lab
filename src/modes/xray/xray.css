@@ -836,11 +836,11 @@
    ========================================================================== */
 @media (max-width: 900px), (pointer: coarse) {
   .xr-strip__target {
-    min-width: 30px;
-    min-height: 30px;
+    min-width: 32px;
+    min-height: 32px;
   }
   .xr-proc {
-    min-height: 30px;
+    min-height: 32px;
     padding-top: 6px;
     padding-bottom: 6px;
   }

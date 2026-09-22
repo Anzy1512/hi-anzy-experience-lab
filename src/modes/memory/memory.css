@@ -103,6 +103,11 @@
   margin-left: auto;
 }
 .mem-hold {
+  /* Phase 8.11 interaction floor: 32px of target from padding alone.
+     The type, the border and the horizontal rhythm are untouched. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
   justify-self: start;
   margin-top: 0.2em;
   padding: 4px 9px;

@@ -1416,7 +1416,7 @@
    ========================================================================== */
 @media (max-width: 900px), (pointer: coarse) {
   .os-cmd__input {
-    min-height: 30px;
+    min-height: 32px;
     padding: 7px 0;
   }
 }
