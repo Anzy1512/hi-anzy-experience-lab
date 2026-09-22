@@ -122,9 +122,62 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
    */
   const activeIdRef = useRef<string | null>(initial.modeId);
 
+  /**
+   * The phase, mirrored, for the one caller that must read it without taking it
+   * as a dependency.
+   *
+   * `applyLocation` is what drives navigation, so depending on `phase` would
+   * rebuild it on every step of every transition and fire the effect that owns
+   * it against a location it has already applied — the same reason `activeId`
+   * is mirrored above. An effect keeps this in step; `applyLocation` only ever
+   * runs from an event or a popstate, never inside the commit that changed the
+   * phase, so it never reads a stale value.
+   */
+  const phaseRef = useRef<ModePhase>(phase);
+  useEffect(() => {
+    phaseRef.current = phase;
+  }, [phase]);
+
   /* ---- navigation ------------------------------------------------------- */
   const applyLocation = useCallback(
     (loc: Loc) => {
+      /**
+       * ALREADY STANDING HERE.
+       *
+       * Arriving at the reality that is already open is not an entry. It used
+       * to be treated as one, and the result was a mode that could never
+       * finish starting: the teardown below disposed the scope and set the
+       * phase back to `loading`, but React kept the SAME lazy component
+       * mounted — same id, same element type — so its boot effect never ran
+       * again and `onReady()` was never called a second time. The phase then
+       * sat at `loading` until the watchdog gave up and returned the visitor
+       * to the index, six seconds after they asked to go somewhere they
+       * already were.
+       *
+       * Worse than the bounce: the still-mounted mode was left holding a
+       * disposed scope, and `CleanupScope.add()` runs a teardown immediately
+       * on a disposed scope — so every listener, timer and frame callback the
+       * mode registered from that moment on was cancelled as it was made.
+       *
+       * Reachable without a test harness: an onward move, a WorkStrip button
+       * or a SYSTEM.app door that points at the current reality, a pasted deep
+       * link to it, or Back landing on the same id.
+       *
+       * `exiting` and `idle` are excluded deliberately — a visitor who changes
+       * their mind mid-exit is asking for a real re-entry, and gets one. The
+       * watchdog is untouched: if this is a genuine entry it is armed below,
+       * and if it is not, the one already armed stays armed.
+       */
+      if (
+        loc.stage === 'mode' &&
+        loc.modeId &&
+        loc.modeId === activeIdRef.current &&
+        phaseRef.current !== 'exiting' &&
+        phaseRef.current !== 'idle'
+      ) {
+        return;
+      }
+
       clearTimers();
       setError(null);
 
@@ -174,8 +227,12 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
   const navigate = useCallback(
     (next: Loc, replace = false) => {
       const url = hashFor(next.stage, next.modeId);
+      /* Asking to go where you already are must not leave a second identical
+         entry in the history. It would make the Back button look broken: the
+         first press would pop to the same place and, correctly, do nothing. */
+      const samePlace = !replace && window.location.hash === url;
       if (replace) window.history.replaceState(null, '', url);
-      else window.history.pushState(null, '', url);
+      else if (!samePlace) window.history.pushState(null, '', url);
       applyLocation(next);
     },
     [applyLocation],
