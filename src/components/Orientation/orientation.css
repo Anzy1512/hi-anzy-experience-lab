@@ -121,6 +121,21 @@
   padding-left: var(--s-2);
   border-left: var(--hair) solid currentColor;
   opacity: 0.66;
+  white-space: nowrap;
+}
+
+/* The words where the band has room; the mark where it does not. Never both —
+   the swap is at 900px, the same breakpoint the rest of the chrome narrows at. */
+.modehost__id-glyph {
+  display: none;
+}
+@media (max-width: 900px) {
+  .modehost__id-word {
+    display: none;
+  }
+  .modehost__id-glyph {
+    display: inline;
+  }
 }
 .modehost__id[aria-expanded='true'] .modehost__id-mark,
 .modehost__id:hover .modehost__id-mark,

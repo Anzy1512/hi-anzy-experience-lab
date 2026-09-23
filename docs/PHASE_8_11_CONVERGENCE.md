@@ -2,11 +2,16 @@
 
 ## STATUS
 
-**PARTIALLY CLOSED.** The convergence work that was genuinely outstanding has
-been done and verified. Several areas the brief asked for turned out to be
-already built — those are proved and left alone, as the brief's own execution
-order requires. Two areas remain open and are named under WHAT IS STILL OPEN;
-they are not blocked, they were not reached.
+**CLOSED.** The convergence work that was genuinely outstanding has been done
+and verified. Several areas the brief asked for turned out to be already built —
+those are proved and left alone, as the brief's own execution order requires.
+
+The two workstreams left open at partial closure — §13 presentation readiness
+and §18 deep-state QA — were completed afterwards and are recorded at the end of
+this document. One real defect was found by them and fixed.
+
+Current truth lives in `docs/PROJECT_STATE_CURRENT.md`. This file is the
+historical record of what Phase 8.11 did.
 
 ## BRANCH / HEAD
 
@@ -202,23 +207,98 @@ limits · failure atomicity.
 
 No implementation was attempted.
 
-## WHAT IS STILL OPEN
+## §13 PRESENTATION READINESS — COMPLETED
 
-Named rather than implied. Neither is blocked; neither was reached.
+Walked the built product cold, without opening the orientation sheet by hand, so
+the question was what a visitor is *offered* rather than what exists.
 
-1. **§13 presentation readiness, as a structured adversarial walkthrough.** The
-   six perspectives (prospective client, creative director, technical reviewer,
-   founder, developer, first-time visitor) were not each run end to end. The
-   orientation sheet is the single largest move toward what that section asks
-   for, and the deep-state QA below covers part of it, but the walkthrough
-   itself is outstanding.
-2. **§18 deep-state QA beyond the states this phase touched.** Measured here:
-   ANZY.OS with SYSTEM.app open, the orientation sheet open, Compiler at WORLD,
-   Matter at TYPE, Portal's far side, plus every reality's entry state at two
-   viewports. Not swept: Presence consent/live/error, Time Machine checkpoint,
-   Memory reconstruction, Chaos progressed, After Dark and Sonic deep states.
-   The Phase 8.10 gate swept these for collisions; this phase did not re-sweep
-   them for the new chrome control.
+### What every perspective can already answer
+
+Measured at the launcher and index, before any row is expanded:
+
+- The launcher states the proposition and offers two doors: a route through the
+  Lab in order, or the full index as a map.
+- The index prints four groups, each with a note — **PRODUCTS** "Give them
+  something. Take something away." · **INSTRUMENTS** "They measure. The reading
+  is the output." · **SPATIAL & ARCHIVE** "Territory and record. Enter them;
+  nothing is owed back." · **EXPERIMENTS** "What the studio is willing to try in
+  public."
+- Heading order is semantic and correct: H1 REALITIES → H2 WHAT DO YOU WANT TO
+  DO? → the four group headings → H2 CROSS-REFERENCES.
+
+So **products, instruments and experiences are distinguishable without opening
+anything**, and the six contract questions are answerable inside every reality
+from the chrome.
+
+### The defect: available is not discoverable
+
+Cold inside a product, measured:
+
+- the orientation control's entire name was **"04 / AGENCY SIMULATOR ?"** — a
+  bare glyph, `aria-hidden`, contributing nothing to the accessible name, so a
+  screen reader announced the name of the room and nothing about the door;
+- nothing on screen said what the mark opened (`screenExplainsIt: false`);
+- none of the six contract words were visible until it was pressed.
+
+It was reachable — first in tab order, one Tab from entry, with a visible focus
+ring — and still gave a first-time visitor no reason to press it.
+
+**Fixed with the smallest coherent intervention**, and nothing else:
+
+- the control carries an `aria-label` stating what pressing it does;
+- the glyph became the visitor's own question, **WHAT IS THIS**, at widths where
+  the band has room, falling back to `?` below 900px where it does not.
+
+No carousel, no modal tour, no tooltips, no onboarding. EXIT keeps its weight —
+bordered, lit on hover, carrying ESC; this is a dim line of the same small mono.
+
+### The adversarial question
+
+*"Could a visitor mistake this for an internal developer instrument?"*
+
+Swept six visitor-facing surfaces (Agency Simulator, ANZY.OS, X-Ray,
+Performance, Portal, Director) for `localhost`, `TODO`, `FIXME`, `DEBUG`,
+`console`, `undefined`, `NaN`, `null`, `[object Object]`, `lorem ipsum`,
+`placeholder`, `Ctrl+Alt+P`, `__lab`.
+
+**Zero hits. No page errors, no console errors.** The dev instruments are behind
+`import.meta.env.DEV` and dead-code-eliminated, and nothing visitor-facing leaks
+a developer artefact. The surfaces that *look* instrument-like — X-Ray's
+measurements, Performance's readouts — are instruments on purpose, classified as
+such, and say so in their own contract.
+
+## §18 DEEP-STATE QA — COMPLETED
+
+The new chrome control against six realities in their later states, with real
+rectangles rather than screenshots.
+
+| Reality | Deep state reached | Result |
+|---|---|---|
+| **PRESENCE** | consent panel, stop, exit, re-entry | `getUserMedia` called **zero times** on entry and zero times after pressing USE CAMERA — the consent panel precedes any request and states 32×24, discarded, nothing recorded or uploaded, identifies nobody. 0 video elements throughout; 0 after exit; re-entry starts clean. |
+| **TIME MACHINE** | 1995 checkpoint, then a second era | Era markup intact, its 17.6px links preserved as the documented exception. Chrome survives the era change; no duplicate chrome; no overflow. |
+| **MEMORY** | reconstruction held | No overlap, Escape closes the sheet only, focus returns to `mem-hold`. |
+| **CHAOS** | 7s of progressed deterioration | **Chrome intact** — the global frame does not become part of the deterioration. |
+| **AFTER DARK** | night state | Chrome contrast measured **10.3:1** (bone `rgb(224,216,193)` on `rgb(35,42,42)`). |
+| **SONIC** | instrument running | AudioContext `none` before gesture → `running` after → **`none` after exit**. The context is closed outright, not suspended. |
+
+Across all six: **Escape closes the sheet and never leaves the reality**
+(`escapeClosedSheetOnly: true`, hash unchanged), no duplicate chrome, zero
+overflow with the sheet open, focus lands on a real control in the mode, no page
+or console errors.
+
+**One observation, not a defect.** In Time Machine and Sonic the open sheet
+covers some of the mode's own controls (the era links and scrub stops; two small
+Sonic controls). That is what a panel does, it is dismissed by one Escape, and
+EXIT and the toggle are never covered. Recorded so it is not rediscovered as a
+surprise.
+
+### Viewports, re-verified after the discoverability fix
+
+1920×1080, 1440×900, 768×1024, 390×844 across Agency Simulator, ANZY.OS, X-Ray
+and After Dark: zero horizontal overflow, no chrome collision, the sheet fits
+the viewport at every size, `role="dialog"` with an H2, and no control inside it
+below 32px. The word/glyph swap verified painted: words at 1440, glyph at 768
+and 390.
 
 ## KNOWN LIMITATIONS
 

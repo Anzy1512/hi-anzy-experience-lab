@@ -178,17 +178,39 @@ export function OrientationToggle({
       className="modehost__id t-mono t-mono-xs"
       aria-expanded={open}
       aria-controls={panelId}
+      /*
+       * The name says what pressing it does.
+       *
+       * Without this the control announced as "04 / AGENCY SIMULATOR" — the
+       * label it had when it was inert text — which tells somebody using a
+       * screen reader the name of the room and nothing about the door. The
+       * visible glyph is `aria-hidden`, so it was contributing nothing either.
+       */
+      aria-label={`What ${mode.title} is: what it takes, what it does, and what you can take away`}
       onClick={onToggle}
       disabled={!known}
     >
       <span className="t-signal">{mode.index}</span>
       <span className="t-faint"> / </span>
       <span>{mode.title}</span>
-      {/* The affordance is a mark rather than a word: the band is shared with
-          EXIT, and two words competing there is how the way out stops being
-          the obvious one. */}
+      {/*
+        A QUESTION MARK IS NOT AN AFFORDANCE.
+
+        This was a bare `?`, on the reasoning that the band is shared with EXIT
+        and two competing words is how the way out stops being obvious. Tested
+        cold on a first visit, that reasoning was wrong in the other direction:
+        nothing on screen said what the mark opened, none of the six contract
+        words were visible until it was pressed, and a visitor had no reason to
+        press it. Available is not discoverable.
+
+        So it says the visitor's own question instead. EXIT keeps its weight —
+        it is bordered, it lights on hover and it carries ESC; this is a dim
+        line of the same small mono. On a narrow band the words give way to the
+        mark again, where there is genuinely no room for both.
+      */}
       <span className="modehost__id-mark" aria-hidden="true">
-        {open ? '×' : '?'}
+        <span className="modehost__id-word">{open ? 'HIDE' : 'WHAT IS THIS'}</span>
+        <span className="modehost__id-glyph">{open ? '×' : '?'}</span>
       </span>
     </button>
   );
