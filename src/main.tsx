@@ -29,6 +29,22 @@ if (!container) throw new Error('[lab] #lab-root is missing from index.html');
  */
 startWorkspace();
 
+/*
+ * The product manifests, loaded in development only so their guard runs.
+ *
+ * `system/maturity.ts` records what each reality owns, what it depends on, how
+ * far along it is and what stands between it and being its own application. It
+ * is not read by any surface yet, which means nothing would ever load it — and
+ * a manifest nobody loads is a document pretending to be code. Its dev check,
+ * that the manifests still describe the same sixteen things as the index and
+ * the registry, would have been dead from the day it was written.
+ *
+ * `import.meta.env.DEV` is statically false in a production build, so this
+ * branch and everything it reaches is eliminated: measured, the boot payload
+ * does not move.
+ */
+if (import.meta.env.DEV) void import('./system/maturity');
+
 createRoot(container).render(
   <StrictMode>
     <ExperienceProvider>

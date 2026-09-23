@@ -204,7 +204,12 @@ export const PRODUCTS: ProductEntry[] = [
       process: 'Observes real elements and reports boxes, positions, depth and type metrics as this window renders them.',
       result: 'A specimen report separating what the source says from what this window measured.',
       artifact: 'SYSTEM SPECIMEN REPORT — Markdown or JSON.',
-      continue: 'SYSTEM.app.',
+      /* Inbound only. It CLAIMS the Compiler's manifest and opens on the same
+         page, but it offers nothing onward: no `offer()` call, no handoff on
+         its artifact bar. This said SYSTEM.app, which was a continuation with
+         no mechanism behind it — found by the Phase 8.12 dependency map. */
+      continue:
+        'Nowhere yet. The report is a download; nothing carries it into the project, and SYSTEM.app does not receive it.',
     },
   },
   {
@@ -232,7 +237,10 @@ export const PRODUCTS: ProductEntry[] = [
       process: 'Counts frames, subscribers, canvases and chunks against a real clock.',
       result: 'A session report in which anything unmeasured is printed UNKNOWN rather than estimated.',
       artifact: 'The session report, as Markdown or JSON.',
-      continue: 'SYSTEM.app.',
+      /* This mode imports neither `project` nor `handoff`. Same correction as
+         X-Ray: a stated continuation with nothing implementing it. */
+      continue:
+        'Nowhere yet. The report is a download; this instrument does not write to the project.',
     },
   },
 

@@ -18,7 +18,7 @@ records of what each phase did, and stay that way.
 | 8.9 — workflows | **CLOSED** |
 | 8.10 — project memory + persistence | **CLOSED** |
 | 8.11 — product + brand convergence | **CLOSED** |
-| 8.12 — lab independence + product launch foundation | **IN PROGRESS** — repository separation done |
+| 8.12 — lab independence + product launch foundation | **IN PROGRESS** — §1–§10 done (separation + product architecture); §11–§14 open |
 
 - Branch: `phase-8-12-independence`
 - Gates: `tsc -b` = 0 · `eslint src --max-warnings 0` = 0 ·
@@ -45,6 +45,30 @@ PRODUCTS · INSTRUMENTS · SPATIAL & ARCHIVE · EXPERIMENTS. Plate numbers
 
 A dev-only check errors if `content/lab.ts` and the registry fall out of step.
 
+## MATURITY AND GRADUATION
+
+`src/system/maturity.ts` extends the registry (same ids, dev-time guard, no
+field duplicated) with what each reality **owns**, what platform contracts it
+**consumes**, what it depends on from a sibling, its **maturity**, the evidence
+behind it, an eighteen-dimension **graduation contract** and its standalone
+blockers. Loaded in development only; absent from every production chunk.
+
+Maturity is evidence, never polish: EXPERIMENT · PROTOTYPE · ALPHA · BETA ·
+PRODUCT · STANDALONE. **Nothing is PRODUCT or STANDALONE** — the Lab's release
+contract is not written and nothing has been built or deployed alone.
+
+BETA: ANZY.OS, Agency Simulator, Reality Compiler, Matter Engine, Director.
+ALPHA: Portal (delivery handoff never exercised), X-Ray and Performance
+(CONTINUE has no mechanism), Presence (physical camera unverified; holds the
+Lab's one sibling import).
+
+Graduation answers are `PASS` / `OPEN` / `UNVERIFIED` / `N/A` — never a score.
+`graduationGaps(id)` returns what actually stands in the way.
+
+**One sibling coupling exists in the whole Lab**: `presence → matter/ParticleField`,
+retained deliberately with its removal path recorded in the manifest. Full
+analysis: `docs/PHASE_8_12_PRODUCT_ARCHITECTURE.md`.
+
 ## PRODUCT CONTRACT
 
 Six questions every PRODUCT and INSTRUMENT answers, or answers `null` honestly:
@@ -53,6 +77,11 @@ Six questions every PRODUCT and INSTRUMENT answers, or answers `null` honestly:
 `unmetContract()` and `incompleteProducts()` count the gaps from the registry
 rather than from a maintained list. Only PRESENCE has empty rows, and that is
 by design — an instrument that keeps nothing has nothing to hand over.
+
+It counts `null` fields only, so it cannot catch a field filled in with a claim
+nothing implements. Phase 8.12B found two: X-Ray and Performance both declared
+`continue: 'SYSTEM.app.'` with no handoff behind it. Both now state the truth —
+the report is a download and nothing carries it into the project.
 
 ## ORIENTATION SYSTEM
 
