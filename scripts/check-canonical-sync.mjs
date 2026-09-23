@@ -10,7 +10,7 @@
  * existing on disk. If the repo is not here, this says so and exits 0.
  *
  *   node scripts/check-canonical-sync.mjs
- *   node scripts/check-canonical-sync.mjs --path /path/to/hi-anzy-platform
+ *   node scripts/check-canonical-sync.mjs --path /path/to/hi-anzy-website-2.0
  *   node scripts/check-canonical-sync.mjs --fetch        # refresh origin/main first
  *
  * ── TWO CORRECTIONS THIS VERSION MAKES ──────────────────────────────────────
@@ -35,10 +35,11 @@
 import { existsSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { AGENCY, LEGACY, MIRRORED_FROM, identifyClone, provenanceLine } from './canonical-source.mjs';
 
 const argv = process.argv;
 const argPath = argv.indexOf('--path');
-const REPO = argPath > -1 ? argv[argPath + 1] : 'C:/projects/hi-anzy-website';
+const REPO = argPath > -1 ? argv[argPath + 1] : AGENCY.defaultPath;
 const WANT_FETCH = argv.includes('--fetch');
 
 /** Canonical commit these hashes were taken from, and when. */
@@ -113,7 +114,24 @@ try {
   process.exit(0);
 }
 
-say('CANONICAL REPO', REPO);
+/*
+ * WHICH REPOSITORY IS THIS, ACTUALLY?
+ *
+ * Until Phase 8.12 this script took whatever clone it was pointed at and
+ * measured it. There is now more than one commercial repository, and the path
+ * it used to default to holds the one that STOPPED being canonical — so it
+ * reported CURRENT while measuring a repository that no longer decides
+ * anything. The hashes matched because that is where the snapshot was read
+ * from; matching the wrong source is not being in sync.
+ */
+const clone = identifyClone(REPO, { existsSync, execSync });
+say('CANONICAL REPO', AGENCY.repo);
+say('MEASURING', `${REPO}${clone.slug ? `  (${clone.slug})` : ''}`);
+if (clone.kind === 'legacy') {
+  say('', `NOTE: this is ${LEGACY.repo}, which is LEGACY. Canonical is ${AGENCY.repo}.`);
+} else if (clone.kind === 'unknown') {
+  say('', `NOTE: this clone is not a repository this script knows about.`);
+}
 say('ORIGIN/MAIN', remote);
 say('SYNCED AGAINST', CANONICAL_REMOTE_SHA);
 say('SYNC DATE', SYNC_DATE);
@@ -191,4 +209,23 @@ if (drifted.length) {
 }
 
 console.log('');
+if (clone.kind === 'legacy') {
+  /* Matching the legacy repository is the expected result, because that is
+     where the snapshot was read from. It is not a statement about canonical. */
+  console.log('STATUS             MEASURED AGAINST LEGACY — every mirrored source matches');
+  console.log(`                   ${LEGACY.repo}, which is where the snapshot came from.`);
+  console.log(`                   This says NOTHING about ${AGENCY.repo}.`);
+  console.log('');
+  console.log(provenanceLine());
+  console.log('');
+  console.log(`  Point this at a clone of ${AGENCY.repo} to measure canonical:`);
+  console.log('    node scripts/check-canonical-sync.mjs --path /path/to/hi-anzy-website-2.0');
+  process.exit(0);
+}
+if (MIRRORED_FROM.staleAgainstCanonical && clone.kind === 'canonical') {
+  console.log('STATUS             CURRENT against this clone — but see provenance below.');
+  console.log('');
+  console.log(provenanceLine());
+  process.exit(0);
+}
 console.log('STATUS             CURRENT — every mirrored source matches origin/main.');

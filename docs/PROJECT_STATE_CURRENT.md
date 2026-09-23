@@ -18,10 +18,10 @@ records of what each phase did, and stay that way.
 | 8.9 — workflows | **CLOSED** |
 | 8.10 — project memory + persistence | **CLOSED** |
 | 8.11 — product + brand convergence | **CLOSED** |
-| 8.12 | not started, not scoped |
+| 8.12 — lab independence + product launch foundation | **IN PROGRESS** — repository separation done |
 
-- Branch: `phase-8-11-convergence`
-- Gates at closure: `tsc -b` = 0 · `eslint src --max-warnings 0` = 0 ·
+- Branch: `phase-8-12-independence`
+- Gates: `tsc -b` = 0 · `eslint src --max-warnings 0` = 0 ·
   `npm run build` passes
 
 ## THE PRODUCT
@@ -167,14 +167,43 @@ three/R3F, ever**; no QA harness ships.
 
 ## CANONICAL SYNC
 
-`node scripts/check-canonical-sync.mjs` → **CURRENT**. All four mirrored sources
-match `origin/main`. `CANONICAL_PAGES_COMMIT = 'eac2282'`.
+`node scripts/check-canonical-sync.mjs` → **DRIFT (exit 2)** against canonical
+`hi-anzy-website-2.0`, and **MEASURED AGAINST LEGACY (exit 0)** when pointed at
+`hi-anzy-platform`. Both are the honest answer; see REPOSITORIES above.
+`CANONICAL_PAGES_COMMIT = 'eac2282'` — the commit the snapshot was read at.
 
-## COMMERCIAL REPOSITORY
+## REPOSITORIES
 
-`C:/projects/hi-anzy-website` — **READ ONLY, untouched.** Working tree clean,
-branch `launch/step-0`, HEAD `237e121`. No checkout, merge, reset or write has
-ever been made to it from this work.
+The Lab is an independent product, in its own repository, deployable with no
+Agency repository present. Full boundary: `docs/AGENCY_LAB_BOUNDARY.md`.
+
+| Role | Repository | State |
+|---|---|---|
+| **Lab** (this project) | `Anzy1512/hi-anzy-experience-lab` | canonical, public, default `main` |
+| **Agency** (commercial production) | `Anzy1512/hi-anzy-website-2.0` | canonical, **read only from here** |
+| Previous commercial site | `Anzy1512/hi-anzy-platform` | **LEGACY** — reference only |
+
+Content flows Agency → Lab, development-time only, as a checked-in snapshot.
+**Nothing in this project writes to any Agency repository**, and no runtime code
+reads one: every canonical value is checked-in TypeScript under `src/content/`.
+
+### Canonical provenance — currently STALE, deliberately
+
+The snapshot was mirrored from **`hi-anzy-platform` @ `eac2282` (2026-09-12)**,
+the legacy repository. Measured against canonical `hi-anzy-website-2.0` @
+`0208378`, **three of four mirrored sources have drifted**: `content.js`,
+`App.js` and `App.css` (the last being the typography and colour source).
+`disciplines.js` is unchanged.
+
+This is known. Phase 8.12 separates the repositories **without changing product
+behaviour**; the re-sync alters what visitors read and what the design tokens
+resolve to, so it is its own scoped work. The Lab's content is not false — it
+accurately mirrors what it says it mirrors, and every surface that prints the
+canonical commit prints the one it was read at.
+
+`node scripts/check-canonical-sync.mjs` now identifies which repository it is
+measuring before it measures it, and refuses to present a legacy match as a
+statement about canonical.
 
 ## HARDWARE PENDING
 

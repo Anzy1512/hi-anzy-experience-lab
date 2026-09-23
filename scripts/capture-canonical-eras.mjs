@@ -26,9 +26,10 @@
  */
 import { writeFileSync, existsSync } from 'node:fs';
 import { execSync } from 'node:child_process';
+import { AGENCY } from './canonical-source.mjs';
 
 const argPath = process.argv.indexOf('--path');
-const REPO = argPath > -1 ? process.argv[argPath + 1] : 'C:/projects/hi-anzy-website';
+const REPO = argPath > -1 ? process.argv[argPath + 1] : AGENCY.defaultPath;
 const OUT = 'src/content/canonicalEras.ts';
 
 /**
