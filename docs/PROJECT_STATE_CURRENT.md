@@ -63,7 +63,11 @@ XLSX, GeoJSON, JSON) and a summary as copied text, Markdown or JSON.
 - **Verified in a browser** against the live engine: a Noida hotel search (519
   matched) end to end, the ledger, the plate and a business's detail, all four
   exports answering through the forwarder, phone width, the engine stopped and
-  started again, exit during a running search, and re-entry.
+  started again, exit during a running search, and re-entry. The release-guard
+  checks, run in the built-in browser (the Playwright browser was held by another
+  session): the three dev guards silent on a fresh load; all 17 realities enter
+  `active`, with their chrome and zero horizontal overflow; the index lattice
+  draws seventeen nodes with no scene error.
 
 ## TAXONOMY
 
