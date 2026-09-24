@@ -133,7 +133,10 @@
   gap: var(--s-4);
 }
 
+/* A three-letter section name came out 24px across. The floor applies to both
+   axes, and ASK is as much a target as EVIDENCE. */
 .audit .tabs__item {
+  min-width: 32px;
   appearance: none;
   background: none;
   border: 0;

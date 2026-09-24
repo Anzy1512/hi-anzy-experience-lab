@@ -662,6 +662,22 @@ export const findingCitation = pgTable(
  * training data. `unsupported` is separate from `wrong` on purpose — a finding
  * can be true and still not be what the cited passage said, and those two
  * failures need different fixes.
+ *
+ * ── SUPERSEDED. NOTHING WRITES HERE AND NOTHING READS HERE ──────────────────
+ *
+ * Layer 7 built the review workflow on `verification_feedback` instead, which
+ * carries the same idea with the vocabulary this actually needs: six verdicts
+ * rather than four, the retrieval and citation judgements beside the verdict,
+ * and a snapshot of the rule and engine versions the judgement was made
+ * against. Reviews go there; `submitReview` is the only writer.
+ *
+ * Kept rather than dropped because dropping a table is irreversible and this
+ * one holds nothing — the cost of leaving it is a paragraph, and the cost of a
+ * migration that removes a table somebody turns out to have used is not. Left
+ * unannotated it was worse than either: two tables with the same name for the
+ * same job and nothing saying which one was live.
+ *
+ * @deprecated Use `verificationFeedback` in `db/intel.ts`.
  */
 export const feedback = pgTable(
   'feedback',
@@ -694,5 +710,8 @@ export const schema = {
   retrieval,
   finding,
   findingCitation,
+  /* Deprecated, and still registered on purpose: drizzle generates migrations
+     by diffing this object against the database, so removing it from here
+     would emit a DROP TABLE. See the note on the table itself. */
   feedback,
 };

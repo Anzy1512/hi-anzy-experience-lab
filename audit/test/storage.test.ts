@@ -368,9 +368,16 @@ describe('resilience', () => {
     );
 
     await d.query('delete from source where id = $1', [sourceId]);
-    for (const table of ['document', 'chunk', 'extracted_field']) {
-      const rows = await d.query<{ n: string }>(
-        `select count(*)::text as n from ${table} where ${table === 'document' ? 'id' : 'document_id'} = $1`,
+    for (const table of ['document', 'chunk', 'extracted_field'] as const) {
+      const key = table === 'document' ? 'id' : 'document_id';
+      /*
+       * Annotated, because `documentId` was narrowed by an `assert.ok` and is
+       * read inside a loop: TypeScript analyses the body twice and cannot
+       * settle the row type, so it silently falls back to `any` (TS7022). An
+       * `any` here would have compiled a test with a typo in its column name.
+       */
+      const rows: Array<{ n: string }> = await d.query<{ n: string }>(
+        `select count(*)::text as n from ${table} where ${key} = $1`,
         [documentId],
       );
       assert.equal(rows[0]?.n, '0', `${table} must not survive its source`);

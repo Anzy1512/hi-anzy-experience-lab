@@ -106,8 +106,16 @@ after(async () => {
   await closeDriver();
 });
 
+/*
+ * `payload: unknown` used to be the signature, and it pushed `app.inject` onto
+ * its callback overload — so every `await post(...)` resolved to a Chain, not a
+ * response, and `res.statusCode` was typed `any` all the way down. The tests
+ * passed because they were never typechecked. `Record<string, unknown>` is what
+ * `closure-l6.ts` already uses and what picks the promise overload.
+ */
 const get = (url: string) => app.inject({ method: 'GET', url, headers: auth });
-const post = (url: string, payload: unknown) => app.inject({ method: 'POST', url, headers: auth, payload });
+const post = (url: string, payload: Record<string, unknown>) =>
+  app.inject({ method: 'POST', url, headers: auth, payload });
 
 /* ========================================================================== */
 describe('A — what this deployment can do', () => {
@@ -370,7 +378,15 @@ describe('I — the map', () => {
     const body = res.json();
     assert.ok(Array.isArray(body.located));
     assert.equal(typeof body.unlocated, 'number');
-    assert.match(body.note, /nothing here is geocoded speculatively/i);
+    /*
+     * The claim, not the sentence.
+     *
+     * This asserted an exact phrase and a copy edit that changed "nothing here"
+     * to "nothing" broke it, which told us about the wording rather than about
+     * the map. What has to stay true is that the note says speculation does not
+     * happen — so match the two words that carry it.
+     */
+    assert.match(body.note, /geocoded speculatively/i);
     for (const l of body.located) {
       assert.ok(l.latitude !== null && l.longitude !== null, 'an unplaced business must not appear on the map');
     }

@@ -311,7 +311,8 @@ describe('B — a question that needs reasoning, with the reasoning checked', ()
     /* The evidence reached the model inside the fence, not concatenated into
        the instructions. */
     const prompt = provider.lastPrompt();
-    assert.ok(prompt?.includes(FENCE_OPEN) && prompt.includes(FENCE_CLOSE));
+    assert.ok(prompt !== null, 'the provider recorded no prompt to inspect');
+    assert.ok(prompt.includes(FENCE_OPEN) && prompt.includes(FENCE_CLOSE));
     assert.ok(prompt.indexOf(ev.text.slice(0, 20)) > prompt.indexOf(FENCE_OPEN));
     assert.ok(prompt.indexOf(ev.text.slice(0, 20)) < prompt.indexOf(FENCE_CLOSE));
   });

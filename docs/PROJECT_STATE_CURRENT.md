@@ -25,17 +25,32 @@ records of what each phase did, and stay that way.
 - Branch: `audit-osint-service`
 - Gates: `tsc -b` = 0 · `eslint .` = 0 · `npm run build` passes
 - Audit gates: `npm test` = 274/274 (PGlite) · `npm run closure`, `closure:l4`,
-  `closure:l6`, `closure:l7` and `final-test` all pass.
+  `closure:l6`, `closure:l7` and `final-test` all pass. The audit's tsconfig now
+  includes `test/**`, which it never did — 17 type errors were hiding there,
+  including a fixture building half a `Discovery` and an `app.inject` helper
+  whose responses were typed `any` all the way down.
+- Runtime sweep: all 17 realities enter, reach `active`, expose an EXIT control
+  and exit without leaving a canvas or a RAF subscriber behind. No console
+  errors and no horizontal overflow at 375px. The 32px interaction floor holds
+  everywhere, with two documented exemptions: a checkbox whose 32px label is
+  the target, and Time Machine's depicted 1995 links, which are inert by
+  construction and would be falsified by enlargement.
   `npm run test:pg` was 128/128 at the layer 6 closure and could not be re-run
   for layer 7 — the Docker engine is not running on this machine, so no
   Postgres was listening on 5433. Layer 7 added no driver-specific SQL.
 
 ## THE AUDIT SERVICE
 
-A second product, in `audit/`, with its own `package.json`, its own dependency
-tree and its own tests. It is **not** part of the Lab's build: `npm ci && npm
-run build` at the root resolves the same 5 runtime and 13 build dependencies and
-produces a Lab that runs with no backend present, exactly as before.
+A service in `audit/`, with its own `package.json`, its own dependency tree and
+its own tests. It is **not** part of the Lab's build: `npm ci && npm run build`
+at the root resolves the same 5 runtime and 13 build dependencies and produces a
+Lab that runs with no backend present, exactly as before.
+
+Its reading surface is now a reality on the index (plate 09) and also builds as
+its own page. Both render the same `product/Surface.tsx`, so neither can become
+the older one. The surface's stylesheet is scoped under `.audit` because the
+Lab already owned `.sheet` and `.row` — that collision made the audit's main
+column `position: fixed` and `pointer-events: none` inside the mode host.
 
 | Layer | What it is |
 |---|---|
@@ -86,9 +101,14 @@ path is BLOCKED with no `ANTHROPIC_API_KEY` and is not faked in its absence.
 
 ## THE PRODUCT
 
-Sixteen realities, all `online` and enterable, behind a launcher and a Reality
-Index. Not a website and not a component showcase: one company, sixteen
-enterable realities, with a project that can travel between them.
+Seventeen realities, all `online` and enterable, behind a launcher and a
+Reality Index. Not a website and not a component showcase: one company,
+seventeen enterable realities, with a project that can travel between them.
+
+COMMERCIAL AUDIT is plate **09**, in PRODUCTS. It is the only reality that
+reads the real world — businesses nobody here chose — and the only one that
+needs a backend, so inside the Lab it usually reports that nothing is
+answering. It still builds as its own page (`npm run build:product`).
 
 ## TAXONOMY
 

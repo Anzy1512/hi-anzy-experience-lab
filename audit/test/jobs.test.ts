@@ -98,6 +98,11 @@ class FixtureProvider implements SearchProvider {
         canonicalUrl: null,
         title: null,
         snippet: null,
+        /* Both were missing. `ingestOne` writes `discoveredAt` into a NOT NULL
+           column, so a fixture that omitted it was one call site away from a
+           constraint violation — invisible while nothing typechecked this. */
+        discoveredAt: new Date(),
+        providerMetadata: {},
         publishedAt: null,
         rank: 0,
       })),
