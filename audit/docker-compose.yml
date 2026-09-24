@@ -1,0 +1,43 @@
+# The corpus, on a server.
+#
+# Not required to run this service: with DATABASE_URL unset it runs on PGlite,
+# which is the same Postgres compiled to WebAssembly, in-process, with the same
+# pgvector. That is right for building a layer and wrong for a crawler that
+# never stops, because PGlite is single-connection.
+#
+#   docker compose up -d
+#   DATABASE_URL=postgres://audit:audit@127.0.0.1:5433/audit npm run migrate
+#
+# The image is pinned to pgvector's own build rather than stock postgres. A
+# plain postgres image has no pgvector, and the failure is not a missing
+# package — `create extension vector` reports a missing control file, which
+# reads like a permissions problem and is not.
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: hi-anzy-audit-db
+    environment:
+      POSTGRES_USER: audit
+      POSTGRES_PASSWORD: audit
+      POSTGRES_DB: audit
+      # Deterministic collation, so full-text ranking does not depend on the
+      # locale of whichever machine started the container.
+      POSTGRES_INITDB_ARGS: '--locale=C.UTF-8 --encoding=UTF8'
+    # 5433, not 5432: a developer machine usually already has something on the
+    # default port, and discovering that by connecting to the wrong database is
+    # a bad afternoon.
+    ports:
+      - '127.0.0.1:5433:5432'
+    volumes:
+      - audit-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U audit -d audit']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    # Bound to loopback above; these are development credentials and the port
+    # must not be published beyond this machine with them.
+    restart: unless-stopped
+
+volumes:
+  audit-pgdata:

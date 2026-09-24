@@ -3,3 +3,8 @@ dist
 .playwright-mcp
 *.local
 .DS_Store
+
+# The audit service keeps its own tree and its own local corpus.
+audit/node_modules
+audit/.data
+audit/.env
