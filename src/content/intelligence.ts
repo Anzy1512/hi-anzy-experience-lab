@@ -22,7 +22,9 @@ export type DeskId =
   | 'domains'
   | 'datasets'
   | 'archive'
-  | 'sources';
+  | 'sources'
+  | 'atlas'
+  | 'extracts';
 
 export interface DeskDefinition {
   id: DeskId;
@@ -116,6 +118,24 @@ export const DESKS: DeskDefinition[] = [
     description:
       'What the engine asks, whether each source is ready and under which licence, and the registry of tools reviewed to build it — with the decision on each and why.',
     reads: ['/api/sources', '/api/registry', '/api/registry/tools'],
+  },
+  {
+    id: 'atlas',
+    index: 'I10',
+    title: 'ATLAS',
+    tagline: 'Where a brand trades, or a kind of business is — by state and district.',
+    description:
+      'Counted from the maps the engine keeps on this machine: a brand’s outlets, or every business of a kind, region by region — each map’s count beside the other’s, never added together. A brand’s offices, works and namesakes are counted apart, never as stores.',
+    reads: ['/api/atlas', '/api/atlas/regions'],
+  },
+  {
+    id: 'extracts',
+    index: 'I11',
+    title: 'EXTRACTS',
+    tagline: 'The maps kept on this machine, answering first.',
+    description:
+      'OpenStreetMap’s regional files and Overture’s monthly places, loaded into the engine’s database: each one’s date, its places and regions, and whether it is young enough to answer a search in place of the live service. Loading one is a task on the engine.',
+    reads: ['/api/extracts', '/api/extracts/top', '/api/extracts/load', '/api/tasks/{id}'],
   },
 ];
 

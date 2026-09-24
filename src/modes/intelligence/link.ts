@@ -31,6 +31,8 @@ export interface Handover {
   domain?: string;
   /** DATASETS: questions to add. */
   questions?: string[];
+  /** ATLAS: a kind of business to count (a brand goes in `brand`). */
+  category?: string;
 }
 
 export interface DeskProps {

@@ -155,6 +155,9 @@ export default function BrandsDesk({ engineState, signal, go, receive, take }: D
                   <button type="button" className="sv-btn" onClick={() => go('locators', { brand: b.name })}>
                     READ ITS STORE LOCATOR
                   </button>
+                  <button type="button" className="sv-btn" onClick={() => go('atlas', { brand: b.name })}>
+                    COUNT ITS OUTLETS BY STATE
+                  </button>
                   {b.websites[0] && (
                     <button type="button" className="sv-btn" onClick={() => go('sites', { url: b.websites[0] })}>
                       READ ITS SITE

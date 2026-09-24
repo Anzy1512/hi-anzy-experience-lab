@@ -38,3 +38,18 @@ export function NeedsEngine({ state }: { state: EngineState }) {
     </p>
   );
 }
+
+/** For the desks that read the engine's database (the local extracts): whether it is on,
+ *  and how to start it when it is not — the engine's own words for why it is off. */
+export function NeedsDatabase({ state }: { state: EngineState }) {
+  if (state.kind !== 'ready' || state.health.local_knowledge) return null;
+  const why = state.health.notes.find((n) => n.startsWith('Local knowledge is off'));
+  return (
+    <div className="sv-engine sv-engine--off" role="status">
+      <p className="t-mono t-mono-xs">THE ENGINE'S DATABASE IS OFF · THIS DESK READS FROM IT</p>
+      {why && <p className="t-body-s t-dim">{why}</p>}
+      <p className="t-body-s">Start the database in the commercial-intelligence folder, then restart the engine:</p>
+      <pre className="t-mono t-mono-xs sv-code">docker compose up -d db</pre>
+    </div>
+  );
+}

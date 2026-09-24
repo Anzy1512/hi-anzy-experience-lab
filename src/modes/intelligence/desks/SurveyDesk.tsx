@@ -48,10 +48,53 @@ type View = 'ledger' | 'relations' | 'review';
 interface Pages {
   matched: ResultItem[];
   undetermined: ResultItem[];
+  excluded: ResultItem[];
   more: Record<Verdict, boolean>;
 }
 
-const EMPTY: Pages = { matched: [], undetermined: [], more: { matched: false, undetermined: false } };
+const EMPTY: Pages = {
+  matched: [],
+  undetermined: [],
+  excluded: [],
+  more: { matched: false, undetermined: false, excluded: false },
+};
+
+const VERDICTS: Verdict[] = ['matched', 'undetermined', 'excluded'];
+
+/** Which of a brand's places a business is (D-056): what the search read, else what its condition saw. */
+function placeKind(item: ResultItem): { kind: string; evidence: string | null } | null {
+  const said = item.search?.['meta.place_kind']?.values?.[0];
+  const how = item.search?.['meta.place_kind_evidence']?.values?.[0];
+  if (typeof said === 'string') return { kind: said, evidence: typeof how === 'string' ? how : null };
+  const seen = item.conditions?.find((c) => c.field === 'meta.place_kind')?.values?.[0];
+  return typeof seen === 'string' ? { kind: seen, evidence: null } : null;
+}
+
+const PLACE_KINDS: Record<string, string> = {
+  outlet: 'an outlet of the brand',
+  office: 'an office, not an outlet',
+  facility: 'works — a factory, warehouse or depot — not an outlet',
+  seller: 'a seller of the brand’s goods, not its outlet',
+  reference: 'named after the brand, not its own place',
+};
+
+/** The same, as the ledger's short label. */
+const PLACE_LABELS: Record<string, string> = {
+  office: 'OFFICE',
+  facility: 'WORKS',
+  seller: 'SELLER',
+  reference: 'NAMED AFTER IT',
+};
+
+/** Why a condition kept a business out, in words — the engine's own reason where it gives one. */
+function whyNot(item: ResultItem, c: { field: string; reason: string | null }): [string, string] {
+  if (c.field === 'meta.place_kind') {
+    const kind = placeKind(item)?.kind;
+    return ['NOT AN OUTLET', kind ? (PLACE_KINDS[kind] ?? kind) : 'not one of the brand’s outlets'];
+  }
+  if (c.field === 'meta.brand') return ['NOT THE BRAND', c.reason ?? 'nothing on its record shows the brand'];
+  return [c.field, c.reason ?? 'the condition was not met'];
+}
 
 export default function SurveyDesk({ engineState, signal, go, receive, take }: DeskProps) {
   const [initial] = useState<Handover | undefined>(() => take('survey'));
@@ -119,7 +162,7 @@ export default function SurveyDesk({ engineState, signal, go, receive, take }: D
         }
         setSearch(status.value);
         if (status.value.status === 'done' || status.value.status === 'saved') {
-          await Promise.all([loadPage(id, 'matched', 0), loadPage(id, 'undetermined', 0)]);
+          await Promise.all(VERDICTS.map((v) => loadPage(id, v, 0)));
           return;
         }
         if (status.value.status === 'failed' || status.value.status === 'unfinished') return;
@@ -210,9 +253,9 @@ export default function SurveyDesk({ engineState, signal, go, receive, take }: D
   /* ---- derived ------------------------------------------------------------ */
   const finished = search?.status === 'done' || search?.status === 'saved';
   const report = finished ? (search?.report ?? null) : null;
-  const rows = tab === 'matched' ? pages.matched : pages.undetermined;
+  const rows = pages[tab];
   const chosen = useMemo(
-    () => [...pages.matched, ...pages.undetermined].find((r) => r.id === selected) ?? null,
+    () => [...pages.matched, ...pages.undetermined, ...pages.excluded].find((r) => r.id === selected) ?? null,
     [pages, selected],
   );
   const reasons = useMemo(
@@ -480,7 +523,7 @@ export default function SurveyDesk({ engineState, signal, go, receive, take }: D
             <div className="sv-grid">
               <div className="sv-ledger">
                 <div className="sv-tabs" role="tablist" aria-label="Results">
-                  {(['matched', 'undetermined'] as const).map((v) => (
+                  {VERDICTS.map((v) => (
                     <button
                       key={v}
                       type="button"
@@ -489,13 +532,17 @@ export default function SurveyDesk({ engineState, signal, go, receive, take }: D
                       className="t-mono t-mono-xs sv-tab"
                       onClick={() => setTab(v)}
                     >
-                      {v.toUpperCase()} · {v === 'matched' ? report.results.matched : report.results.undetermined}
+                      {v.toUpperCase()} · {report.results[v]}
                     </button>
                   ))}
                 </div>
                 {rows.length === 0 ? (
                   <p className="t-body-s t-dim sv-empty">
-                    {tab === 'matched' ? 'No business matched every condition.' : 'No business was left undetermined.'}
+                    {tab === 'matched'
+                      ? 'No business matched every condition.'
+                      : tab === 'undetermined'
+                        ? 'No business was left undetermined.'
+                        : 'No business was excluded.'}
                   </p>
                 ) : (
                   <ol className="sv-rows">
@@ -509,7 +556,11 @@ export default function SurveyDesk({ engineState, signal, go, receive, take }: D
                         >
                           <span className="t-mono t-mono-xs sv-row__n">{String(i + 1).padStart(3, '0')}</span>
                           <span className="sv-row__name">{r.name ?? '(unnamed)'}</span>
-                          <span className="t-mono t-mono-xs sv-row__kind">{values(r, 'category').join(' · ')}</span>
+                          <span className="t-mono t-mono-xs sv-row__kind">
+                            {[PLACE_LABELS[placeKind(r)?.kind ?? ''] ?? null, ...values(r, 'category')]
+                              .filter(Boolean)
+                              .join(' · ')}
+                          </span>
                           <span className="t-mono t-mono-xs sv-row__far">
                             {r.distance_m !== null ? `${(r.distance_m / 1000).toFixed(1)} KM` : ''}
                           </span>
@@ -624,10 +675,34 @@ function Detail({
     }));
   const site = values(item, 'website')[0];
   const domain = site ? domainOf(site) : null;
+  const kind = placeKind(item);
+  const against = (item.conditions ?? []).filter((c) => c.result === 'false');
   return (
     <article className="sv-detail" aria-label={`What the sources said about ${item.name ?? 'this business'}`}>
       <h2 className="t-display-s sv-detail__name">{item.name ?? '(unnamed)'}</h2>
+      {item.verdict === 'false' && against.length > 0 && (
+        <div className="sv-undecided">
+          <h3 className="t-mono t-mono-xs">WHY IT IS NOT COUNTED</h3>
+          {against.map((c) => {
+            const [head, why] = whyNot(item, c);
+            return (
+              <p key={`${c.field}-${c.op}`} className="t-body-s">
+                <span className="t-mono t-mono-xs">{head}</span> — {why}
+              </p>
+            );
+          })}
+        </div>
+      )}
       <dl className="sv-facts">
+        {kind && (
+          <div>
+            <dt>WHICH OF THE BRAND’S PLACES</dt>
+            <dd>
+              {PLACE_KINDS[kind.kind] ?? kind.kind}
+              {kind.evidence && <span className="t-faint"> · {kind.evidence}</span>}
+            </dd>
+          </div>
+        )}
         {[...DETAIL_FIELDS, ...AMENITIES].map(([path, label]) => {
           const found = said(path);
           if (found.length === 0) return null;

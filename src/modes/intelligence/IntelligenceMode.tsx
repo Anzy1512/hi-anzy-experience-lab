@@ -15,6 +15,8 @@ import DomainsDesk from './desks/DomainsDesk';
 import DatasetsDesk from './desks/DatasetsDesk';
 import ArchiveDesk from './desks/ArchiveDesk';
 import SourcesDesk from './desks/SourcesDesk';
+import AtlasDesk from './desks/AtlasDesk';
+import ExtractsDesk from './desks/ExtractsDesk';
 import './intelligence.css';
 
 /**
@@ -22,8 +24,9 @@ import './intelligence.css';
  *
  * One reality with a desk for each thing the engine can do: survey a place,
  * read a brand, resolve an area, read a store locator, read a site, look up a
- * domain, build a dataset, open what is already known, and see every source
- * and the registry behind them.
+ * domain, build a dataset, open what is already known, see every source and
+ * the registry behind them, count a brand or a kind of business by state and
+ * district, and see the maps the engine keeps on its own machine.
  *
  * The rules of the rest of the Lab hold on every desk:
  *
@@ -51,6 +54,8 @@ const DESK_VIEWS: Record<DeskId, ComponentType<DeskProps>> = {
   datasets: DatasetsDesk,
   archive: ArchiveDesk,
   sources: SourcesDesk,
+  atlas: AtlasDesk,
+  extracts: ExtractsDesk,
 };
 
 const MODE_ID = 'intelligence';

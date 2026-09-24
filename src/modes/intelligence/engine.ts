@@ -54,6 +54,9 @@ export interface ReportSource {
   reason: string | null;
   in_area_records: number;
   notes?: string[];
+  /* questions a local extract answered instead of the live service, and which (D-055) */
+  local_answers?: number;
+  local_from?: string[];
 }
 
 export interface SurveyReport {
@@ -94,6 +97,15 @@ export interface FieldValue {
   sources?: string[];
 }
 
+/** One condition of the question, as the engine decided it for one business. */
+export interface ConditionOutcome {
+  field: string;
+  op: string;
+  result: 'true' | 'unknown' | 'false';
+  values: unknown[];
+  reason: string | null;
+}
+
 export interface ResultItem {
   id: string;
   name: string | null;
@@ -104,9 +116,12 @@ export interface ResultItem {
   records: { source: string; record: string; url?: string }[];
   sources: string[];
   undetermined_fields?: string[];
+  conditions?: ConditionOutcome[];
+  /* what this search established about it — its brand, which of the brand's places it is */
+  search?: Record<string, { state: string; values?: unknown[] }>;
 }
 
-export type Verdict = 'matched' | 'undetermined';
+export type Verdict = 'matched' | 'undetermined' | 'excluded';
 
 /** What a search's businesses share: a brand, an operator, a site, a phone … */
 export interface Graph {
@@ -403,6 +418,92 @@ export interface RegistryTool {
   last_reviewed: string;
 }
 
+/** One bulk dataset kept on the engine's machine (D-055): an OpenStreetMap extract, an Overture region. */
+export interface ExtractDataset {
+  id: string;
+  source_id: string;
+  title: string;
+  origin: string;
+  snapshot: string;
+  data_as_of: string | null;
+  status: 'loading' | 'ready';
+  started_at: string;
+  loaded_at: string | null;
+  places: number;
+  regions: number;
+  bytes_read: number;
+  licence: string | null;
+  attribution: string | null;
+  notes: string[];
+  /** ready and young enough: searches inside it are answered by it */
+  answers: boolean;
+  box: [number, number, number, number];
+}
+
+export interface ExtractAvailable {
+  kind: 'osm' | 'overture';
+  key: string;
+  dataset_id: string;
+  title: string;
+  file: string | null;
+  file_bytes: number | null;
+}
+
+export interface Extracts {
+  datasets: ExtractDataset[];
+  available: ExtractAvailable[];
+  totals: {
+    sources: Record<string, { places: number; businesses: number; branded: number; filed: number }>;
+    /** regions held, by the level places are filed under (in India: states, districts) */
+    regions: { region1: number; region2: number };
+  };
+  loads: Task<unknown>[];
+}
+
+export interface LoadedExtract {
+  dataset_id: string;
+  title: string;
+  source_id: string;
+  places: number;
+  regions: number;
+  bytes_read: number;
+  seconds: number;
+  data_as_of: string | null;
+  notes: string[];
+}
+
+export interface AtlasRow {
+  region_id: string | null;
+  name: string | null;
+  parent: string | null;
+  counts: Record<string, number>;
+  apart: Record<string, number>;
+}
+
+/** Counts by region from the local extracts: per source, never added together. */
+export interface Atlas {
+  kind: 'brand' | 'category';
+  asked: string;
+  subject: string[];
+  level: 1 | 2;
+  within: string | null;
+  wikidata: string[];
+  categories: string[];
+  totals: Record<string, number>;
+  apart: Record<string, Record<string, number>>;
+  rows: AtlasRow[];
+  notes: string[];
+  datasets: ExtractDataset[];
+}
+
+export interface Region {
+  id: string;
+  name: string;
+  name_en: string | null;
+  wikidata: string | null;
+  parent_id: string | null;
+}
+
 /* ---- calls ---------------------------------------------------------------- */
 
 /** A call's outcome: the answer, or a sentence saying why there is none. */
@@ -513,6 +614,24 @@ export const engine = {
       `/api/datasets/${q(id)}/rows?offset=${offset}&limit=${limit}`,
       signal,
     ),
+
+  /* the local extracts, and counting from them */
+  extracts: (signal: AbortSignal) => call<Extracts>('/api/extracts', signal),
+  extractsTop: (by: 'categories' | 'brand', limit: number, signal: AbortSignal) =>
+    call<{ value: string; places: number }[]>(`/api/extracts/top?by=${by}&limit=${limit}`, signal),
+  loadExtract: (body: { kind: 'osm' | 'overture' | 'all'; key?: string; download?: boolean }, signal: AbortSignal) =>
+    call<Task<{ loaded: LoadedExtract[] }>>('/api/extracts/load', signal, post(body)),
+  atlas: (
+    ask: { brand?: string; category?: string; level: 1 | 2; within?: string | null },
+    countries: string[] | undefined,
+    signal: AbortSignal,
+  ) => {
+    const subject = ask.brand ? `brand=${q(ask.brand)}` : `category=${q(ask.category ?? '')}`;
+    const within = ask.within ? `&within=${q(ask.within)}` : '';
+    return call<Atlas>(`/api/atlas?${subject}&level=${ask.level}${within}${countryParams(countries)}`, signal);
+  },
+  regions: (level: 1 | 2, parent: string | null, signal: AbortSignal) =>
+    call<Region[]>(`/api/atlas/regions?level=${level}${parent ? `&parent=${q(parent)}` : ''}`, signal),
 
   /* what the engine is, and holds */
   knowledge: (signal: AbortSignal) => call<Knowledge>('/api/knowledge', signal),

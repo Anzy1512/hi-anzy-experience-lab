@@ -321,7 +321,8 @@
   color: var(--text-secondary);
   border-bottom: 2px solid transparent;
 }
-.sv-tab[aria-selected='true'] {
+.sv-tab[aria-selected='true'],
+.sv-tab[aria-checked='true'] {
   color: var(--figure);
   border-bottom-color: var(--signal);
 }
@@ -955,6 +956,42 @@
   display: grid;
   gap: var(--s-1);
   align-content: start;
+}
+
+/* ---- atlas: counts by region, each map's beside the other's --------------- */
+.sv-views--flush {
+  margin: 0 0 var(--s-2);
+}
+.sv-atlas td.sv-atlas__n {
+  min-width: 14ch;
+}
+/* a count's share of the largest in view: a drawn rule, in the figure's
+   secondary ink — a measured value, never a signal */
+.sv-bar {
+  display: block;
+  height: 2px;
+  margin-top: 4px;
+  background: var(--text-secondary);
+  transform-origin: left center;
+  transform: scaleX(var(--share, 0));
+}
+.sv-atlas__go {
+  white-space: nowrap;
+}
+.sv-atlas__go .sv-link + .sv-link {
+  margin-left: 12px;
+}
+.sv-sources {
+  list-style: none;
+  margin: var(--s-2) 0 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+.sv-link:disabled {
+  color: var(--text-faint);
+  text-decoration: none;
+  cursor: default;
 }
 
 .sv-visually-hidden {
