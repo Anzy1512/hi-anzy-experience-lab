@@ -29,6 +29,28 @@
   grid-template-rows: auto 1fr auto;
 }
 
+/*
+ * INSIDE THE LAB.
+ *
+ * The mode host is `position: fixed; inset: 0; overflow: hidden` with a chrome
+ * band — plate number, work strip, EXIT — floating across the top. A document
+ * dropped into that is clipped at the fold with no way to scroll, and its own
+ * masthead prints underneath the EXIT control.
+ *
+ * So the surface supplies the scroll the host deliberately does not, and clears
+ * the band by the same offset Performance uses. `min-height` is released
+ * because the box is now the frame rather than the page.
+ */
+.audit[data-frame='lab'] {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+  overflow-y: auto;
+  /* The Lab's scroll stops here rather than chaining to the document behind. */
+  overscroll-behavior: contain;
+  padding-top: calc(var(--trim) * 0.5 + 52px);
+}
+
 .audit__skip {
   position: absolute;
   left: -9999px;
@@ -45,14 +67,14 @@
 
 /* ---- masthead ----------------------------------------------------------- */
 
-.masthead {
+.audit .masthead {
   border-bottom: var(--rule-w) solid var(--rule);
   padding: var(--s-3) var(--trim) var(--s-2);
   display: grid;
   gap: var(--s-2);
 }
 
-.masthead__line {
+.audit .masthead__line {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -60,7 +82,7 @@
   justify-content: space-between;
 }
 
-.masthead__name {
+.audit .masthead__name {
   margin: 0;
   font-family: var(--f-display);
   font-weight: 700;
@@ -69,35 +91,35 @@
   text-transform: uppercase;
 }
 
-.masthead__name span {
+.audit .masthead__name span {
   color: var(--signal-text);
 }
 
 /* ---- the service line, which is never decorative ------------------------ */
 
-.reach {
+.audit .reach {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: var(--s-1) var(--s-3);
 }
 
-.reach__state {
+.audit .reach__state {
   font-family: var(--f-mono);
   font-size: var(--t-mono-s);
   letter-spacing: var(--tr-mono);
   text-transform: uppercase;
 }
 
-.reach__state[data-state='ONLINE'] {
+.audit .reach__state[data-state='ONLINE'] {
   color: var(--signal-text);
 }
-.reach__state[data-state='UNREACHABLE'],
-.reach__state[data-state='UNAUTHORISED'] {
+.audit .reach__state[data-state='UNREACHABLE'],
+.audit .reach__state[data-state='UNAUTHORISED'] {
   color: var(--signal-hot-text);
 }
 
-.reach__detail {
+.audit .reach__detail {
   font-family: var(--f-mono);
   font-size: var(--t-mono-xs);
   color: var(--figure-dim);
@@ -105,13 +127,13 @@
 
 /* ---- navigation --------------------------------------------------------- */
 
-.tabs {
+.audit .tabs {
   display: flex;
   flex-wrap: wrap;
   gap: var(--s-4);
 }
 
-.tabs__item {
+.audit .tabs__item {
   appearance: none;
   background: none;
   border: 0;
@@ -127,31 +149,31 @@
   transition: color var(--d-1) var(--e-snap), border-color var(--d-1) var(--e-snap);
 }
 
-.tabs__item[aria-selected='true'] {
+.audit .tabs__item[aria-selected='true'] {
   color: var(--figure);
   border-bottom-color: var(--signal);
 }
 
-.tabs__item:hover {
+.audit .tabs__item:hover {
   color: var(--figure);
 }
 
 /* ---- the sheet ---------------------------------------------------------- */
 
-.sheet {
+.audit .audit__sheet {
   padding: var(--s-5) var(--trim) var(--s-7);
   max-width: 78ch;
 }
 
-.sheet--wide {
+.audit .audit__sheet--wide {
   max-width: none;
 }
 
-.section {
+.audit .section {
   margin: 0 0 var(--s-6);
 }
 
-.section__title {
+.audit .section__title {
   margin: 0 0 var(--s-3);
   font-family: var(--f-mono);
   font-size: var(--t-mono-s);
@@ -162,18 +184,18 @@
   padding-bottom: var(--s-1);
 }
 
-.prose {
+.audit .prose {
   font-family: var(--f-body);
   font-size: var(--t-body);
   line-height: 1.55;
   margin: 0 0 var(--s-3);
 }
 
-.dim {
+.audit .dim {
   color: var(--figure-dim);
 }
 
-.value {
+.audit .value {
   font-family: var(--f-mono);
   font-size: var(--t-mono);
   letter-spacing: var(--tr-mono);
@@ -181,13 +203,13 @@
 
 /* ---- the ask form ------------------------------------------------------- */
 
-.field {
+.audit .field {
   display: grid;
   gap: var(--s-1);
   margin-bottom: var(--s-3);
 }
 
-.field__label {
+.audit .field__label {
   font-family: var(--f-mono);
   font-size: var(--t-mono-xs);
   letter-spacing: var(--tr-mono);
@@ -195,8 +217,8 @@
   color: var(--figure-dim);
 }
 
-.field__input,
-.field__area {
+.audit .field__input,
+.audit .field__area {
   font-family: var(--f-body);
   font-size: var(--t-body);
   color: var(--figure);
@@ -206,7 +228,7 @@
   min-height: 32px;
 }
 
-.field__area {
+.audit .field__area {
   min-height: 5rem;
   resize: vertical;
 }
@@ -232,10 +254,10 @@ select.field__input {
   background-repeat: no-repeat;
 }
 
-.field__input:focus-visible,
-.field__area:focus-visible,
-.tabs__item:focus-visible,
-.button:focus-visible {
+.audit .field__input:focus-visible,
+.audit .field__area:focus-visible,
+.audit .tabs__item:focus-visible,
+.audit .button:focus-visible {
   outline: 2px solid var(--signal);
   outline-offset: 2px;
 }
@@ -247,7 +269,7 @@ select.field__input {
  * 32px interaction floor everywhere and unusable on a touch screen. The label
  * carries the target; the box is drawn larger and the two move together.
  */
-.check {
+.audit .check {
   display: flex;
   align-items: center;
   gap: var(--s-1);
@@ -261,35 +283,35 @@ select.field__input {
   cursor: pointer;
 }
 
-.check input {
+.audit .check input {
   inline-size: 18px;
   block-size: 18px;
   accent-color: var(--signal);
   cursor: pointer;
 }
 
-.check:hover {
+.audit .check:hover {
   color: var(--figure);
 }
 
-.check input:focus-visible {
+.audit .check input:focus-visible {
   outline: 2px solid var(--signal);
   outline-offset: 2px;
 }
 
-.row {
+.audit .audit__row {
   display: flex;
   flex-wrap: wrap;
   gap: var(--s-3);
   align-items: flex-end;
 }
 
-.row > .field {
+.audit .audit__row > .field {
   flex: 1 1 12rem;
   margin-bottom: 0;
 }
 
-.button {
+.audit .button {
   appearance: none;
   font-family: var(--f-mono);
   font-size: var(--t-mono-s);
@@ -304,41 +326,41 @@ select.field__input {
   transition: background var(--d-1) var(--e-snap), color var(--d-1) var(--e-snap);
 }
 
-.button:hover:not(:disabled) {
+.audit .button:hover:not(:disabled) {
   background: var(--signal);
   border-color: var(--signal);
   color: var(--c-ink);
 }
 
-.button:disabled {
+.audit .button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
 
-.button--quiet {
+.audit .button--quiet {
   background: none;
   color: var(--figure);
 }
 
 /* ---- findings ----------------------------------------------------------- */
 
-.finding {
+.audit .finding {
   border-top: var(--rule-w) solid var(--rule-faint);
   padding: var(--s-3) 0;
 }
 
-.finding:first-child {
+.audit .finding:first-child {
   border-top: 0;
 }
 
-.finding__statement {
+.audit .finding__statement {
   margin: 0;
   font-family: var(--f-body);
   font-size: var(--t-body);
   line-height: 1.5;
 }
 
-.finding__meta {
+.audit .finding__meta {
   margin-top: var(--s-1);
   display: flex;
   flex-wrap: wrap;
@@ -349,11 +371,11 @@ select.field__input {
   color: var(--figure-dim);
 }
 
-.finding__meta [data-status='CONFLICTING'] {
+.audit .finding__meta [data-status='CONFLICTING'] {
   color: var(--signal-hot-text);
 }
 
-.finding__limits {
+.audit .finding__limits {
   margin: var(--s-1) 0 0;
   font-family: var(--f-body);
   font-size: var(--t-body-s);
@@ -361,20 +383,20 @@ select.field__input {
   line-height: 1.5;
 }
 
-.citation {
+.audit .citation {
   margin: var(--s-2) 0 0 var(--s-3);
   border-left: 2px solid var(--rule);
   padding-left: var(--s-2);
 }
 
-.citation__quote {
+.audit .citation__quote {
   margin: 0;
   font-family: var(--f-body);
   font-size: var(--t-body-s);
   line-height: 1.5;
 }
 
-.citation__source {
+.audit .citation__source {
   display: block;
   margin-top: var(--s-0);
   font-family: var(--f-mono);
@@ -392,7 +414,7 @@ select.field__input {
  * card — and at 13px tall it failed the 32px floor. Inline-flex with a minimum
  * height gives it a real target without changing how it reads.
  */
-.citation__source a {
+.audit .citation__source a {
   display: inline-flex;
   align-items: center;
   min-height: 32px;
@@ -401,7 +423,7 @@ select.field__input {
   text-underline-offset: 3px;
 }
 
-.citation__source a:focus-visible {
+.audit .citation__source a:focus-visible {
   outline: 2px solid var(--signal);
   outline-offset: 2px;
 }
@@ -418,12 +440,12 @@ select.field__input {
  * it is a sideways drag, which is a first-class touch gesture rather than a
  * degraded one.
  */
-.table-wrap {
+.audit .table-wrap {
   overflow-x: auto;
   overscroll-behavior-x: contain;
 }
 
-.table {
+.audit .table {
   width: 100%;
   min-inline-size: 34rem;
   border-collapse: collapse;
@@ -431,15 +453,15 @@ select.field__input {
   font-size: var(--t-mono-s);
 }
 
-.table th,
-.table td {
+.audit .table th,
+.audit .table td {
   text-align: left;
   padding: var(--s-1) var(--s-2) var(--s-1) 0;
   border-bottom: var(--rule-w) solid var(--rule-faint);
   vertical-align: top;
 }
 
-.table th {
+.audit .table th {
   letter-spacing: var(--tr-mono);
   text-transform: uppercase;
   color: var(--figure-dim);
@@ -448,7 +470,7 @@ select.field__input {
 
 .table td[data-state='DONE'] { color: var(--figure); }
 .table td[data-state='FAILED'] { color: var(--signal-hot-text); }
-.table td[data-state='SKIPPED'],
+.audit .table td[data-state='SKIPPED'],
 .table td[data-state='PENDING'] { color: var(--figure-dim); }
 .table td[data-state='RUNNING'] { color: var(--signal-text); }
 
@@ -456,13 +478,13 @@ select.field__input {
 
 /* ---- the graph, drawn as a list because it is one ----------------------- */
 
-.graph {
+.audit .graph {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.graph__task {
+.audit .graph__task {
   border-top: var(--rule-w) solid var(--rule-faint);
   padding: var(--s-2) 0;
   display: grid;
@@ -470,13 +492,13 @@ select.field__input {
   gap: var(--s-1) var(--s-3);
 }
 
-.graph__key {
+.audit .graph__key {
   font-family: var(--f-mono);
   font-size: var(--t-mono-s);
   letter-spacing: var(--tr-mono);
 }
 
-.graph__state {
+.audit .graph__state {
   font-family: var(--f-mono);
   font-size: var(--t-mono-xs);
   letter-spacing: var(--tr-mono);
@@ -487,7 +509,7 @@ select.field__input {
 .graph__state[data-state='FAILED'] { color: var(--signal-hot-text); }
 .graph__state[data-state='RUNNING'] { color: var(--signal-text); }
 
-.graph__why {
+.audit .graph__why {
   grid-column: 1 / -1;
   margin: 0;
   font-family: var(--f-body);
@@ -498,7 +520,7 @@ select.field__input {
 
 /* ---- the plate: a plain plot, drawn from real coordinates --------------- */
 
-.plate {
+.audit .plate {
   position: relative;
   width: 100%;
   aspect-ratio: 3 / 2;
@@ -509,12 +531,12 @@ select.field__input {
 }
 
 /* Nothing to plot needs a line of type, not a page of empty stock. */
-.plate:has(.plate__empty) {
+.audit .plate:has(.plate__empty) {
   aspect-ratio: auto;
   min-block-size: 8rem;
 }
 
-.plate__mark {
+.audit .plate__mark {
   position: absolute;
   width: 8px;
   height: 8px;
@@ -523,12 +545,12 @@ select.field__input {
   background: var(--ground);
 }
 
-.plate__mark[data-selected='true'] {
+.audit .plate__mark[data-selected='true'] {
   background: var(--signal);
   border-color: var(--signal);
 }
 
-.plate__empty {
+.audit .plate__empty {
   position: absolute;
   inset: 0;
   display: grid;
@@ -543,13 +565,13 @@ select.field__input {
 
 /* ---- limitations, which are part of the finding ------------------------- */
 
-.limits {
+.audit .limits {
   border-top: 2px solid var(--figure);
   padding-top: var(--s-2);
   margin-top: var(--s-5);
 }
 
-.limits__list {
+.audit .limits__list {
   margin: 0;
   padding-left: var(--s-4);
   font-family: var(--f-body);
@@ -558,24 +580,24 @@ select.field__input {
   color: var(--figure-dim);
 }
 
-.limits__list li + li {
+.audit .limits__list li + li {
   margin-top: var(--s-1);
 }
 
 /* ---- the offline notice ------------------------------------------------- */
 
-.notice {
+.audit .notice {
   border: var(--rule-w) solid var(--rule);
   border-left: 3px solid var(--signal);
   padding: var(--s-3);
   margin: 0 0 var(--s-5);
 }
 
-.notice--refused {
+.audit .notice--refused {
   border-left-color: var(--signal-hot);
 }
 
-.notice__title {
+.audit .notice__title {
   margin: 0 0 var(--s-1);
   font-family: var(--f-mono);
   font-size: var(--t-mono-s);
@@ -583,20 +605,20 @@ select.field__input {
   text-transform: uppercase;
 }
 
-.notice__body {
+.audit .notice__body {
   margin: 0;
   font-family: var(--f-body);
   font-size: var(--t-body-s);
   line-height: 1.55;
 }
 
-.notice__body + .notice__body {
+.audit .notice__body + .notice__body {
   margin-top: var(--s-2);
 }
 
 /* ---- colophon ----------------------------------------------------------- */
 
-.colophon {
+.audit .colophon {
   border-top: var(--rule-w) solid var(--rule);
   padding: var(--s-3) var(--trim);
   font-family: var(--f-mono);
@@ -617,10 +639,10 @@ select.field__input {
    * movement, so there is nothing to replace — which is the correct place to
    * end up rather than a happy accident.
    */
-  .tabs__item,
-  .button,
-  .field__input,
-  .field__area {
+  .audit .tabs__item,
+  .audit .button,
+  .audit .field__input,
+  .audit .field__area {
     transition-duration: 1ms;
   }
 }

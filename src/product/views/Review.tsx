@@ -125,8 +125,8 @@ export function Review(): React.JSX.Element {
           {queue.findings.length === 0 ? (
             <Notice title="Nothing waiting">
               <p className="notice__body">
-                Every finding in the store has been reviewed at least once. Run a pilot, or tick the box above to read them
-                again — a second reviewer disagreeing is data, not a conflict.
+                Every finding here has been reviewed at least once. Run a pilot, or tick the box above to read them again.
+                A second reviewer disagreeing is data, not a conflict.
               </p>
             </Notice>
           ) : (
@@ -146,9 +146,9 @@ export function Review(): React.JSX.Element {
 
           <Limitations
             lines={[
-              'A review is added. The finding is never edited, because the pair — what the system said and what you said about it — is the record.',
+              'A review is added. The finding is never changed: the pair — what the system said, and what you said about it — is the record.',
               'Two reviewers may disagree about the same finding. Both are kept.',
-              'The rule and engine versions are stored with your verdict, so a label does not silently come to describe later code.',
+              'The rule and engine versions are stored with your verdict, so a label cannot drift onto later code.',
             ]}
           />
         </>
@@ -223,8 +223,7 @@ function ReviewCard({
 
       {finding.citations.length === 0 ? (
         <p className="finding__limits">
-          This finding cites nothing. If it is the kind of statement that should rest on a passage, that is itself the
-          finding to record.
+          This finding cites nothing. If it is the kind of statement that should rest on a passage, record that.
         </p>
       ) : (
         finding.citations.map((c, i) => (
@@ -255,7 +254,7 @@ function ReviewCard({
         </p>
       ) : (
         <>
-          <div className="row">
+          <div className="audit__row">
             <div className="field">
               <label className="field__label" htmlFor={id('verdict')}>
                 Does it hold?
@@ -325,7 +324,7 @@ function ReviewCard({
 
           <div className="field">
             <label className="field__label" htmlFor={id('correction')}>
-              What it should have said (the part a later evaluation learns from)
+              What it should have said
             </label>
             <input
               id={id('correction')}
@@ -334,7 +333,7 @@ function ReviewCard({
               onChange={(e) => setCorrection(e.target.value)}
             />
           </div>
-          <div className="row">
+          <div className="audit__row">
             <div className="field">
               <label className="field__label" htmlFor={id('note')}>
                 Note

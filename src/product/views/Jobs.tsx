@@ -80,7 +80,7 @@ export function Jobs(): React.JSX.Element {
           </label>
           <textarea id="jq" className="field__area" value={question} onChange={(e) => setQuestion(e.target.value)} />
         </div>
-        <div className="row">
+        <div className="audit__row">
           <div className="field">
             <label className="field__label" htmlFor="proj">
               Project (optional)
@@ -116,8 +116,7 @@ export function Jobs(): React.JSX.Element {
           </button>
         </div>
         <p className="prose dim">
-          Fetching costs somebody else's bandwidth. The limit is yours to set, the job stops at it, and it says so
-          rather than quietly stopping short.
+          Fetching costs somebody else&rsquo;s bandwidth. You set the limit; the job stops at it and says so.
         </p>
       </section>
 

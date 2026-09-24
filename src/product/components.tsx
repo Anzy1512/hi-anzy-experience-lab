@@ -53,8 +53,8 @@ export function ServiceGate({ children }: { children: ReactNode }): React.JSX.El
     return (
       <Notice title="No key entered">
         <p className="notice__body">
-          This surface reads a running audit service. The service holds a key that can fetch pages and spend money, so
-          the key is never built into this page — enter it above and it stays in this tab only.
+          This reads a separate audit service. That service holds a key which can fetch pages and spend money, so the key
+          is never built into this page. Enter it above; it stays in this tab.
         </p>
       </Notice>
     );
@@ -64,8 +64,8 @@ export function ServiceGate({ children }: { children: ReactNode }): React.JSX.El
     <Notice title={reach.state === 'UNAUTHORISED' ? 'Key refused' : 'No service'} refused>
       <p className="notice__body">{reach.detail}</p>
       <p className="notice__body">
-        Nothing is shown below, rather than an empty result. An empty list here would say something about the world; the
-        truth is only that nothing answered.
+        Nothing is shown below, rather than an empty result. An empty list would say something about the world. The
+        truth is that nothing answered.
       </p>
       <p className="notice__body">
         <button type="button" className="button button--quiet" onClick={refresh}>

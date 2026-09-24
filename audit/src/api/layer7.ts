@@ -169,7 +169,7 @@ export async function layer7Routes(app: FastifyInstance): Promise<void> {
       pilot,
       candidates,
       runIds: await runIdsForPilot(d, p.data.id),
-      note: 'Every candidate a provider returned is here, with the reason it was or was not researched.',
+      note: 'Every candidate the provider returned is here, with the reason it was or was not researched.',
     });
   });
 
@@ -229,10 +229,10 @@ export async function layer7Routes(app: FastifyInstance): Promise<void> {
       },
       /* Said to the reviewer, because the distinction is the point of the table. */
       readThisFirst: [
-        'UNSUPPORTED means the cited passage does not say it. INCORRECT means it is not true. A finding can be either without being the other.',
-        'STALE means it was true and the page has moved on. Nothing in the pipeline is broken in that case.',
-        'CORRECTLY_AMBIGUOUS is a pass, not a miss: refusing to merge two records that cannot be told apart is the resolver working.',
-        'Your review is added. The finding is never edited, because the pair is what a later evaluation reads.',
+        'UNSUPPORTED = the cited passage does not say it. INCORRECT = it is not true. A finding can be either without being the other.',
+        'STALE = it was true and the page has moved on. Nothing is broken in that case.',
+        'CORRECTLY_AMBIGUOUS is a pass. Refusing to merge two records that cannot be told apart is the resolver working.',
+        'Your review is added. The finding is never changed.',
       ],
     });
   });
@@ -257,8 +257,8 @@ export async function layer7Routes(app: FastifyInstance): Promise<void> {
       ...m,
       note:
         m.reviews === 0
-          ? 'No finding has been reviewed by a person yet, so nothing here can be measured against a human judgement.'
-          : 'Agreement counts only. No precision or recall is reported, because the denominator would be the set of findings the system itself chose.',
+          ? 'No finding has been reviewed by a person yet. Nothing here can be measured against a human judgement.'
+          : 'Agreement counts only. No precision or recall: the denominator would be the set of findings the system chose for itself.',
     });
   });
 
@@ -273,9 +273,9 @@ export async function layer7Routes(app: FastifyInstance): Promise<void> {
       examples,
       count: examples.length,
       readThisFirst: [
-        'Each example carries the question, the evidence kept AND the evidence rejected, the finding, the automated verification and the human verdict.',
-        'The version fields are a snapshot taken when the review was written. A label does not describe later code.',
-        'This is an evaluation corpus. Nothing has been fine-tuned on it and no model has been trained.',
+        'Each example carries the question, the evidence kept and the evidence rejected, the finding, the automated verification and the human verdict.',
+        'The version fields are a snapshot from when the review was written. A label never describes later code.',
+        'An evaluation corpus. Nothing has been fine-tuned on it and no model has been trained.',
       ],
     });
   });

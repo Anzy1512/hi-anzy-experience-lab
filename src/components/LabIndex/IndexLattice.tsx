@@ -13,7 +13,10 @@ import { useDisposable } from '../../spatial/disposal';
  * start scattered, assemble into a lattice around one core, and each meshes
  * with its two nearest neighbours; its own comment states the argument as
  * "disconnected things, meshed into one system". That component has sixteen
- * nodes. This product has sixteen realities. Nobody planned that, and it is
+ * nodes, and this product had sixteen realities when the figure was built —
+ * a coincidence nobody planned. Layer 7 added a seventeenth, so the counts no
+ * longer match and the lattice draws one node per mode rather than sixteen. It
+ * is
  * too good a coincidence to leave on the floor.
  *
  * WHY IT IS HERE AND NOT BEHIND THE WHOLE INDEX

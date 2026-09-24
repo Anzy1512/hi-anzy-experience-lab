@@ -51,9 +51,9 @@ export function MapView(): React.JSX.Element {
             <p className="prose dim">{map.note}</p>
             {map.unlocated > 0 ? (
               <p className="prose dim">
-                {map.unlocated} business{map.unlocated === 1 ? '' : 'es'} in the store{' '}
+                {map.unlocated} business{map.unlocated === 1 ? '' : 'es'} here{' '}
                 {map.unlocated === 1 ? 'has' : 'have'} no resolved coordinate and {map.unlocated === 1 ? 'is' : 'are'}{' '}
-                absent from this plate. A thin plate is a thin dataset before it is a thin market.
+                absent from this plate. A thin plate means thin data, not a thin market.
               </p>
             ) : null}
           </>
@@ -108,9 +108,9 @@ function Plate({
     return (
       <div className="plate">
         <p className="plate__empty">
-          No business in this store has a resolved coordinate yet.
+          No business here has a resolved coordinate yet.
           <br />
-          Nothing is plotted rather than plotting a guess.
+          Nothing is plotted rather than guessed.
         </p>
       </div>
     );

@@ -177,8 +177,8 @@ export const RECORDS: MemoryRecord[] = [
     category: 'FUTURE',
     title: 'UNBUILT',
     lines: [
-      /* Was "the realities that are still index rows". There are none: all
-         sixteen are online and the index has no NOT YET row. What this card is
+      /* Was "the realities that are still index rows". There are none:
+         every reality is online and the index has no NOT YET row. What this card is
          actually about is the processes ANZY.OS lists as named in the plan and
          not built, which is still true. */
       'The things this company has named and not built: specified, agreed, and still not software.',

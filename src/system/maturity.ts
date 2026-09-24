@@ -11,7 +11,7 @@ import { MODES } from '../content/lab';
  * This file answers a different question — what it OWNS, what it DEPENDS ON,
  * how far along it is, and what specifically stands between it and being a
  * standalone application. Same ids, one source of truth for each fact, and a
- * dev-time check below that they describe the same sixteen things.
+ * dev-time check below that they describe the same things.
  *
  * ── STATUS IS EVIDENCE, NOT IMPRESSION ──────────────────────────────────────
  *
@@ -345,6 +345,41 @@ export const MANIFESTS: Manifest[] = [
     },
   },
 
+  {
+    id: 'commercial-audit',
+    layer: 'PRODUCT',
+    owns: 'modes/audit + product/ (surface) + audit/ (its own service, own dependency tree)',
+    /* Deliberately short. It takes the runtime, the lifecycle and the shell and
+       nothing else — no project, no artifact bar, no handoff, no spatial layer.
+       That isolation is why it can also build as its own page. */
+    consumes: [...BASE],
+    dependsOnSiblings: [],
+    /* Nothing is kept in the browser. The corpus, the findings and the reviews
+       all live in the service's database, and the key is held in the tab. */
+    persistence: 'NONE',
+    maturity: 'BETA',
+    evidence:
+      'Run end to end against real independent businesses in Leeds: a gazetteer named 16 candidates, 3 were researched, 6 pages were fetched under robots.txt with 1 refusal recorded, and two businesses were resolved from their own pages with sourced ecommerce findings. 274/274 tests; five closure gates pass. Not PRODUCT because no human has reviewed a finding, so its accuracy is unmeasured, and because it cannot run without its service.',
+    graduation: {
+      INPUT: 'PASS', TRANSFORMATION: 'PASS', OUTPUT: 'PASS', ARTIFACT: 'PASS',
+      CONTINUE: 'OPEN', PERSISTENCE: 'PASS', RESUME: 'PASS',
+      ERROR_STATES: 'PASS', LIMITATIONS: 'PASS', ACCESSIBILITY: 'PASS',
+      RESPONSIVE: 'PASS', LIFECYCLE: 'PASS', PERFORMANCE: 'PASS',
+      DEPENDENCY_ISOLATION: 'PASS', STATE_ISOLATION: 'PASS', EXPORT: 'PASS',
+      PRIVACY: 'PASS', DEPLOYABILITY: 'UNVERIFIED',
+    },
+    standalone: {
+      /* The only reality that already builds as its own application:
+         `npm run build:product` emits dist-product/ with no Lab runtime in it. */
+      candidate: true,
+      blockers: [
+        'It cannot run without its backend. The Lab ships with no server, so inside the Lab this reality is a reader that will usually find nothing answering — and says so in five distinct states rather than showing an empty result.',
+        'No human has reviewed a finding, so the dataset that would measure its accuracy has no labels.',
+        'Nothing carries an audit into a Lab project; CONTINUE is OPEN rather than merely unverified.',
+      ],
+    },
+  },
+
   /* ---- INSTRUMENTS ------------------------------------------------------ */
   {
     id: 'x-ray',
@@ -542,7 +577,7 @@ export function graduationGaps(id: string): { dimension: Dimension; state: Check
 }
 
 /**
- * The registry, the index and this file must describe the same sixteen things.
+ * The registry, the index and this file must describe the same things.
  *
  * Dev-only, and the same guard `registry.ts` runs for the same reason: a
  * manifest that has drifted out of step with what exists is worse than no

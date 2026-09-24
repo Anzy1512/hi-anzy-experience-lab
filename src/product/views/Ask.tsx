@@ -63,7 +63,7 @@ export function Ask(): React.JSX.Element {
             placeholder="Tell me about …"
           />
         </div>
-        <div className="row">
+        <div className="audit__row">
           <div className="field">
             <label className="field__label" htmlFor="name">
               Business name (optional)
@@ -105,8 +105,7 @@ export function Ask(): React.JSX.Element {
           </button>
         </div>
         <p className="prose dim">
-          Zero model calls is the normal setting. Most questions this service is for are answered by a query over
-          resolved businesses, which is exact, instant and free.
+          Zero is the normal setting. Most questions here are answered by a database query: exact, instant and free.
         </p>
       </section>
 
@@ -134,8 +133,7 @@ function AnswerSheet({ answer }: { answer: AnswerBody }): React.JSX.Element {
       {answer.intent === 'UNKNOWN_INTENT' ? (
         <Notice title="The question was not researched">
           <p className="notice__body">
-            It reads as more than one kind of request, and the service will not pick one silently. Rephrasing it as a
-            single question, or naming the intent, lets it proceed.
+            The question reads as more than one kind of request. Ask one thing at a time, or name the intent.
           </p>
         </Notice>
       ) : null}
@@ -196,7 +194,7 @@ function AnswerSheet({ answer }: { answer: AnswerBody }): React.JSX.Element {
           {/* Advice, kept in its own section because it has no evidence — it is
               about something that has not happened. */}
           <p className="prose dim">
-            These carry no citations. They are advice, not findings, and nothing was measured to produce them.
+            Advice, not findings. Nothing was measured to produce these, so they carry no citations.
           </p>
           {answer.findings.recommendations.map((f, i) => (
             <FindingItem key={`rec-${i}`} finding={f} />
@@ -220,8 +218,8 @@ function AnswerSheet({ answer }: { answer: AnswerBody }): React.JSX.Element {
         {answer.findings.withheldCount > 0 ? (
           <p className="prose dim">
             {answer.findings.withheldCount} generated statement
-            {answer.findings.withheldCount === 1 ? ' was' : 's were'} rejected before rendering because the evidence
-            cited did not support them. They are kept in the record so the rate stays countable.
+            {answer.findings.withheldCount === 1 ? ' was' : 's were'} rejected before rendering: the cited evidence did
+            not support them. Kept in the record so the rate stays countable.
           </p>
         ) : null}
       </section>

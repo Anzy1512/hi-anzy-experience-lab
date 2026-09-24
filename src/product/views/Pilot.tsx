@@ -111,7 +111,7 @@ export function Pilot(): React.JSX.Element {
     <ServiceGate>
       <section className="section">
         <h2 className="section__title">Where to look</h2>
-        <div className="row">
+        <div className="audit__row">
           <div className="field">
             <label className="field__label" htmlFor="p-name">
               Name for this run
@@ -132,12 +132,11 @@ export function Pilot(): React.JSX.Element {
           <textarea id="p-q" className="field__area" value={question} onChange={(e) => setQuestion(e.target.value)} />
         </div>
         <p className="prose dim">
-          Discovery has already happened by the time this question is asked, so it should be the characteristic question —
-          what to determine about the businesses found — rather than another request to find them. A question that reads as
-          both comes back refused with both readings named.
+          The businesses have already been found by this point. Ask what to determine about them, not where to look. A
+          question that reads as both comes back refused, with both readings named.
         </p>
 
-        <div className="row">
+        <div className="audit__row">
           <div className="field">
             <label className="field__label" htmlFor="p-label">
               Area
@@ -196,7 +195,7 @@ export function Pilot(): React.JSX.Element {
 
       <section className="section">
         <h2 className="section__title">What it may spend</h2>
-        <div className="row">
+        <div className="audit__row">
           <div className="field">
             <label className="field__label" htmlFor="p-subj">
               Businesses at most
@@ -258,8 +257,8 @@ export function Pilot(): React.JSX.Element {
           </button>
         </div>
         <p className="prose dim">
-          This fetches pages from real businesses. Robots.txt decides every request, a refusal is recorded rather than worked
-          around, and nothing here bypasses an access control.
+          This fetches pages from real businesses. Robots.txt decides every request. A refusal is recorded, never worked
+          around.
         </p>
       </section>
 
@@ -386,9 +385,8 @@ function Candidates({ detail }: { detail: PilotDetail }): React.JSX.Element {
           </table>
         </div>
         <p className="prose dim">
-          A name in the third column means the crawler fetched that candidate&rsquo;s site and the entity pipeline decided,
-          from the page&rsquo;s own evidence, which business it belongs to. A blank means it did not — a dead link in a map
-          database looks exactly like this, and so does a site that refused to be read.
+          A name in the third column means the page itself said which business it belongs to. A blank means it did not: a
+          dead link in the map data looks like this, and so does a site that refused to be read.
         </p>
       </section>
     </>
@@ -467,8 +465,8 @@ function MetricsSheet({ metrics }: { metrics: Metrics }): React.JSX.Element {
         {bucket('placed by', m.entity.geocodeProviders)}
         {bucket('to a precision of', m.entity.geocodePrecision)}
         <p className="prose dim">
-          &ldquo;declared&rdquo; means the business&rsquo;s own page published coordinates. A provider name means a gazetteer
-          was asked, and a match that resolved only to an area is recorded as unresolved rather than plotted.
+          <span className="value">declared</span> means the business published its own coordinates. A provider name means
+          a gazetteer was asked. A match that resolved only to an area is recorded, not plotted.
         </p>
       </section>
 
@@ -492,9 +490,9 @@ function MetricsSheet({ metrics }: { metrics: Metrics }): React.JSX.Element {
         </p>
         <Limitations
           lines={[
-            'No precision or recall is reported. Both need a set of findings a person has judged, and until reviews exist the only available denominator would be the set of findings the system itself chose.',
+            'No precision or recall. Both need findings a person has judged, and the only denominator available before that is the set the system chose for itself.',
             'A cost of UNKNOWN means no price is configured for the model that answered. It does not mean the call was free.',
-            'Calls per answer is reported because lower is better at equal quality. It is not a quality measure on its own.',
+            'Calls per answer is here because lower is better at equal quality. On its own it measures nothing.',
           ]}
         />
       </section>

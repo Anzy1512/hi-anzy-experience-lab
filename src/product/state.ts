@@ -44,14 +44,12 @@ export const VIEW_LABEL: Record<View, string> = {
 };
 
 export const VIEW_DESCRIPTION: Record<View, string> = {
-  ask: 'One question, answered from what is stored, with a model only where nothing cheaper will do.',
-  jobs: 'Research that takes a while. The graph, what each agent did, and what it cost.',
-  evidence: 'Every conclusion, and the quotation it rests on.',
-  map: 'Where the businesses are — and how many could not be placed.',
-  pilot:
-    'A bounded run against a real area: what was found, what was not researched, and why. Every candidate is listed, including the ones that became nothing.',
-  review:
-    'Read a finding against the passage it cites and say whether it holds. Your verdict is added; the finding is never edited, because the pair is the record.',
+  ask: 'One question, answered from what is already stored. A model is used only where nothing cheaper will do.',
+  jobs: 'Research that takes a while. The task graph, what each agent did, and what it cost.',
+  evidence: 'Every conclusion, with the passage it rests on.',
+  map: 'Where the businesses are, and how many could not be placed.',
+  pilot: 'A bounded run against a real area. Every candidate found is listed, with the reason it was or was not researched.',
+  review: 'Judge a finding against the passage it cites. Your verdict is added; the finding is never changed.',
 };
 
 /**

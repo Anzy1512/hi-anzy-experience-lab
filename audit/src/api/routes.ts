@@ -450,8 +450,8 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
          happens to have coordinates for reads as a complete picture. */
       unlocated: Number(unlocated[0]?.n ?? 0),
       note:
-        'Only businesses with a resolved coordinate appear. Nothing here is geocoded speculatively, ' +
-        'and a point that resolved only to an area is recorded as unresolved rather than plotted.',
+        'Only businesses with a resolved coordinate appear. Nothing is geocoded speculatively, and a point that ' +
+        'resolved only to an area is recorded as unresolved rather than plotted.',
     });
   });
 

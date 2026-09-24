@@ -1,14 +1,14 @@
 /**
- * THE PRODUCT REGISTRY — what each of the sixteen realities actually is.
+ * THE PRODUCT REGISTRY — what each reality on the index actually is.
  *
  * ── WHY THIS EXISTS ─────────────────────────────────────────────────────────
  *
- * The Lab has been presenting sixteen realities as sixteen equivalent choices
- * since Phase 5, and they are not equivalent. Some are tools a person could use
+ * The Lab has been presenting its realities as equivalent choices since
+ * Phase 5, and they are not equivalent. Some are tools a person could use
  * to produce something. Some are instruments that measure. Some are experiences
  * that demonstrate what this studio can build and are not trying to be tools at
  * all. Flattening those into one list was the single biggest reason the product
- * read as "sixteen cool experiments" rather than as a system.
+ * read as a pile of cool experiments rather than as a system.
  *
  * `ModeDefinition.tier` already split the index two ways — flagship and
  * experiment — but that is a statement about billing, not about kind: X-Ray is
@@ -133,6 +133,27 @@ export const PRODUCTS: ProductEntry[] = [
       result: 'A five-stage brief in which every line is FACT, DERIVED, UNKNOWN or RECOMMENDATION.',
       artifact: 'HI ANZY SYSTEM BRIEF — copied text, Markdown or JSON.',
       continue: 'SYSTEM.app.',
+    },
+  },
+  {
+    id: 'commercial-audit',
+    layer: 'PRODUCT',
+    family: 'ANALYSIS',
+    proposition: 'Read real businesses in a real area and report what can and cannot be established about them.',
+    contract: {
+      input: 'An area, a category and a budget — or a list of URLs.',
+      context:
+        'Pages those businesses publish, fetched under robots.txt with a refusal recorded as a result. A gazetteer names candidates; nothing it says becomes a fact about a business.',
+      process:
+        'Discover, fetch, extract, resolve identity, apply versioned rules, then reject any statement its citation does not support.',
+      result:
+        'Findings marked FACT, DERIVED, UNKNOWN, CONFLICTING or RECOMMENDATION, each with the passage it rests on and what it cannot tell you.',
+      artifact: 'A handoff document carrying every quotation, URL, cost and limitation.',
+      /* Honest null: a person can review a finding and the verdict is stored,
+         but nothing yet carries an audit into a Lab project. Claiming
+         SYSTEM.app here would be a continuation with no mechanism. */
+      continue:
+        'Nowhere in the Lab yet. Findings can be reviewed and exported; no handoff carries them into a project.',
     },
   },
   {
@@ -404,7 +425,7 @@ export function incompleteProducts(): { id: string; missing: (keyof ProductContr
 }
 
 /*
- * The registry and the index must describe the same sixteen things.
+ * The registry and the index must describe the same things.
  *
  * A mode added to `content/lab.ts` without a classification here would appear
  * on the index with no layer and silently fall out of every grouping, which is
