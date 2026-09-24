@@ -8,6 +8,13 @@
       "when": 1790254229536,
       "tag": "0000_core",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790256432749,
+      "tag": "0001_layer2",
+      "breakpoints": true
     }
   ]
 }

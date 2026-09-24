@@ -51,12 +51,132 @@ Built one over another. Each is runnable and verified before the next starts.
 | | Layer | State |
 |---|---|---|
 | **1** | **Corpus + service foundation** — schema, migrations, dual driver, security baseline, health | **DONE, verified** |
-| 2 | Ingestion — search → fetch → extract → chunk → embed, with SSRF and robots guards | next |
-| 3 | Retrieval — hybrid dense + lexical with rank fusion, recorded per run | |
-| 4 | Synthesis — LangChain chain producing findings against the canonical areas | |
+| **2** | **Discovery → crawl → extract → chunk → embed → index → retrieve**, with provenance at every step | **DONE, verified** |
+| 3 | Subject resolution, evidence assembly, scheduled enrichment | next |
+| 4 | Synthesis — findings against the canonical areas | |
 | 5 | API + Agency Simulator integration | |
-| 6 | Continuous enrichment — scheduled re-crawl, freshness decay | |
-| 7 | Fine-tuning export — the dataset layer 1 has been accumulating all along | |
+| 6 | Continuous enrichment — freshness decay, re-crawl policy | |
+| 7 | Evaluation / training export — the dataset layers 1 and 2 have been accumulating all along | |
+
+---
+
+## LAYER 2
+
+```
+QUERY → SEARCH → URL CANDIDATES → FETCH → VALIDATE → EXTRACT
+      → NORMALIZE → CHUNK → EMBED → INDEX → RETRIEVE
+```
+
+No model is called anywhere in that line, and none is needed. Every stage is
+selectors, hashes, structure and SQL.
+
+### The provider abstraction
+
+The pipeline takes `Discovery[]` and has no access to a provider object, no
+provider-shaped branches, and no way to ask which engine produced a result
+beyond a label it only writes down. Four implementations exist against one
+contract — SearXNG, Brave, Tavily and **direct URL ingestion, which is a
+provider too**. That last one is the design decision worth noticing: making
+direct URLs a provider means "search unavailable but direct ingestion still
+works" is not a code path anyone has to maintain, it is the ordinary behaviour
+of a registry with one provider in it.
+
+SearXNG is the default because it is self-hosted: nothing per query, and no
+third party receives a log of which companies are being investigated.
+
+**A snippet is never evidence.** Every provider returns one; every snippet is a
+sentence the page may not contain. They are stored in `discovery` for
+provenance and read by nothing downstream. A test asserts structurally that no
+chunk in the corpus is equal to any snippet.
+
+### The crawler
+
+| Guard | What it stops |
+|---|---|
+| scheme allowlist | `file:`, `javascript:`, and anything a redirect tries to switch to |
+| address validation | private, loopback, link-local, ULA, CGNAT, IPv4-mapped IPv6 — **every** resolved address, not the first |
+| redirect re-validation | a public URL that 302s somewhere internal, which is what defeats an input-only check |
+| redirect limit | loops |
+| robots | `Disallow`; a 5xx, 403 or HTML robots.txt is a refusal, never permission |
+| content-type allowlist | binaries downloaded to discover they cannot be read |
+| declared size | a large `Content-Length`, before a byte is read |
+| streamed size | a body with no declared length, and a small gzip that expands to gigabytes |
+| timeout + backoff | slow servers; retries only 408/425/429/5xx, never a 404 |
+| per-host rate + concurrency | being indistinguishable from an attack |
+
+Nothing here attempts to get around anything: no credential is presented, no
+paywall defeated, no bot check solved. A refusal is an **outcome** — recorded
+on `discovery.outcome` and `document.outcome` — not an exception.
+
+### The version policy
+
+| Result | What happens |
+|---|---|
+| **new** | insert at version 1, chunk, embed |
+| **unchanged** (304, or matching sha256) | `last_seen_at` moves. **Nothing else.** No re-extract, no re-chunk, no re-embed |
+| **changed** | outgoing version recorded in `document_revision`, version increments, chunks replaced |
+
+And inside the expensive case: chunks whose sha256 did not move **keep their
+vectors**. A page that changed one paragraph re-embeds one paragraph.
+
+### Chunking follows the document
+
+Headings start sections, paragraphs accumulate, and a fixed window appears in
+exactly one place — a single paragraph past the hard maximum, split on sentence
+boundaries. A sliding token window cuts sentences in half, and half a sentence
+embeds to somewhere no query lands, so the passage becomes unretrievable in a
+way that is indistinguishable from "the corpus does not contain that".
+
+The heading trail is prepended to what is **embedded** and kept out of what is
+**quoted**. "Under £2m" means nothing; "Pricing > Retainers > Under £2m" is a
+fact.
+
+### Embeddings
+
+The boundary is real and the expensive option is **not installed**.
+`LocalTransformerEmbedder` (bge-small-en-v1.5) imports
+`@huggingface/transformers` dynamically and reports "not installed" until one
+command is run. The default is a deterministic hashing projection that is free,
+offline and identical on every machine — and that **declares `semantic: false`
+about itself**, because a dense index built on it returns results, in an order,
+quickly, while contributing nothing the lexical index did not already have.
+`RetrievalReport.semanticDense` carries that flag outward so no caller can
+mistake one for the other.
+
+### Hybrid retrieval
+
+Reciprocal Rank Fusion, `1 / (60 + rank)`, rather than a weighted blend: a
+cosine distance and a `ts_rank_cd` are not comparable quantities and any
+constant tuned to mix them silently stops being right as the corpus grows. RRF
+keeps only the ordering, so it needs no tuning.
+
+Diversity is enforced, not hoped for: caps per document and per domain. Five
+passages from one page is five slots of budget spent on one claim — worse than
+waste, because it reads like corroboration. The budget is a **token** ceiling
+as well as a count, and a passage that does not fit is skipped rather than
+truncated.
+
+### Measured, on this machine
+
+`npx tsx src/bench.ts` — 11.2 kB page, 40 paragraphs, 10 sections:
+
+| Stage | PGlite | Postgres 17 |
+|---|---|---|
+| extraction (×20) | 5.0 ms | 5.0 ms |
+| chunking (×50) | 0.1 ms | 0.1 ms |
+| embedding, 10 chunks | 32.7 ms | 30.2 ms |
+| ingest, first time | 236.9 ms | 116.7 ms |
+| **ingest, unchanged recrawl** | **16.6 ms** | **14.0 ms** |
+| retrieval | 4.5–16.3 ms | 3.8–15.4 ms |
+
+**Embedding already dominates the deterministic path** — 3.0–3.3 ms per chunk
+against 0.1 ms for chunking — which is the number that matters for the decision
+this layer was told to defer. A real transformer will be slower still, so the
+re-embed-only-what-moved rule and the unchanged-recrawl path are not
+micro-optimisations; they are the difference between a corpus that can be kept
+fresh and one that cannot.
+
+The unchanged recrawl is **88–93% faster and does zero embedding work.**
 
 ### Layer 7 is why layer 1 looks like this
 

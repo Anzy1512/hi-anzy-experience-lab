@@ -7,6 +7,8 @@ import sensible from '@fastify/sensible';
 import { config, usingPglite } from './config.ts';
 import { getDriver, vectorReady } from './db/client.ts';
 import { EMBEDDING_DIM } from './db/schema.ts';
+import { ProviderRegistry } from './search/providers.ts';
+import { getEmbedder } from './embed/index.ts';
 
 /**
  * THE SERVICE, AND THE THREE THINGS IT REFUSES TO DO WITHOUT.
@@ -172,12 +174,28 @@ export async function build(): Promise<FastifyInstance> {
          built; the Lab's own habit of naming what is missing applies here. */
       capabilities: {
         corpus: true,
-        retrieval: false,
-        ingestion: false,
+        ingestion: true,
+        retrieval: true,
+        /* Layer 4. False, and said out loud rather than discovered by 404. */
         synthesis: false,
         search: config.SEARCH_PROVIDER !== 'none',
+        /* Direct URL ingestion never depends on a search provider, so this is
+           true whether or not one is configured. It is the reason the service
+           is useful with no discovery at all. */
+        directIngestion: true,
         model: config.ANTHROPIC_API_KEY !== undefined,
       },
+      /*
+       * Every provider, and whether it can answer right now. A provider that
+       * is unavailable is an ordinary state, not an error, so it belongs in a
+       * readiness body rather than in a log somebody has to go and find.
+       */
+      providers: await ProviderRegistry.fromConfig().report(),
+      embedding: await (async () => {
+        const e = getEmbedder();
+        const a = await e.available();
+        return { id: e.id, dimensions: e.dimensions, semantic: e.semantic, ...a };
+      })(),
       checks,
     });
   });

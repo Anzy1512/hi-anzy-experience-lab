@@ -150,6 +150,48 @@ export const findingBasis = pgEnum('finding_basis', [
   'unsupported', // the model asserted it with nothing behind it. Never rendered.
 ]);
 
+/**
+ * How a value got into `extracted_field`.
+ *
+ * The brief's rule is "do not claim inferred values as extracted values", and
+ * the only way to keep that rule is to make the difference a column rather
+ * than a convention. `jsonld` read a machine-readable statement the publisher
+ * put there on purpose; `pattern` matched a regular expression against prose
+ * and is a guess with good odds. They are not the same evidence and a later
+ * layer must be able to tell them apart without re-reading the page.
+ */
+export const extractionMethod = pgEnum('extraction_method', [
+  'jsonld',      // schema.org, published as data
+  'opengraph',   // og:/twitter: meta tags
+  'meta',        // ordinary <meta> and <title>
+  'microdata',   // itemprop attributes
+  'dom',         // a structural selector — <h1>, <article>, <address>
+  'link',        // an href that declares its own meaning (mailto:, tel:, rel=me)
+  'readability', // main-text extraction
+  'pattern',     // a regex over prose. The weakest, and marked so.
+]);
+
+/** What a chunk is a chunk OF, kept so retrieval can prefer prose over a nav list. */
+export const chunkKind = pgEnum('chunk_kind', ['section', 'paragraph', 'list', 'table', 'metadata']);
+
+/** Which provider discovered a URL. Never which provider is trusted. */
+export const searchProvider = pgEnum('search_provider', ['searxng', 'brave', 'tavily', 'direct', 'sitemap']);
+
+/** Why a crawl ended the way it did. Refusals are outcomes, not errors. */
+export const fetchOutcome = pgEnum('fetch_outcome', [
+  'ok',
+  'unchanged',          // same content hash. The cheapest possible result.
+  'blocked_robots',
+  'blocked_private',    // resolved to a private or reserved address
+  'blocked_scheme',
+  'blocked_type',       // content-type outside the allowlist
+  'too_large',
+  'too_many_redirects',
+  'timeout',
+  'http_error',
+  'network_error',
+]);
+
 export const feedbackVerdict = pgEnum('feedback_verdict', [
   'correct',
   'wrong',
@@ -192,6 +234,16 @@ export const document = pgTable(
     url: text('url').notNull(),
     /** sha256 of the normalised URL. The uniqueness the URL itself cannot give. */
     urlHash: text('url_hash').notNull(),
+    /**
+     * What the page says its own address is (`<link rel=canonical>`).
+     *
+     * Kept separate from `url` rather than replacing it, because the URL that
+     * was fetched and the URL the publisher claims are both facts and they
+     * disagree often — tracking parameters, AMP variants, trailing slashes. A
+     * citation should point at the canonical one; a re-crawl has to go back to
+     * the one that actually worked.
+     */
+    canonicalUrl: text('canonical_url'),
     title: text('title'),
     author: text('author'),
     publishedAt: timestamp('published_at', { withTimezone: true }),
@@ -207,6 +259,26 @@ export const document = pgTable(
     extractor: text('extractor'),
     text: text('text'),
     byteLen: integer('byte_len'),
+    contentType: text('content_type'),
+    /**
+     * Conditional-request headers, stored so the next crawl can ask "has this
+     * changed" instead of downloading it to find out. A 304 costs a round trip
+     * and no bytes, no extraction, no chunking and no embedding.
+     */
+    etag: text('etag'),
+    lastModified: text('last_modified'),
+    /**
+     * The version/update policy, made explicit.
+     *
+     * `version` increments only when `content_hash` actually changes.
+     * `first_seen_at` never moves. `last_seen_at` moves on every crawl,
+     * including the ones that changed nothing — so "when did we last confirm
+     * this" and "when did this last change" stay different questions.
+     */
+    version: integer('version').notNull().default(1),
+    firstSeenAt: timestamp('first_seen_at', { withTimezone: true }).notNull().defaultNow(),
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
+    outcome: fetchOutcome('outcome'),
     meta: jsonb('meta'),
   },
   (t) => [
@@ -227,14 +299,132 @@ export const chunk = pgTable(
     ord: integer('ord').notNull(),
     /** The heading trail above this passage, which is most of what gives it meaning. */
     headingPath: text('heading_path'),
+    kind: chunkKind('kind').notNull().default('paragraph'),
     text: text('text').notNull(),
     tokenLen: integer('token_len'),
+    /** sha256 of the chunk text. Identical text is never re-embedded. */
+    hash: text('hash'),
+    /**
+     * Where this passage sits in `document.text`, so a citation can point at a
+     * span rather than at a page. Without it, "the source says X" means
+     * "somewhere in these four thousand words", which is not a citation.
+     */
+    charStart: integer('char_start'),
+    charEnd: integer('char_end'),
+    /** The `document.version` this chunk was cut from. */
+    documentVersion: integer('document_version').notNull().default(1),
     embedding: vector('embedding', { dimensions: EMBEDDING_DIM }),
     tsv: tsvector('tsv'),
   },
   (t) => [
     uniqueIndex('chunk_doc_ord_key').on(t.documentId, t.ord),
     index('chunk_document_idx').on(t.documentId),
+  ],
+);
+
+/**
+ * Every content change a document has been through.
+ *
+ * Metadata only. The text itself is not kept per revision, because a corpus
+ * that stores every version of every page it has ever seen grows without bound
+ * in exchange for a question nobody asks. What is worth keeping is WHEN it
+ * changed and by how much, which is what makes "was this true in March"
+ * answerable at all.
+ */
+export const documentRevision = pgTable(
+  'document_revision',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    documentId: uuid('document_id')
+      .notNull()
+      .references(() => document.id, { onDelete: 'cascade' }),
+    version: integer('version').notNull(),
+    contentHash: text('content_hash').notNull(),
+    byteLen: integer('byte_len'),
+    /** How far the text moved, so a changed footer date is distinguishable from a rewrite. */
+    changedChars: integer('changed_chars'),
+    observedAt: timestamp('observed_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('document_revision_key').on(t.documentId, t.version),
+    index('document_revision_doc_idx').on(t.documentId),
+  ],
+);
+
+/**
+ * A URL a provider suggested, recorded BEFORE anything was fetched.
+ *
+ * Discovery and evidence are separate tables because they are separate
+ * epistemic states, and collapsing them is the exact failure the brief names.
+ * A search snippet is a provider's summary of a page, not the page. Writing
+ * snippets into `document.text` would make them indistinguishable from crawled
+ * content one join later, and a finding could then cite a sentence no
+ * publisher ever wrote.
+ *
+ * So `snippet` lives here, `document_id` stays null until a crawl succeeds,
+ * and nothing downstream of the crawler reads this table at all.
+ */
+export const discovery = pgTable(
+  'discovery',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    provider: searchProvider('provider').notNull(),
+    /** The query as issued to that provider, which is not always the user's words. */
+    query: text('query').notNull(),
+    url: text('url').notNull(),
+    urlHash: text('url_hash').notNull(),
+    canonicalUrl: text('canonical_url'),
+    title: text('title'),
+    /** The PROVIDER'S summary. Never evidence, never chunked, never embedded. */
+    snippet: text('snippet'),
+    rank: integer('rank').notNull(),
+    /** Set only when the provider actually reported one. Absent is not zero. */
+    publishedAt: timestamp('published_at', { withTimezone: true }),
+    discoveredAt: timestamp('discovered_at', { withTimezone: true }).notNull().defaultNow(),
+    providerMetadata: jsonb('provider_metadata'),
+    /** Set once this URL has been crawled into the corpus. Null until then. */
+    documentId: uuid('document_id').references(() => document.id, { onDelete: 'set null' }),
+    outcome: fetchOutcome('outcome'),
+  },
+  (t) => [
+    uniqueIndex('discovery_provider_query_url_key').on(t.provider, t.query, t.urlHash),
+    index('discovery_url_idx').on(t.urlHash),
+    index('discovery_document_idx').on(t.documentId),
+  ],
+);
+
+/**
+ * One extracted value, with how it was obtained.
+ *
+ * A row rather than a column in a wide table, because the interesting part of
+ * an extracted phone number is not the number. It is that it came from a
+ * `tel:` href rather than from a regular expression run over a paragraph. A
+ * column cannot carry that distinction and a row can, and the brief's rule —
+ * do not claim inferred values as extracted values — depends entirely on it
+ * being carried.
+ */
+export const extractedField = pgTable(
+  'extracted_field',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    documentId: uuid('document_id')
+      .notNull()
+      .references(() => document.id, { onDelete: 'cascade' }),
+    /** 'email' | 'phone' | 'address' | 'social' | 'orgName' | 'description' | ... */
+    field: text('field').notNull(),
+    value: text('value').notNull(),
+    method: extractionMethod('method').notNull(),
+    /** Where in `document.text` it was found, when the method can say. */
+    charStart: integer('char_start'),
+    charEnd: integer('char_end'),
+    /** The surrounding text, so a human can check it without refetching. */
+    evidence: text('evidence'),
+    extractedAt: timestamp('extracted_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('extracted_field_key').on(t.documentId, t.field, t.value, t.method),
+    index('extracted_field_doc_idx').on(t.documentId),
+    index('extracted_field_field_idx').on(t.field),
   ],
 );
 
@@ -303,15 +493,33 @@ export const auditRun = pgTable(
   'audit_run',
   {
     id: uuid('id').defaultRandom().primaryKey(),
-    subjectId: uuid('subject_id')
-      .notNull()
-      .references(() => subject.id, { onDelete: 'cascade' }),
+    /**
+     * Nullable from layer 2.
+     *
+     * A retrieval can be run against the corpus with no company in mind — that
+     * is what a retrieval test IS — and forcing a placeholder subject onto one
+     * would put rows in `subject` that name nothing.
+     */
+    subjectId: uuid('subject_id').references(() => subject.id, { onDelete: 'cascade' }),
     /** What was actually asked, verbatim. Half of every training example. */
     question: text('question').notNull(),
     areas: jsonb('areas').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
     status: runStatus('status').notNull().default('queued'),
     model: text('model'),
     retrievalStrategy: text('retrieval_strategy'),
+    /**
+     * Which build of the pipeline produced this, and which embedder.
+     *
+     * Without both, the accumulated dataset is a pile of rows from unknown
+     * code. A retrieval recorded under one chunking strategy and one embedding
+     * model cannot be compared with one recorded under another, and averaging
+     * them makes every later evaluation meaningless while looking like more
+     * data.
+     */
+    pipelineVersion: text('pipeline_version'),
+    embeddingModel: text('embedding_model'),
+    /** The retrieval budget this run was allowed. Cost control, recorded. */
+    budget: integer('budget'),
     /** Spend, per run, recorded rather than estimated afterwards. */
     tokensIn: integer('tokens_in'),
     tokensOut: integer('tokens_out'),
@@ -415,6 +623,8 @@ export const feedback = pgTable(
       .notNull()
       .references(() => finding.id, { onDelete: 'cascade' }),
     verdict: feedbackVerdict('verdict').notNull(),
+    /** What it should have said. The supervision signal, not merely the label. */
+    correction: text('correction'),
     note: text('note'),
     author: text('author'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -425,6 +635,9 @@ export const feedback = pgTable(
 export const schema = {
   source,
   document,
+  documentRevision,
+  discovery,
+  extractedField,
   chunk,
   subject,
   subjectIdentifier,
