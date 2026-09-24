@@ -1,0 +1,567 @@
+/* ==========================================================================
+   SURVEY — EVERY BUSINESS OF A KIND, IN A PLACE
+
+   A survey sheet on paper stock: a question at the head, the engine's stages
+   drawn as a rule, then a ledger of what it found beside a plate of where.
+   Bone ground, ink figure, hairlines; orange only for the live stage, the
+   active controls and the chosen business. Nothing moves that is not reporting
+   something the engine did.
+   ========================================================================== */
+
+.sv {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  background: var(--ground);
+  color: var(--figure);
+  padding: calc(var(--trim) * 0.5 + 52px) var(--trim) calc(var(--trim) * 2);
+  opacity: 0;
+  transition: opacity var(--d-3) var(--e-glide);
+}
+.sv[data-armed='true'] {
+  opacity: 1;
+}
+
+.sv a {
+  color: inherit;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 3px;
+}
+.sv a:hover,
+.sv a:focus-visible {
+  text-decoration-color: var(--signal);
+}
+
+/* ---- head ---------------------------------------------------------------- */
+
+.sv-head {
+  max-width: 72ch;
+  padding-bottom: var(--s-3);
+  border-bottom: var(--hair) solid var(--rule);
+}
+.sv-head__title {
+  margin: 0;
+  letter-spacing: var(--tr-mono-wide);
+  font-weight: 400;
+}
+.sv-head__note {
+  margin: var(--s-2) 0 0;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+.sv-engine {
+  margin: var(--s-2) 0 0;
+  letter-spacing: 0.1em;
+}
+.sv-engine--off {
+  display: grid;
+  gap: var(--s-1);
+  justify-items: start;
+  padding: var(--s-2) 0 0;
+  letter-spacing: normal;
+}
+.sv-engine--off > p.t-mono {
+  letter-spacing: 0.1em;
+}
+.sv-engine--off > p {
+  margin: 0;
+}
+.sv-code {
+  margin: 0;
+  padding: 6px 10px;
+  border: var(--hair) solid var(--rule);
+  background: var(--ground-deep);
+}
+
+/* ---- the question -------------------------------------------------------- */
+
+.sv-ask {
+  max-width: 72ch;
+  margin-top: var(--s-4);
+  display: grid;
+  gap: var(--s-1);
+}
+.sv-label {
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--text-secondary);
+}
+.sv-question {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 2px;
+  border: 0;
+  border-bottom: var(--hair) solid var(--figure);
+  background: transparent;
+  color: var(--figure);
+  font-family: var(--f-body);
+  font-size: clamp(18px, 2.2vw, 24px);
+}
+.sv-question:focus-visible {
+  outline: none;
+  border-bottom-color: var(--signal);
+  box-shadow: 0 1px 0 0 var(--signal);
+}
+.sv-question::placeholder {
+  color: var(--text-faint);
+}
+.sv-reading {
+  margin: 0;
+  min-height: 1.6em;
+  letter-spacing: 0.08em;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+.sv-ask__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--s-2) var(--s-3);
+  margin-top: var(--s-1);
+}
+.sv-field {
+  display: grid;
+  gap: 4px;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+}
+.sv-field select,
+.sv-field input {
+  min-height: 32px;
+  padding: 4px 8px;
+  border: var(--hair) solid var(--rule);
+  background: transparent;
+  color: var(--figure);
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: 0.08em;
+}
+.sv-field input {
+  width: 12ch;
+  /* no spinner: it took the room the placeholder needs, and a count is typed */
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.sv-field input::-webkit-inner-spin-button,
+.sv-field input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.sv-field select:focus-visible,
+.sv-field input:focus-visible {
+  outline: var(--hair) solid var(--signal);
+  outline-offset: 2px;
+}
+
+.sv-examples {
+  list-style: none;
+  margin: var(--s-2) 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+.sv-example {
+  min-height: 32px;
+  padding: 4px 0;
+  color: var(--text-secondary);
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 4px;
+}
+.sv-example:hover,
+.sv-example:focus-visible {
+  color: var(--figure);
+  text-decoration-color: var(--signal);
+}
+
+/* ---- controls ------------------------------------------------------------ */
+
+.sv-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 7px 13px;
+  border: var(--hair) solid var(--rule);
+  color: var(--figure);
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-mono-wide);
+  text-decoration: none;
+  transition:
+    background-color var(--d-1) var(--e-snap),
+    border-color var(--d-1) var(--e-snap),
+    color var(--d-1) var(--e-snap);
+}
+.sv-btn:hover:not(:disabled),
+.sv-btn:focus-visible:not(:disabled) {
+  border-color: var(--figure);
+}
+.sv-btn--signal {
+  border-color: var(--signal);
+  color: var(--signal-text, var(--signal));
+}
+.sv-btn--signal:hover:not(:disabled),
+.sv-btn--signal:focus-visible:not(:disabled) {
+  background: var(--signal);
+  color: var(--text-on-signal);
+}
+.sv-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.sv-problem {
+  margin: var(--s-3) 0 0;
+  color: var(--state-failure);
+  letter-spacing: 0.08em;
+  overflow-wrap: anywhere;
+}
+
+/* ---- the engine's stages, drawn as a rule -------------------------------- */
+
+.sv-run {
+  max-width: 96ch;
+  margin-top: var(--s-4);
+}
+.sv-stages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 4px;
+}
+.sv-stages li {
+  padding-top: 6px;
+  border-top: 2px solid var(--rule-faint);
+  color: var(--text-faint);
+  letter-spacing: 0.08em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition:
+    border-color var(--d-2) var(--e-mechanical),
+    color var(--d-2) var(--e-mechanical);
+}
+.sv-stages li[data-state='done'] {
+  border-top-color: var(--figure);
+  color: var(--text-secondary);
+}
+.sv-stages li[data-state='now'] {
+  border-top-color: var(--signal);
+  color: var(--figure);
+}
+.sv-run__line {
+  margin: var(--s-1) 0 0;
+  letter-spacing: 0.1em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- the answer ---------------------------------------------------------- */
+
+.sv-answer {
+  margin-top: var(--s-4);
+}
+.sv-counts {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-5);
+  padding-bottom: var(--s-2);
+  border-bottom: var(--hair) solid var(--rule);
+}
+.sv-counts > div {
+  display: grid;
+  gap: 2px;
+}
+.sv-counts dt {
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: 0.12em;
+  color: var(--text-secondary);
+}
+.sv-counts dd {
+  margin: 0;
+  font-family: var(--f-display);
+  font-size: clamp(26px, 3.4vw, 40px);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.sv-why {
+  margin: var(--s-2) 0 0;
+  padding-left: 1.1em;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  max-width: 88ch;
+}
+
+.sv-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: var(--s-4) clamp(20px, 4vw, 56px);
+  margin-top: var(--s-4);
+  align-items: start;
+}
+
+/* the ledger */
+.sv-tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: var(--hair) solid var(--rule);
+}
+.sv-tab {
+  min-height: 32px;
+  padding: 6px 12px;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+  border-bottom: 2px solid transparent;
+}
+.sv-tab[aria-selected='true'] {
+  color: var(--figure);
+  border-bottom-color: var(--signal);
+}
+.sv-tab:focus-visible {
+  outline: var(--hair) solid var(--signal);
+  outline-offset: -2px;
+}
+.sv-rows {
+  list-style: none;
+  margin: 0 0 var(--s-2);
+  padding: 0;
+}
+.sv-row {
+  width: 100%;
+  min-height: 36px;
+  display: grid;
+  grid-template-columns: 3.4ch minmax(0, 1fr) auto;
+  grid-template-areas:
+    'n name far'
+    'n kind kind';
+  gap: 0 var(--s-2);
+  align-items: baseline;
+  padding: 6px 2px;
+  border-bottom: var(--hair) solid var(--rule-faint);
+  text-align: left;
+  color: var(--figure);
+}
+.sv-row:hover,
+.sv-row:focus-visible {
+  background: var(--ground-deep);
+  outline: none;
+}
+.sv-row[aria-pressed='true'] {
+  box-shadow: inset 2px 0 0 0 var(--signal);
+  background: var(--ground-deep);
+}
+.sv-row__n {
+  grid-area: n;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+.sv-row__name {
+  grid-area: name;
+  font-family: var(--f-body);
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+.sv-row__kind {
+  grid-area: kind;
+  color: var(--text-secondary);
+  letter-spacing: 0.06em;
+}
+.sv-row__far {
+  grid-area: far;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.sv-empty,
+.sv-hint {
+  margin: var(--s-2) 0;
+}
+
+/* the plate */
+.sv-side {
+  display: grid;
+  gap: var(--s-3);
+  position: sticky;
+  top: var(--s-2);
+}
+.sv-plate {
+  margin: 0;
+  border: var(--hair) solid var(--rule);
+  background: var(--ground-deep);
+  padding: var(--s-1);
+}
+.sv-plate svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 52vh;
+}
+.sv-plate figcaption {
+  margin-top: 4px;
+  letter-spacing: 0.08em;
+}
+.sv-plate__area {
+  fill: var(--ground);
+  stroke: var(--figure-dim);
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+}
+.sv-plate__mark {
+  fill: var(--figure);
+}
+.sv-plate__mark--open {
+  fill: none;
+  stroke: var(--figure-dim);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.sv-plate__chosen {
+  fill: none;
+  stroke: var(--signal);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+/* a business, as its sources described it */
+.sv-detail {
+  display: grid;
+  gap: var(--s-1);
+}
+.sv-detail h3 {
+  margin: var(--s-2) 0 0;
+  letter-spacing: 0.12em;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+.sv-detail__name {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.sv-facts {
+  margin: 0;
+  display: grid;
+  gap: 1px;
+}
+.sv-facts > div {
+  display: grid;
+  grid-template-columns: 16ch minmax(0, 1fr);
+  gap: var(--s-2);
+  padding: 4px 0;
+  border-bottom: var(--hair) solid var(--rule-faint);
+}
+.sv-facts dt {
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+}
+.sv-facts dd {
+  margin: 0;
+  display: grid;
+  gap: 2px;
+  font-family: var(--f-body);
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+.sv-fact .t-faint {
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+}
+.sv-undecided p {
+  margin: 4px 0 0;
+  line-height: 1.5;
+}
+.sv-evidence {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+  overflow-wrap: anywhere;
+}
+
+/* what was done */
+.sv-done {
+  margin-top: var(--s-4);
+  max-width: 96ch;
+  border-top: var(--hair) solid var(--rule);
+  padding-top: var(--s-2);
+}
+.sv-done summary {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  letter-spacing: 0.12em;
+  color: var(--text-secondary);
+}
+.sv-done summary:focus-visible {
+  outline: var(--hair) solid var(--signal);
+  outline-offset: 2px;
+}
+.sv-done ul {
+  margin: var(--s-2) 0 0;
+  padding-left: 1.1em;
+  line-height: 1.55;
+}
+
+/* take it away */
+.sv-take {
+  margin-top: var(--s-4);
+  max-width: 96ch;
+  border-top: var(--hair) solid var(--rule);
+  padding-top: var(--s-2);
+  display: grid;
+  gap: var(--s-2);
+}
+.sv-take__title {
+  margin: 0;
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+.sv-take__links {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.sv-attribution {
+  margin: 0;
+  letter-spacing: 0.06em;
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .sv-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sv-side {
+    position: static;
+  }
+  .sv-stages {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  /* ten stage names in five columns at phone width: the tracking gives way,
+     the names do not */
+  .sv-stages li {
+    letter-spacing: 0;
+    font-size: 10px;
+  }
+  .sv-facts > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sv,
+  .sv-stages li,
+  .sv-btn {
+    transition-duration: 1ms;
+  }
+}

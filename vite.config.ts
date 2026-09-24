@@ -2,6 +2,26 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath, URL } from 'node:url';
 
+/*
+ * THE ENGINE, FORWARDED.
+ *
+ * SURVEY (Phase 9.0) is the Lab's front end for the Commercial Intelligence
+ * Engine, a separate program that serves its API on this machine
+ * (`comintel serve`, 127.0.0.1:8765). In development and preview the Lab asks
+ * `/engine/...` on its own origin and Vite forwards it there, so the browser
+ * never makes a cross-origin call and the engine needs no CORS. `ENGINE_URL`
+ * points it elsewhere. A static build forwards nothing: it reaches an engine only
+ * if `VITE_ENGINE_URL` names one, and says so on screen when none answers.
+ */
+const ENGINE = process.env.ENGINE_URL || 'http://127.0.0.1:8765';
+const engineProxy = {
+  '/engine': {
+    target: ENGINE,
+    changeOrigin: true,
+    rewrite: (path: string) => path.replace(/^\/engine/, ''),
+  },
+};
+
 export default defineConfig({
   plugins: [react()],
   /*
@@ -18,10 +38,10 @@ export default defineConfig({
    */
   base: process.env.LAB_BASE || '/',
   /* The harness may hand us a port; honour it so a busy 5173 is not fatal. */
-  server: { port: Number(process.env.PORT) || 5173 },
+  server: { port: Number(process.env.PORT) || 5173, proxy: engineProxy },
   /* `vite preview` doesn't inherit `server.port` — it needs its own, or a busy
      4173 (a leftover preview process, most often) is fatal the same way. */
-  preview: { port: Number(process.env.PORT) || 4173 },
+  preview: { port: Number(process.env.PORT) || 4173, proxy: engineProxy },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

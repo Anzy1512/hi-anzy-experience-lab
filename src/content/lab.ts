@@ -138,6 +138,24 @@ export const MODES: ModeDefinition[] = [
     requirements: { ...NONE, cost: 'low', mobile: 'full', reducedMotion: 'adapted' },
     load: () => import('../modes/portal/PortalMode'),
   },
+  {
+    /* The Lab's front end for the Commercial Intelligence Engine — a separate
+       program that runs on this machine (`comintel serve`). The only reality
+       that uses the network, and only to that engine, only when asked. Without
+       the engine it says so and shows nothing in its place. */
+    id: 'survey',
+    index: '09',
+    title: 'SURVEY',
+    tagline: 'Every business of a kind, in a place.',
+    description:
+      'Ask the way you would say it — properties with a pool in a state, a brand’s stores in a city — and the Commercial Intelligence Engine on this machine asks public sources for them. Every business comes back with the evidence behind it, and the answer with how far it can be trusted.',
+    status: 'online',
+    tier: 'flagship',
+    // Paper: a survey sheet — a ruled ledger on bone stock.
+    material: 'paper',
+    requirements: { ...NONE, cost: 'low', mobile: 'full', reducedMotion: 'full' },
+    load: () => import('../modes/survey/SurveyMode'),
+  },
 
   /* ---------------------------------------------------------------------- */
   /* REVERSE SIDE — supporting experiments                                   */

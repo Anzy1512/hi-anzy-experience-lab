@@ -16,6 +16,7 @@ async (page) => {
     'living-world', 'reality-compiler', 'matter-engine', 'agency-simulator',
     'presence', 'memory', 'anzy-os', 'portal', 'x-ray', 'director',
     'chaos', 'dream', 'after-dark', 'sonic-architecture', 'time-machine', 'performance',
+    'survey',
   ];
 
   const fresh = async (opts = {}) => {

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Wordmark, type WordmarkState } from './Wordmark';
 import { DOORS, LAB } from '../../content/brand';
+import { onlineCount } from '../../content/lab';
 import { ENTRY_ID } from '../../content/journey';
 import { startPath } from '../../experience/journey';
 import { emit } from '../../analytics/events';
@@ -184,7 +185,9 @@ export function Launcher() {
       <div className="launcher__label">
         <span className="launcher__label-rule" />
         <p className="t-mono t-mono-s launcher__label-text">{LAB.label}</p>
-        <p className="t-mono t-mono-xs t-dim launcher__label-meta">EST. INDEX / 16 REALITIES</p>
+        <p className="t-mono t-mono-xs t-dim launcher__label-meta">
+          EST. INDEX / {onlineCount()} REALITIES
+        </p>
       </div>
 
       <div className="launcher__foot">

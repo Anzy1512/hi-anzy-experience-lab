@@ -11,7 +11,7 @@ than a standing rule, the state doc and the source code win.
 ## What this is
 
 An interface institution: one company, multiple realities. A launcher, a Reality Index, and
-and **sixteen** realities, all of them built and enterable. There is no longer a
+and **seventeen** realities, all of them built and enterable. There is no longer a
 "not yet" row on the index — which raises the bar rather than lowering it: the index is
 now a promise the product has to keep every time.
 
@@ -97,7 +97,7 @@ every section · constant ambient parallax · everything moving at once.
 - `prefers-reduced-motion` is first-class and must **preserve the concept** — remove travel,
   keep hierarchy, materials, layers and all information. Never disable the design.
 
-### Three contracts that are not negotiable
+### Four contracts that are not negotiable
 - **Camera (PRESENCE).** Nothing requests the camera on load or on entry. Consent is an
   explicit panel that states what is read, that frames are compared at 32×24 in-tab and
   discarded, that nothing is recorded, stored or uploaded, that it identifies nobody, and
@@ -112,6 +112,12 @@ every section · constant ambient parallax · everything moving at once.
   mode creates is registered on a `Scene` so exit disconnects all of it, the context is
   closed outright, and it suspends while the tab is hidden. Every voice is synthesised:
   there are no audio files in this project, so nothing to download and nothing to license.
+- **Network (SURVEY).** The one reality that uses the network, and only to the Commercial
+  Intelligence Engine: `src/modes/survey/engine.ts` is the Lab's whole network surface —
+  `/engine/...` (forwarded by Vite to `ENGINE_URL`) or `VITE_ENGINE_URL`. Nothing else in
+  `src/` fetches. Every request is cancelled on exit; `onReady()` never waits on a response;
+  every failure is a value the mode prints, never a rejection (which would reset the Lab).
+  Without the engine it says NOT REACHABLE and shows nothing in its place. Nothing is stored.
 
 ### Accessibility
 - Semantic structure, keyboard operation, visible focus, focus restoration on mode exit,
@@ -185,6 +191,7 @@ src/
   modes/timemachine/ Time Machine — one source, seven interaction models
   modes/portal/    Portal — the aperture, with XR reported not assumed
   modes/performance/ Performance — measured values, or UNKNOWN by name
+  modes/survey/    Survey — the front end for the Commercial Intelligence Engine (Phase 9.0)
   audio/           the one audio engine, its voices, and the React binding
   dev/            frame-budget harness (development only)
   components/     launcher, index, sheet furniture, pointer instrument
@@ -209,7 +216,7 @@ src/
 
 ## Phase discipline
 
-All sixteen realities are `online`. Phases 1 through 6 are complete or partially complete —
+All seventeen realities are `online`. Phases 1 through 6 are complete or partially complete —
 see `docs/PROJECT_STATE_PRE_PHASE_6_5.md` for exactly which, and for what the next phase is.
 
 **Do not start a new phase without explicit instruction**, and do not infer scope for one

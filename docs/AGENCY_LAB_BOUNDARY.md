@@ -52,8 +52,10 @@ make the Lab entitled to state it.
 
 - **No runtime cross-repository import.** Nothing under `src/` reads a file
   outside `src/`, fetches the Agency, or resolves a path into another
-  repository. Verified: no `readFileSync`, no external `fetch`, no `../../..`
-  import escaping the project.
+  repository. Verified: no `readFileSync`, no `fetch` to the Agency, no `../../..`
+  import escaping the project. The one `fetch` in `src/` (Phase 9.0) is SURVEY's, to
+  the Commercial Intelligence Engine running on the visitor's own machine — a
+  separate program, not the Agency, and nothing it answers is mirrored into the Lab.
 - **No shared working tree.** The two repositories are separate checkouts with
   separate histories.
 - **No deployment coupling.** The Lab builds and deploys with no Agency

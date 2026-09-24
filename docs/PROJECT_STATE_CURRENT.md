@@ -19,6 +19,7 @@ records of what each phase did, and stay that way.
 | 8.10 — project memory + persistence | **CLOSED** |
 | 8.11 — product + brand convergence | **CLOSED** |
 | 8.12 — lab independence + product launch foundation | **IN PROGRESS** — §1–§10 done (separation + product architecture), 8.12C done (release contract + canonical re-read); §11–§14 open |
+| 9.0 — SURVEY, the front end for the Commercial Intelligence Engine | **IN PROGRESS** — built and verified against the live engine in development; branch `lab-engine-frontend` |
 
 - Branch: `phase-8-12-independence`
 - Gates: `tsc -b` = 0 · `eslint src --max-warnings 0` = 0 ·
@@ -26,9 +27,43 @@ records of what each phase did, and stay that way.
 
 ## THE PRODUCT
 
-Sixteen realities, all `online` and enterable, behind a launcher and a Reality
-Index. Not a website and not a component showcase: one company, sixteen
-enterable realities, with a project that can travel between them.
+Seventeen realities, all `online` and enterable, behind a launcher and a Reality
+Index. Not a website and not a component showcase: one company, seventeen
+enterable realities, with a project that can travel between them. The
+seventeenth, SURVEY (Phase 9.0), is the front end of a separate program — see
+below.
+
+## SURVEY (PHASE 9.0)
+
+Plate **09**, a PRODUCT in the ANALYSIS family: the Lab's front end for the
+Commercial Intelligence Engine — a separate program (`comintel serve`, from the
+commercial-intelligence repository) that runs on the visitor's own machine and
+asks public sources for businesses. A question in the visitor's words goes to the
+engine; SURVEY follows its stages, then shows the counts, the discovery
+confidence and its reasons, a ruled ledger of matched and undetermined
+businesses, a plate of where they are (the engine's own area outline; no tiles,
+no basemap), what each source said about a chosen business with links to the
+evidence, what was done and its limitations, the engine's dataset exports (CSV,
+XLSX, GeoJSON, JSON) and a summary as copied text, Markdown or JSON.
+
+- **The one network path in the Lab.** Only `src/modes/survey/engine.ts` fetches,
+  only to the engine: `/engine/...`, which Vite forwards to
+  `ENGINE_URL` (default `http://127.0.0.1:8765`) in development and preview, or
+  `VITE_ENGINE_URL` when a build names one. Every request is cancelled when the
+  visitor leaves; polling stops with it (verified: no request after Escape).
+- **No engine, no pretence.** Without the engine the reality says NOT REACHABLE,
+  prints the command that starts it and offers LOOK AGAIN; SURVEY stays disabled.
+  A deployed Lab reaches no engine — the address is local — and says so.
+- **Nothing kept.** No storage, no project write; the engine keeps its own
+  knowledge in its own database, not the Lab.
+- **Rules.** "No new realities" is lifted for SURVEY alone, by explicit
+  instruction. "No backend" holds: the Lab serves nothing; the engine is a
+  separate program the visitor runs. "No new dependencies" holds: `fetch` and
+  the platform only.
+- **Verified in a browser** against the live engine: a Noida hotel search (519
+  matched) end to end, the ledger, the plate and a business's detail, all four
+  exports answering through the forwarder, phone width, the engine stopped and
+  started again, exit during a running search, and re-entry.
 
 ## TAXONOMY
 
@@ -323,6 +358,11 @@ are Playwright driver snippets, not standalone Node programs).
   decision, because it changes what Time Machine displays.
 
 ## STANDING RULES
+
+Phase 9.0 lifts one of them, for one reality, by explicit instruction: "no new
+realities" does not stand in SURVEY's way. Every other rule below still holds —
+including "no backend": the engine SURVEY talks to is a separate program the
+visitor runs, not a server this repository ships.
 
 Unchanged and not up for reinterpretation: no AI layer · no automation engine ·
 no backend · no accounts · no analytics · no new dependencies · no framework

@@ -191,6 +191,21 @@ export const PRODUCTS: ProductEntry[] = [
       continue: 'SYSTEM.app; REALITY COMPILER, for the whole page; LIVING WORLD, for the territory.',
     },
   },
+  {
+    id: 'survey',
+    layer: 'PRODUCT',
+    family: 'ANALYSIS',
+    proposition: 'Ask for every business of a kind in a place, and take away the list with its evidence.',
+    contract: {
+      input: 'A question in your own words: what, where, and what it must have or lack.',
+      context: 'The Commercial Intelligence Engine running on this machine, which asks public sources — the map, Overture’s places, brands’ own store locators, businesses’ own sites — under their usage policies.',
+      process: 'Sends the question to the engine, follows its stages, and reads back every business with its verdict, what each source said, and the completeness report.',
+      result: 'Businesses matched, undetermined with the reason, and how far the answer can be trusted.',
+      artifact: 'The dataset as the engine exports it (CSV, XLSX, GeoJSON, JSON), and the survey summary as copied text, Markdown or JSON.',
+      /* Nothing yet takes a survey onward inside the Lab. */
+      continue: null,
+    },
+  },
 
   /* ---- INSTRUMENTS ------------------------------------------------------- */
   {

@@ -344,6 +344,31 @@ export const MANIFESTS: Manifest[] = [
       ],
     },
   },
+  {
+    id: 'survey',
+    layer: 'PRODUCT',
+    owns: 'modes/survey',
+    consumes: [...BASE, 'ARTIFACT', 'DESIGN'],
+    dependsOnSiblings: [],
+    persistence: 'NONE',
+    maturity: 'PROTOTYPE',
+    evidence:
+      'Phase 9.0: asks the Commercial Intelligence Engine on this machine and renders what it answers — stages, counts, ledger, plate, evidence, exports — and says so by name when the engine is not running. Exercised against the live engine in development; not yet against a deployment, where no engine is reachable.',
+    graduation: {
+      INPUT: 'PASS', TRANSFORMATION: 'PASS', OUTPUT: 'PASS', ARTIFACT: 'PASS',
+      ERROR_STATES: 'PASS', LIMITATIONS: 'PASS', ACCESSIBILITY: 'UNVERIFIED',
+      RESPONSIVE: 'PASS', LIFECYCLE: 'PASS', PERFORMANCE: 'UNVERIFIED',
+      DEPENDENCY_ISOLATION: 'PASS', STATE_ISOLATION: 'PASS', EXPORT: 'PASS',
+      PRIVACY: 'PASS', DEPLOYABILITY: 'OPEN',
+    },
+    standalone: {
+      candidate: true,
+      blockers: [
+        'It is a front end for a separate program: without the engine running beside it, it can only say that the engine is not there.',
+        'A deployed Lab reaches no engine: the address is local, and no hosted engine exists.',
+      ],
+    },
+  },
 
   /* ---- INSTRUMENTS ------------------------------------------------------ */
   {

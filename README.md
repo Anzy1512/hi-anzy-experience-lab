@@ -3,7 +3,7 @@
 **One company. Multiple realities.**
 
 A standalone experimental digital product: an interface institution with a launcher, a Reality Index
-of sixteen experimental modes, **all sixteen of them built and enterable**.
+of seventeen experimental modes, **all seventeen of them built and enterable**.
 
 This is not a website redesign. The Hi Anzy deck is source material for brand DNA, philosophy,
 services and terminology only — the factual record lives in
@@ -31,8 +31,8 @@ into register — the Hi Anzy logotype already contains a misregistration, so th
 device becomes the reveal.
 
 **The Reality Index.** A plate list, not a card wall: oversized numerals, condensed titles,
-right-aligned status, rules between rows. Hovering one row recedes the others. Sixteen realities, of
-which all sixteen are now `ONLINE`. The index derives that count rather than asserting it, so
+right-aligned status, rules between rows. Hovering one row recedes the others. Seventeen realities, of
+which all seventeen are now `ONLINE`. The index derives that count rather than asserting it, so
 it cannot drift from the truth.
 
 **REALITY COMPILER — turn the interface into a world.** A real, readable, accessible document
@@ -130,6 +130,14 @@ is the same portal driven by device tilt or the pointer.
 **PERFORMANCE — the machine, watched.** Every value is measured in this session or says
 `UNKNOWN` by name, in a visibly different type style. Draw calls say "not exposed to pages".
 Frame timing is sampled only while sampling runs, using real `performance.now()` intervals.
+
+**SURVEY — every business of a kind, in a place.** The front end of the Commercial Intelligence
+Engine, a separate program that runs on your machine (`uv run comintel serve` in the
+commercial-intelligence folder). Ask the way you would say it; the engine asks public sources, and
+SURVEY shows its stages, the counts and how far to trust them, a ruled ledger, a plate of where each
+business is, what each source said, and the engine's own exports. `npm run dev` forwards `/engine`
+to the engine (`ENGINE_URL` to point it elsewhere). Without the engine it says NOT REACHABLE and
+shows nothing in its place. It is the one reality that uses the network, and it keeps nothing.
 
 ## Materials
 
