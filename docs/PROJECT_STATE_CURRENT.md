@@ -19,7 +19,8 @@ records of what each phase did, and stay that way.
 | 8.10 — project memory + persistence | **CLOSED** |
 | 8.11 — product + brand convergence | **CLOSED** |
 | 8.12 — lab independence + product launch foundation | **IN PROGRESS** — §1–§10 done (separation + product architecture), 8.12C done (release contract + canonical re-read); §11–§14 open |
-| 9.0 — SURVEY, the front end for the Commercial Intelligence Engine | **IN PROGRESS** — built and verified against the live engine in development; branch `lab-engine-frontend` |
+| 9.0 — SURVEY, the front end for the Commercial Intelligence Engine | **DONE** — became INTELLIGENCE in 9.1 |
+| 9.1 — INTELLIGENCE, a section with a desk for each thing the engine does | **IN PROGRESS** — built and verified against the live engine in development; branch `lab-engine-frontend` |
 
 - Branch: `phase-8-12-independence`
 - Gates: `tsc -b` = 0 · `eslint src --max-warnings 0` = 0 ·
@@ -30,44 +31,64 @@ records of what each phase did, and stay that way.
 Seventeen realities, all `online` and enterable, behind a launcher and a Reality
 Index. Not a website and not a component showcase: one company, seventeen
 enterable realities, with a project that can travel between them. The
-seventeenth, SURVEY (Phase 9.0), is the front end of a separate program — see
-below.
+seventeenth, INTELLIGENCE (Phases 9.0–9.1), is the front end of a separate
+program, printed on the index as a section of nine desks — see below.
 
-## SURVEY (PHASE 9.0)
+## INTELLIGENCE (PHASES 9.0 → 9.1)
 
-Plate **09**, a PRODUCT in the ANALYSIS family: the Lab's front end for the
-Commercial Intelligence Engine — a separate program (`comintel serve`, from the
+Plate **09**, a PRODUCT in its own family, INTELLIGENCE, printed on the index as a
+section of its own above the four groups: the Lab's front end for the Commercial
+Intelligence Engine — a separate program (`comintel serve`, from the
 commercial-intelligence repository) that runs on the visitor's own machine and
-asks public sources for businesses. A question in the visitor's words goes to the
-engine; SURVEY follows its stages, then shows the counts, the discovery
-confidence and its reasons, a ruled ledger of matched and undetermined
-businesses, a plate of where they are (the engine's own area outline; no tiles,
-no basemap), what each source said about a chosen business with links to the
-evidence, what was done and its limitations, the engine's dataset exports (CSV,
-XLSX, GeoJSON, JSON) and a summary as copied text, Markdown or JSON.
+asks public sources for businesses, brands and places.
 
-- **The one network path in the Lab.** Only `src/modes/survey/engine.ts` fetches,
-  only to the engine: `/engine/...`, which Vite forwards to
-  `ENGINE_URL` (default `http://127.0.0.1:8765`) in development and preview, or
-  `VITE_ENGINE_URL` when a build names one. Every request is cancelled when the
-  visitor leaves; polling stops with it (verified: no request after Escape).
+Phase 9.0 built one reality, SURVEY. Phase 9.1 made it a section: one reality with
+a desk for each thing the engine does, and the index prints the desks as rows of
+their own (I1–I9), each entering the reality at that desk
+(`src/content/intelligence.ts`; the handover is `src/experience/desk.ts`):
+
+| Desk | What it asks the engine |
+|---|---|
+| I1 SURVEY | a question → businesses matched and undetermined, the ledger, the plate, RELATIONS (what they share) and POSSIBLE DUPLICATES (pairs to judge, kept in local knowledge) |
+| I2 BRANDS | what a brand name stands for (the brand index, All the Places), the legal entities named like it (GLEIF) and the news naming it (GDELT) |
+| I3 AREAS | how a place resolves: its boundary drawn, size, box, and whether a search asks for it whole |
+| I4 LOCATORS | a brand's own store locator read for a place, as a task |
+| I5 SITES | one website's platform, technologies, tracking accounts, payments, contacts and profiles |
+| I6 DOMAINS | a domain's registration (RDAP), mail and verification records (DNS), certificates (CT) and archive captures, as a task |
+| I7 DATASETS | many questions into one table, as a task, with the engine's CSV, XLSX, GeoJSON and JSON |
+| I8 ARCHIVE | what local knowledge holds, and the searches it remembers, reopened as they were saved |
+| I9 SOURCES | every source and research tool, ready or why not, and the registry of 1,471 tools behind them |
+
+- **Desks hand work to each other** — a brand to its stores or a survey, a place to
+  a survey or a store locator, a business to its site and domain, a question to a
+  dataset, a saved search back to its ledger — carrying words to start from, never
+  a result. That is the reality's CONTINUE, and it is walked (maturity.ts).
+- **The address names the desk** (`#/intelligence/brands`), replaced rather than
+  pushed, so a reload or a deep link opens the same desk and Back still leaves.
+  The experience engine reads only the first segment as the reality.
+- **The one network path in the Lab.** Only `src/modes/intelligence/engine.ts`
+  fetches, only to the engine: `/engine/...`, which Vite forwards to `ENGINE_URL`
+  (default `http://127.0.0.1:8765`) in development and preview, or
+  `VITE_ENGINE_URL` when a build names one. Every request any desk has in flight is
+  cancelled when the visitor leaves; every poll stops with it (verified: no request
+  after Escape).
 - **No engine, no pretence.** Without the engine the reality says NOT REACHABLE,
-  prints the command that starts it and offers LOOK AGAIN; SURVEY stays disabled.
-  A deployed Lab reaches no engine — the address is local — and says so.
-- **Nothing kept.** No storage, no project write; the engine keeps its own
-  knowledge in its own database, not the Lab.
-- **Rules.** "No new realities" is lifted for SURVEY alone, by explicit
-  instruction. "No backend" holds: the Lab serves nothing; the engine is a
-  separate program the visitor runs. "No new dependencies" holds: `fetch` and
-  the platform only.
-- **Verified in a browser** against the live engine: a Noida hotel search (519
-  matched) end to end, the ledger, the plate and a business's detail, all four
-  exports answering through the forwarder, phone width, the engine stopped and
-  started again, exit during a running search, and re-entry. The release-guard
-  checks, run in the built-in browser (the Playwright browser was held by another
-  session): the three dev guards silent on a fresh load; all 17 realities enter
-  `active`, with their chrome and zero horizontal overflow; the index lattice
-  draws seventeen nodes with no scene error.
+  prints the command that starts it and offers LOOK AGAIN; every desk says it has
+  nothing to show and its actions stay disabled. A deployed Lab reaches no engine.
+- **Nothing kept.** No storage, no project write. The only write any desk makes is
+  a judgement on POSSIBLE DUPLICATES, which the engine keeps in its own database
+  when the visitor records one with a reason.
+- **Rules.** "No new realities" was lifted for this reality alone in 9.0, by
+  explicit instruction; 9.1 adds desks inside it, not realities. "No backend"
+  holds: the Lab serves nothing. "No new dependencies" holds.
+- **Verified in a browser** against the live engine (Phase 9.1): all nine desks
+  answered — Haldiram's in Noida (18 matched in 102 s, running on while other
+  desks were used), RELATIONS and POSSIBLE DUPLICATES, a brand with its GLEIF
+  entities and parents, Noida resolved and drawn, Vishal Mega Mart's locator (4
+  stores inside), a site read, haldiram.com's four records, a two-question dataset
+  with all four files answering, the archive reopening a saved search, the sources
+  and a registry search. Handovers walked; the engine stopped and recovered; no
+  page overflow at 375 or 1280; the three dev guards silent on a fresh load.
 
 ## TAXONOMY
 
@@ -364,9 +385,9 @@ are Playwright driver snippets, not standalone Node programs).
 ## STANDING RULES
 
 Phase 9.0 lifts one of them, for one reality, by explicit instruction: "no new
-realities" does not stand in SURVEY's way. Every other rule below still holds —
-including "no backend": the engine SURVEY talks to is a separate program the
-visitor runs, not a server this repository ships.
+realities" does not stand in the way of INTELLIGENCE (built as SURVEY). Every
+other rule below still holds — including "no backend": the engine it talks to
+is a separate program the visitor runs, not a server this repository ships.
 
 Unchanged and not up for reinterpretation: no AI layer · no automation engine ·
 no backend · no accounts · no analytics · no new dependencies · no framework

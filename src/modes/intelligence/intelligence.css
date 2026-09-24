@@ -1,17 +1,20 @@
 /* ==========================================================================
-   SURVEY — EVERY BUSINESS OF A KIND, IN A PLACE
+   INTELLIGENCE — THE COMMERCIAL INTELLIGENCE ENGINE, ON THIS MACHINE
 
-   A survey sheet on paper stock: a question at the head, the engine's stages
-   drawn as a rule, then a ledger of what it found beside a plate of where.
-   Bone ground, ink figure, hairlines; orange only for the live stage, the
-   active controls and the chosen business. Nothing moves that is not reporting
-   something the engine did.
+   A survey office on paper stock: the engine's line at the head, a strip of
+   desks, and on each desk a question at the top, the engine's progress drawn
+   as a rule, then a ledger of what it found beside a plate of where. Bone
+   ground, ink figure, hairlines; orange only for the live stage, the active
+   controls, the open desk and the chosen business. Nothing moves that is not
+   reporting something the engine did.
    ========================================================================== */
 
 .sv {
   position: absolute;
   inset: 0;
   overflow-y: auto;
+  /* tables scroll sideways inside their own frame; the sheet never does */
+  overflow-x: clip;
   background: var(--ground);
   color: var(--figure);
   padding: calc(var(--trim) * 0.5 + 52px) var(--trim) calc(var(--trim) * 2);
@@ -536,9 +539,442 @@
   line-height: 1.6;
 }
 
+/* ---- the desks ------------------------------------------------------------ */
+
+.sv-rail {
+  margin-top: var(--s-3);
+  border-bottom: var(--hair) solid var(--rule);
+}
+.sv-rail ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 2px;
+}
+.sv-rail__desk {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 8px 12px 6px;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  transition:
+    color var(--d-1) var(--e-snap),
+    border-color var(--d-1) var(--e-snap);
+}
+.sv-rail__desk:hover,
+.sv-rail__desk:focus-visible {
+  color: var(--figure);
+  outline: none;
+  border-bottom-color: var(--rule);
+}
+.sv-rail__desk:focus-visible {
+  box-shadow: inset 0 0 0 var(--hair) var(--signal);
+}
+.sv-rail__desk[aria-current='page'] {
+  color: var(--figure);
+  border-bottom-color: var(--signal);
+}
+.sv-rail__n {
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+.sv-rail__title {
+  letter-spacing: 0.12em;
+}
+
+.sv-desk {
+  margin-top: var(--s-4);
+}
+.sv-desk[hidden] {
+  display: none;
+}
+.sv-desk__head {
+  max-width: 72ch;
+}
+.sv-desk__title {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.sv-desk__title:focus-visible {
+  outline: var(--hair) solid var(--signal);
+  outline-offset: 4px;
+}
+.sv-desk__title:focus:not(:focus-visible) {
+  outline: none;
+}
+.sv-desk__n {
+  color: var(--text-faint);
+  font-weight: 400;
+}
+.sv-desk__tagline {
+  margin: var(--s-1) 0 0;
+  color: var(--figure);
+}
+.sv-desk__desc {
+  margin: 6px 0 0;
+  line-height: 1.6;
+}
+.sv-needs {
+  margin: var(--s-3) 0 0;
+  letter-spacing: 0.1em;
+}
+
+/* a place handed over, and small in-text controls */
+.sv-place {
+  margin: 0;
+  letter-spacing: 0.08em;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+/* a control set in running type: the type it stands in, the Lab's 32px target */
+.sv-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+.sv-link.t-mono {
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: 0.1em;
+}
+.sv-link:hover,
+.sv-link:focus-visible {
+  text-decoration-color: var(--signal);
+  outline: none;
+}
+.sv-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+}
+/* drawn, not the browser's: a hairline square on the sheet, the signal inside when on */
+.sv-check input {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  display: inline-grid;
+  place-content: center;
+  border: var(--hair) solid var(--figure);
+  background: transparent;
+}
+.sv-check input::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: var(--signal);
+  transform: scale(0);
+  transition: transform var(--d-1) var(--e-snap);
+}
+.sv-check input:checked {
+  border-color: var(--signal);
+}
+.sv-check input:checked::after {
+  transform: scale(1);
+}
+.sv-check input:focus-visible {
+  outline: var(--hair) solid var(--signal);
+  outline-offset: 2px;
+}
+.sv-field .sv-field__wide {
+  width: 22ch;
+}
+.sv-textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: var(--hair) solid var(--rule);
+  background: transparent;
+  color: var(--figure);
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.6;
+  resize: vertical;
+}
+.sv-textarea:focus-visible {
+  outline: var(--hair) solid var(--signal);
+  outline-offset: 2px;
+}
+.sv-textarea::placeholder {
+  color: var(--text-faint);
+}
+
+.sv-lead {
+  margin: 0 0 var(--s-2);
+  font-size: 17px;
+  line-height: 1.55;
+  max-width: 80ch;
+}
+.sv-actions {
+  margin: var(--s-2) 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.sv-run__q {
+  overflow-wrap: anywhere;
+}
+.sv-steps {
+  list-style: none;
+  margin: var(--s-1) 0 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.sv-steps li:last-child {
+  color: var(--text-secondary);
+}
+
+/* the answer read three ways */
+.sv-views {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-top: var(--s-3);
+  border-bottom: var(--hair) solid var(--rule);
+}
+
+/* a brand, a registry entry: blocks separated by rules, not boxes */
+.sv-blocks,
+.sv-table-list {
+  list-style: none;
+  margin: var(--s-2) 0 0;
+  padding: 0;
+}
+.sv-block {
+  display: grid;
+  gap: 6px;
+  padding: var(--s-3) 0;
+  border-top: var(--hair) solid var(--rule);
+}
+.sv-block__name {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.sv-block__meta {
+  margin: 0;
+  letter-spacing: 0.08em;
+}
+.sv-table-list > li {
+  padding: 8px 0;
+  border-bottom: var(--hair) solid var(--rule-faint);
+  display: grid;
+  gap: 2px;
+}
+.sv-table-list p {
+  margin: 0;
+  line-height: 1.5;
+}
+.sv-entity {
+  overflow-wrap: anywhere;
+}
+.sv-entity__name {
+  font-family: var(--f-body);
+  font-size: 16px;
+}
+.sv-panel {
+  margin-top: var(--s-4);
+  max-width: 96ch;
+  border-top: var(--hair) solid var(--rule);
+  padding-top: var(--s-2);
+  display: grid;
+  gap: var(--s-1);
+}
+.sv-panel > p {
+  margin: 0;
+}
+
+/* relations */
+.sv-relations,
+.sv-review {
+  margin-top: var(--s-3);
+  max-width: 96ch;
+}
+.sv-relations__sum {
+  margin: 0 0 var(--s-2);
+  letter-spacing: 0.08em;
+}
+.sv-shared {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.sv-shared > li {
+  padding: var(--s-2) 0;
+  border-top: var(--hair) solid var(--rule-faint);
+}
+.sv-shared__head {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+.sv-shared__kind {
+  color: var(--text-secondary);
+  letter-spacing: 0.1em;
+}
+.sv-shared__label {
+  font-family: var(--f-body);
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+.sv-shared__members {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0 0 0 var(--s-2);
+  display: grid;
+  gap: 2px;
+  border-left: var(--hair) solid var(--rule);
+}
+
+/* review */
+.sv-review__note {
+  margin: 0 0 var(--s-2);
+  line-height: 1.55;
+}
+.sv-pairs {
+  list-style: none;
+  margin: var(--s-2) 0 0;
+  padding: 0;
+}
+.sv-pair {
+  padding: var(--s-2) 0;
+  border-top: var(--hair) solid var(--rule-faint);
+  display: grid;
+  gap: 4px;
+}
+.sv-pair p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.sv-pair__sides {
+  font-family: var(--f-body);
+  font-size: 15px;
+}
+.sv-pair__judge {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+  margin-top: 4px;
+}
+.sv-pair__judge .sv-field input {
+  width: 28ch;
+}
+.sv-pair__done {
+  letter-spacing: 0.08em;
+}
+
+/* a store, a dataset row: the same ruled row, not always a control */
+.sv-row--static {
+  cursor: default;
+}
+.sv-row--static:hover {
+  background: none;
+}
+.sv-row__src {
+  margin: 0 0 6px calc(3.4ch + var(--s-2));
+  overflow-wrap: anywhere;
+}
+.sv-row__found {
+  grid-column: 2 / -1;
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+}
+
+/* what each question did */
+.sv-scroll {
+  margin-top: var(--s-3);
+  max-width: 100%;
+  overflow-x: auto;
+}
+.sv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.sv-table caption {
+  text-align: left;
+  padding-bottom: 6px;
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--text-secondary);
+}
+.sv-table th,
+.sv-table td {
+  padding: 6px 10px 6px 0;
+  border-bottom: var(--hair) solid var(--rule-faint);
+  text-align: left;
+  vertical-align: baseline;
+  font-size: 14px;
+}
+.sv-table thead th {
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+  border-bottom-color: var(--rule);
+  white-space: nowrap;
+}
+.sv-table tbody th {
+  font-family: var(--f-body);
+  font-weight: 400;
+  min-width: 24ch;
+}
+
+/* a domain's records, section by section */
+.sv-sections {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-3) clamp(20px, 4vw, 56px);
+  margin-top: var(--s-2);
+}
+.sv-section {
+  display: grid;
+  gap: var(--s-1);
+  align-content: start;
+}
+
+.sv-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 @media (max-width: 900px) {
   .sv-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .sv-sections {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sv-rail__desk {
+    padding: 8px 8px 6px;
   }
   .sv-side {
     position: static;
@@ -561,7 +997,9 @@
 @media (prefers-reduced-motion: reduce) {
   .sv,
   .sv-stages li,
-  .sv-btn {
+  .sv-btn,
+  .sv-rail__desk,
+  .sv-check input::after {
     transition-duration: 1ms;
   }
 }

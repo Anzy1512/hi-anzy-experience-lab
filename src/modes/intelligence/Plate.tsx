@@ -1,22 +1,32 @@
 import { useMemo } from 'react';
-import type { GeoJSONGeometry, ResultItem } from './engine';
+import type { GeoJSONGeometry } from './engine';
 
 /**
- * THE SURVEY PLATE.
+ * THE PLATE.
  *
- * The area the engine searched, drawn as its own outline, and the businesses it
- * found placed on it — a flat plate, not a map: no tiles, no basemap, nothing
- * fetched. Matched businesses are solid marks, undetermined ones open marks, the
- * chosen one the signal. The outline is the engine's geometry; a place with no
- * location is not drawn anywhere, because a guessed position is an invented one.
+ * An area the engine resolved, drawn as its own outline, and whatever was found
+ * in it placed on it — a flat plate, not a map: no tiles, no basemap, nothing
+ * fetched. Solid marks are the ones that answered the question, open marks the
+ * ones that could not be decided, and the chosen one is the signal. The outline
+ * is the engine's geometry; a thing with no location is not drawn anywhere,
+ * because a guessed position is an invented one.
  */
+
+export interface Mark {
+  id: string;
+  lat: number;
+  lon: number;
+  /** Open: undecided, or simply not the thing asked about. */
+  open?: boolean;
+}
 
 interface Props {
   area: GeoJSONGeometry | null;
-  matched: ResultItem[];
-  undetermined: ResultItem[];
-  selected: string | null;
+  marks: Mark[];
+  selected?: string | null;
   label: string;
+  /** What solid and open mean here, in words. */
+  legend?: string;
 }
 
 type Ring = [number, number][];
@@ -24,15 +34,10 @@ type Ring = [number, number][];
 const WIDTH = 1000;
 const MAX_VERTICES = 4000; // a state's boundary is drawn, not reproduced vertex for vertex
 
-export function SurveyPlate({ area, matched, undetermined, selected, label }: Props) {
+export function Plate({ area, marks, selected = null, label, legend }: Props) {
   const rings = useMemo(() => ringsOf(area), [area]);
-  const marks = useMemo(
-    () => [
-      ...undetermined.filter((r) => r.location).map((r) => ({ r, open: true })),
-      ...matched.filter((r) => r.location).map((r) => ({ r, open: false })),
-    ],
-    [matched, undetermined],
-  );
+  // open marks first, so the solid ones are printed over them
+  const ordered = useMemo(() => [...marks.filter((m) => m.open), ...marks.filter((m) => !m.open)], [marks]);
 
   const frame = useMemo(() => {
     const lons: number[] = [];
@@ -44,9 +49,9 @@ export function SurveyPlate({ area, matched, undetermined, selected, label }: Pr
       }
     }
     if (lons.length === 0) {
-      for (const { r } of marks) {
-        lons.push(r.location!.lon);
-        lats.push(r.location!.lat);
+      for (const m of ordered) {
+        lons.push(m.lon);
+        lats.push(m.lat);
       }
     }
     if (lons.length === 0) return null;
@@ -63,7 +68,7 @@ export function SurveyPlate({ area, matched, undetermined, selected, label }: Pr
     const x = (lon: number) => (lon - west) * k * scale;
     const y = (lat: number) => (north - lat) * sy;
     return { x, y, height };
-  }, [rings, marks]);
+  }, [rings, ordered]);
 
   if (!frame) {
     return (
@@ -76,36 +81,25 @@ export function SurveyPlate({ area, matched, undetermined, selected, label }: Pr
   const outline = rings
     .map((ring) => ring.map(([lon, lat], i) => `${i ? 'L' : 'M'}${x(lon).toFixed(1)},${y(lat).toFixed(1)}`).join('') + 'Z')
     .join('');
-  const chosen = marks.find((m) => m.r.id === selected);
+  const chosen = ordered.find((m) => m.id === selected);
 
   return (
     <figure className="sv-plate">
-      <svg
-        viewBox={`-12 -12 ${WIDTH + 24} ${height + 24}`}
-        role="img"
-        aria-label={`${label}: ${marks.length} of the businesses read so far, placed`}
-      >
+      <svg viewBox={`-12 -12 ${WIDTH + 24} ${height + 24}`} role="img" aria-label={`${label}: ${ordered.length} placed`}>
         {outline && <path className="sv-plate__area" d={outline} />}
-        {marks.map(({ r, open }) => (
+        {ordered.map((m) => (
           <circle
-            key={r.id}
-            className={open ? 'sv-plate__mark sv-plate__mark--open' : 'sv-plate__mark'}
-            cx={x(r.location!.lon)}
-            cy={y(r.location!.lat)}
-            r={open ? 3.2 : 3.6}
+            key={m.id}
+            className={m.open ? 'sv-plate__mark sv-plate__mark--open' : 'sv-plate__mark'}
+            cx={x(m.lon)}
+            cy={y(m.lat)}
+            r={m.open ? 3.2 : 3.6}
           />
         ))}
-        {chosen && (
-          <circle
-            className="sv-plate__chosen"
-            cx={x(chosen.r.location!.lon)}
-            cy={y(chosen.r.location!.lat)}
-            r={11}
-          />
-        )}
+        {chosen && <circle className="sv-plate__chosen" cx={x(chosen.lon)} cy={y(chosen.lat)} r={11} />}
       </svg>
       <figcaption className="t-mono t-mono-xs t-dim">
-        {label.toUpperCase()} · {marks.length} PLACED · SOLID MATCHED · OPEN UNDETERMINED
+        {label.toUpperCase()} · {ordered.length} PLACED{legend ? ` · ${legend}` : ''}
       </figcaption>
     </figure>
   );

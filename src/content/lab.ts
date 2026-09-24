@@ -140,21 +140,23 @@ export const MODES: ModeDefinition[] = [
   },
   {
     /* The Lab's front end for the Commercial Intelligence Engine — a separate
-       program that runs on this machine (`comintel serve`). The only reality
-       that uses the network, and only to that engine, only when asked. Without
-       the engine it says so and shows nothing in its place. */
-    id: 'survey',
+       program that runs on this machine (`comintel serve`). One reality with a
+       desk for each thing the engine does (content/intelligence.ts), printed on
+       the index as a section of its own. The only reality that uses the
+       network, and only to that engine, only when asked. Without the engine it
+       says so and shows nothing in its place. */
+    id: 'intelligence',
     index: '09',
-    title: 'SURVEY',
-    tagline: 'Every business of a kind, in a place.',
+    title: 'INTELLIGENCE',
+    tagline: 'The Commercial Intelligence Engine, on this machine.',
     description:
-      'Ask the way you would say it — properties with a pool in a state, a brand’s stores in a city — and the Commercial Intelligence Engine on this machine asks public sources for them. Every business comes back with the evidence behind it, and the answer with how far it can be trusted.',
+      'Every business of a kind in a place, what a brand name stands for, how a place resolves, a brand’s own store list, what a website is built with, what a domain’s records say, many questions made into one table — asked of public sources by the engine running on this machine, each answer with its evidence and how far it can be trusted.',
     status: 'online',
     tier: 'flagship',
-    // Paper: a survey sheet — a ruled ledger on bone stock.
+    // Paper: a survey office — ruled ledgers on bone stock.
     material: 'paper',
     requirements: { ...NONE, cost: 'low', mobile: 'full', reducedMotion: 'full' },
-    load: () => import('../modes/survey/SurveyMode'),
+    load: () => import('../modes/intelligence/IntelligenceMode'),
   },
 
   /* ---------------------------------------------------------------------- */

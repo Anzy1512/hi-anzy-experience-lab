@@ -345,21 +345,21 @@ export const MANIFESTS: Manifest[] = [
     },
   },
   {
-    id: 'survey',
+    id: 'intelligence',
     layer: 'PRODUCT',
-    owns: 'modes/survey',
+    owns: 'modes/intelligence',
     consumes: [...BASE, 'ARTIFACT', 'DESIGN'],
     dependsOnSiblings: [],
     persistence: 'NONE',
     maturity: 'PROTOTYPE',
     evidence:
-      'Phase 9.0: asks the Commercial Intelligence Engine on this machine and renders what it answers — stages, counts, ledger, plate, evidence, exports — and says so by name when the engine is not running. Exercised against the live engine in development; not yet against a deployment, where no engine is reachable.',
+      'Phase 9.1, against the live engine in development: all nine desks answered — a Haldiram’s survey of Noida (18 matched, relations, possible duplicates), a brand read with its GLEIF entities and parents, Noida resolved and drawn, Vishal Mega Mart’s own locator (4 stores inside), a site read, a domain’s four public records, a two-question dataset with its four files, the archive reopening a saved search, the sources and the registry. Handovers walked end to end: a brand to SURVEY with the caret placed, a business to DOMAINS, DOMAINS to SITES, a question to DATASETS, the ARCHIVE to SURVEY. Engine stopped: NOT REACHABLE by name, and LOOK AGAIN recovered. No request after exit. No page overflow at 375 or 1280. Not yet against a deployment, where no engine is reachable.',
     graduation: {
       INPUT: 'PASS', TRANSFORMATION: 'PASS', OUTPUT: 'PASS', ARTIFACT: 'PASS',
-      ERROR_STATES: 'PASS', LIMITATIONS: 'PASS', ACCESSIBILITY: 'UNVERIFIED',
-      RESPONSIVE: 'PASS', LIFECYCLE: 'PASS', PERFORMANCE: 'UNVERIFIED',
-      DEPENDENCY_ISOLATION: 'PASS', STATE_ISOLATION: 'PASS', EXPORT: 'PASS',
-      PRIVACY: 'PASS', DEPLOYABILITY: 'OPEN',
+      CONTINUE: 'PASS', ERROR_STATES: 'PASS', LIMITATIONS: 'PASS',
+      ACCESSIBILITY: 'UNVERIFIED', RESPONSIVE: 'PASS', LIFECYCLE: 'PASS',
+      PERFORMANCE: 'UNVERIFIED', DEPENDENCY_ISOLATION: 'PASS', STATE_ISOLATION: 'PASS',
+      EXPORT: 'PASS', PRIVACY: 'PASS', DEPLOYABILITY: 'OPEN',
     },
     standalone: {
       candidate: true,

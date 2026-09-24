@@ -131,13 +131,17 @@ is the same portal driven by device tilt or the pointer.
 `UNKNOWN` by name, in a visibly different type style. Draw calls say "not exposed to pages".
 Frame timing is sampled only while sampling runs, using real `performance.now()` intervals.
 
-**SURVEY — every business of a kind, in a place.** The front end of the Commercial Intelligence
-Engine, a separate program that runs on your machine (`uv run comintel serve` in the
-commercial-intelligence folder). Ask the way you would say it; the engine asks public sources, and
-SURVEY shows its stages, the counts and how far to trust them, a ruled ledger, a plate of where each
-business is, what each source said, and the engine's own exports. `npm run dev` forwards `/engine`
-to the engine (`ENGINE_URL` to point it elsewhere). Without the engine it says NOT REACHABLE and
-shows nothing in its place. It is the one reality that uses the network, and it keeps nothing.
+**INTELLIGENCE — the Commercial Intelligence Engine, on this machine.** The front end of a separate
+program that runs on your machine (`uv run comintel serve` in the commercial-intelligence folder),
+printed on the index as a section of its own with nine desks: SURVEY (every business of a kind in a
+place, with what they share and the records that may be duplicates), BRANDS (what a name stands
+for, its legal entities and its news), AREAS (how a place resolves, drawn), LOCATORS (a brand's own
+store list for a place), SITES (what a website is built and marketed with), DOMAINS (a domain's
+registration, mail records, certificates and archive history), DATASETS (many questions, one
+table), ARCHIVE (what the engine already knows) and SOURCES (every source and the registry behind
+them). Desks hand work to each other. `npm run dev` forwards `/engine` to the engine (`ENGINE_URL`
+to point it elsewhere). Without the engine it says NOT REACHABLE and shows nothing in its place. It
+is the one reality that uses the network, and it keeps nothing.
 
 ## Materials
 

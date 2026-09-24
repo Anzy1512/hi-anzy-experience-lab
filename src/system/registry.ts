@@ -51,6 +51,7 @@ export type ProductLayer = 'PRODUCT' | 'INSTRUMENT' | 'EXPERIENCE';
  * loses the thing they have in common.
  */
 export type ProductFamily =
+  | 'INTELLIGENCE'
   | 'ENVIRONMENT'
   | 'ANALYSIS'
   | 'CREATION'
@@ -192,18 +193,26 @@ export const PRODUCTS: ProductEntry[] = [
     },
   },
   {
-    id: 'survey',
+    id: 'intelligence',
     layer: 'PRODUCT',
-    family: 'ANALYSIS',
-    proposition: 'Ask for every business of a kind in a place, and take away the list with its evidence.',
+    family: 'INTELLIGENCE',
+    proposition:
+      'Every business of a kind in a place, every brand, place, store list, site and domain behind it — asked of public sources, taken away with the evidence.',
     contract: {
-      input: 'A question in your own words: what, where, and what it must have or lack.',
-      context: 'The Commercial Intelligence Engine running on this machine, which asks public sources — the map, Overture’s places, brands’ own store locators, businesses’ own sites — under their usage policies.',
-      process: 'Sends the question to the engine, follows its stages, and reads back every business with its verdict, what each source said, and the completeness report.',
-      result: 'Businesses matched, undetermined with the reason, and how far the answer can be trusted.',
-      artifact: 'The dataset as the engine exports it (CSV, XLSX, GeoJSON, JSON), and the survey summary as copied text, Markdown or JSON.',
-      /* Nothing yet takes a survey onward inside the Lab. */
-      continue: null,
+      input:
+        'A question, a brand, a place, a website, a domain, or a list of questions — in your own words.',
+      context:
+        'The Commercial Intelligence Engine running on this machine, which asks public sources — the map, Overture’s places, brands’ own store locators, businesses’ own sites, public registries — under their usage policies.',
+      process:
+        'Sends each request to the engine, follows its stages or tasks, and reads back what it found with the evidence behind each fact and the reason for everything it could not decide.',
+      result:
+        'Businesses matched or undetermined with the reason, and how far the answer can be trusted; what a brand stands for; how a place resolves; the stores a locator states; a site’s stack; a domain’s records; a dataset from many questions; the sources and the registry behind them.',
+      artifact:
+        'The engine’s own exports of a search or a dataset (CSV, XLSX, GeoJSON, JSON), and a survey summary as copied text, Markdown or JSON.',
+      /* Implemented as the desks' own handovers (modes/intelligence/link.ts):
+         each names its destination and carries words to start from. */
+      continue:
+        'Between its own desks: a brand to its stores or a survey, a place to a survey or a store locator, a business to its site and its domain, a question to a dataset, a saved search back to its ledger.',
     },
   },
 
@@ -339,6 +348,14 @@ export interface IndexGroup {
 }
 
 export const INDEX_GROUPS: IndexGroup[] = [
+  {
+    /* One reality, printed as its desks (content/intelligence.ts): the engine's
+       tools are what a visitor comes for, so each is a row of its own. */
+    key: 'intelligence',
+    label: 'INTELLIGENCE',
+    note: 'The Commercial Intelligence Engine on this machine. Public sources, with the evidence.',
+    families: ['INTELLIGENCE'],
+  },
   {
     key: 'products',
     label: 'PRODUCTS',
