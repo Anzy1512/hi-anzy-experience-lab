@@ -14,6 +14,7 @@ import {
 } from './normalize.ts';
 import { compareEntities, findCandidates, loadFacts, recordJudgement, RULE_VERSION } from './resolve.ts';
 import { mergeEntities, resolveAlias } from './merge.ts';
+import { ingestTradeRelationships } from './trade.ts';
 
 /**
  * A CRAWLED DOCUMENT BECOMES OBSERVATIONS, AN ENTITY, CLAIMS AND EDGES.
@@ -63,6 +64,11 @@ export interface EntityIngestResult {
   claims: number;
   conflicts: number;
   relationships: number;
+  /** Trade statements found in prose, and what became of them. */
+  tradeMentions: number;
+  tradeEdges: number;
+  tradeRefused: number;
+  tradeUnknown: string[];
   capabilitySignals: number;
   relatedEntities: number;
   elapsedMs: number;
@@ -656,6 +662,19 @@ export async function ingestEntitiesFromDocument(
     relationships += 1;
   }
 
+  /* ---- trade relationships, where a page states one --------------------- */
+  /*
+   * Read from the extracted TEXT, not from markup.
+   *
+   * A stockist list or a "supplied by" line is prose; no schema carries it.
+   * This is the only place in the pipeline that infers a relationship from
+   * language rather than from a declared field, which is why it refuses far
+   * more often than it accepts — see `trade.ts`.
+   */
+  const body = await d.query<{ text: string | null }>('select text from document where id = $1', [doc.id]);
+  const trade = await ingestTradeRelationships(d, entityId, doc.id, body[0]?.text ?? '');
+  relationships += trade.edges;
+
   /* ---- location -------------------------------------------------------- */
   const addressObs = observations.find((o) => o.field === 'address');
   const latObs = observations.find((o) => o.field === 'latitude');
@@ -769,6 +788,12 @@ export async function ingestEntitiesFromDocument(
     claims,
     conflicts,
     relationships,
+    /* Named in text, and not confidently resolved to a known business. The
+       queue this produces is the useful half of the output. */
+    tradeMentions: trade.mentions,
+    tradeEdges: trade.edges,
+    tradeRefused: trade.refused.length,
+    tradeUnknown: trade.unknown,
     capabilitySignals: signals.length,
     relatedEntities,
     elapsedMs: Math.round(performance.now() - startedAt),

@@ -562,3 +562,94 @@ describe('provenance, quality and retention', () => {
     await d.query('delete from entity where id = $1', [id]);
   });
 });
+
+/* ========================================================================== */
+describe('trade relationships stated in prose', () => {
+  it('reads the phrasings a page actually uses, and nothing else', async () => {
+    const { findTradeMentions } = await import('../src/entity/trade.ts');
+
+    const found = findTradeMentions(
+      'Our shelves are supplied by Eastfield Supply Co. We stock Bramble Goods and other brands. ' +
+        'Everything is supplied by local farms. Available at Peony Flowers.',
+    );
+    const byType = new Map(found.map((m) => [m.name, m]));
+
+    assert.ok(byType.has('Eastfield Supply Co'), `missed the supplier: ${found.map((f) => f.name).join(', ')}`);
+    assert.equal(byType.get('Eastfield Supply Co')?.type, 'SUPPLIES');
+    assert.equal(byType.get('Eastfield Supply Co')?.direction, 'INBOUND');
+
+    assert.ok(byType.has('Bramble Goods'));
+    assert.equal(byType.get('Bramble Goods')?.direction, 'OUTBOUND', 'we stock X means we sell X');
+
+    /* "local farms" is not a business, and a lower-case noun after the verb is
+       exactly the false positive this must not produce. */
+    assert.equal(
+      found.some((f) => /local/i.test(f.name)),
+      false,
+      'a common noun became a company',
+    );
+
+    for (const m of found) assert.ok(m.quote.length > 0, 'every mention carries the sentence it came from');
+  });
+
+  it('refuses to make an edge to a business it cannot resolve', async () => {
+    const { ingestTradeRelationships } = await import('../src/entity/trade.ts');
+    const org = await Q.findEntities(d, { type: 'ORGANIZATION', limit: 1 });
+    const subject = org[0];
+    assert.ok(subject);
+
+    const docs = await d.query<{ id: string }>('select id from document limit 1');
+    const doc = docs[0];
+    assert.ok(doc);
+
+    const before = (await Q.getRelationships(d, subject.id)).length;
+    const r = await ingestTradeRelationships(
+      d,
+      subject.id,
+      doc.id,
+      'Our produce is supplied by Nonexistent Wholesale Partners Limited.',
+    );
+    assert.equal(r.mentions, 1);
+    assert.equal(r.edges, 0, 'a business not in the corpus must not become an edge');
+    assert.deepEqual(r.unknown, ['Nonexistent Wholesale Partners Limited']);
+    assert.equal((await Q.getRelationships(d, subject.id)).length, before);
+  });
+
+  it('makes an edge, with the sentence, when the named business is known', async () => {
+    const { ingestTradeRelationships } = await import('../src/entity/trade.ts');
+    const orgs = await Q.findEntities(d, { type: 'ORGANIZATION', limit: 20 });
+    const subject = orgs[0];
+    const other = orgs.find((o) => o.id !== subject?.id);
+    assert.ok(subject && other);
+
+    const docs = await d.query<{ id: string }>('select id from document limit 1');
+    const doc = docs[0];
+    assert.ok(doc);
+
+    const r = await ingestTradeRelationships(
+      d,
+      subject.id,
+      doc.id,
+      `Our produce is supplied by ${other.canonicalName}.`,
+    );
+    assert.equal(r.mentions, 1);
+    assert.equal(r.edges, 1, `expected an edge; refused: ${JSON.stringify(r.refused)} unknown: ${r.unknown.join(', ')}`);
+
+    const edges = await Q.getRelationships(d, subject.id);
+    const supply = edges.find((e) => e.type === 'SUPPLIES');
+    assert.ok(supply, 'the SUPPLIES edge is missing');
+    assert.equal(supply.direction, 'in', 'supplied by X means X supplies us');
+    assert.equal(supply.otherId, other.id);
+    assert.ok(supply.evidenceCount > 0, 'the edge must cite the sentence that produced it');
+
+    const evidence = await d.query<{ raw_value: string; evidence: string | null; extraction_method: string }>(
+      `select o.raw_value, o.evidence, o.extraction_method
+         from relationship_evidence re join observation o on o.id = re.observation_id
+        where re.relationship_id = $1`,
+      [supply.id],
+    );
+    assert.ok(evidence.length > 0);
+    assert.match(evidence[0]?.evidence ?? '', /supplied by/);
+    assert.match(evidence[0]?.extraction_method ?? '', /^text:/);
+  });
+});

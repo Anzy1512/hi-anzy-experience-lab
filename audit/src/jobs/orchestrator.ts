@@ -10,6 +10,7 @@ import type { AgentRole, Invocation, ToolContext } from '../agents/tools.ts';
 import { Budget } from './budget.ts';
 import { blockedTasks, planToTasks, readyTasks, validateDag, type TaskNode, type TaskSpec, type TaskState } from './dag.ts';
 import { LoopControl } from './saturation.ts';
+import { backfillTradeRelationships } from '../entity/trade.ts';
 
 /**
  * ONE ORCHESTRATOR.
@@ -553,6 +554,17 @@ async function systemTask(
   }
 
   /* report */
+  /*
+   * One reconciliation pass before the artifact is written.
+   *
+   * A page crawled early in this job may have named a business the job only
+   * resolved later, and that mention produced no edge at the time because the
+   * business did not exist yet. Re-running it here is the cheapest moment: the
+   * corpus is as complete as this job will make it, and the artifact is about
+   * to be written from it.
+   */
+  await backfillTradeRelationships(d);
+
   const answers = await d.query<{ output: unknown }>(
     `select output from task where job_id = $1 and kind = 'analyse' and state = 'DONE'`,
     [jobId],

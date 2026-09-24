@@ -274,6 +274,33 @@ console.log('');
 console.log(`placed ${all.located.length}, not placed ${all.unlocated}`);
 console.log(all.note);
 
+rule('WHO SUPPLIES WHOM');
+
+const supplyRows = (await get(`/v1/entities?type=ORGANIZATION&limit=50`)).json() as {
+  entities: Array<{ id: string; canonicalName: string }>;
+};
+let edges = 0;
+/* An edge is reachable from both ends; print it once. */
+const seenEdge = new Set<string>();
+for (const e of supplyRows.entities) {
+  const profile = (await get(`/v1/entities/${e.id}`)).json() as {
+    relationships: Array<{ type: string; direction: string; otherName: string; evidenceCount: number }>;
+  };
+  for (const r of profile.relationships.filter((x) => ['SUPPLIES', 'SELLS', 'DISTRIBUTES'].includes(x.type))) {
+    const [from, to] = r.direction === 'in' ? [r.otherName, e.canonicalName] : [e.canonicalName, r.otherName];
+    const key = `${from}|${r.type}|${to}`;
+    if (seenEdge.has(key)) continue;
+    seenEdge.add(key);
+    edges += 1;
+    console.log(`  ${from} ${r.type} ${to}  — ${r.evidenceCount} evidence row(s)`);
+  }
+}
+if (edges === 0) console.log('  (no page in this corpus states a trading relationship)');
+console.log('');
+console.log('Read from prose, because no schema carries a stockist list. An edge is made only');
+console.log('where the named business matches a known one exactly and nothing blocks the pair;');
+console.log('everything else is a recorded judgement and no edge.');
+
 rule('THE EVIDENCE, AFTER A RESTART');
 
 const findings = (await get(`/v1/jobs/${open.id}/findings`)).json() as {
