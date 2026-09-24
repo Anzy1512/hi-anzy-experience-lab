@@ -352,15 +352,30 @@ export const MANIFESTS: Manifest[] = [
     owns: 'modes/xray',
     consumes: [...BASE, 'PROJECT', 'ARTIFACT', 'HANDOFF', 'BRAND', 'GRAPHICS'],
     dependsOnSiblings: [],
-    persistence: 'PROJECT',
+    /*
+     * NONE, not PROJECT — corrected in Phase 8.12C by the release guard.
+     *
+     * It read PROJECT, which made its own manifest owe RESUME while its
+     * graduation recorded RESUME as N/A: a dimension filed away rather than
+     * answered, which is the one combination `system/release.ts` exists to
+     * catch. The guard caught it on the first run.
+     *
+     * NONE is the truthful value. X-Ray imports `getArtifact`, `claim` and
+     * `offered` — three reads and no write. It READS the project to open on
+     * something the Compiler left; nothing of X-Ray’s own survives the visitor
+     * leaving. That its report cannot reach the project is one gap, and it is
+     * CONTINUE; recording it three times as PERSISTENCE, RESUME and CONTINUE
+     * made one piece of missing work look like three.
+     */
+    persistence: 'NONE',
     maturity: 'ALPHA',
     evidence:
       'Inbound handoff verified in Flow B — it claims the Compiler manifest and opens on the same page, and keeps SOURCED and MEASURED strictly apart. Outbound it has no mechanism at all: it imports `claim` and `offered` but never `offer`, and its artifact bar carries no handoff. Its report is a download and nothing carries it onward.',
     graduation: {
       INPUT: 'PASS', TRANSFORMATION: 'PASS', OUTPUT: 'PASS', ARTIFACT: 'PASS',
-      CONTINUE: 'OPEN', PERSISTENCE: 'OPEN', RESUME: 'N/A', ERROR_STATES: 'PASS',
+      CONTINUE: 'OPEN', PERSISTENCE: 'N/A', RESUME: 'N/A', ERROR_STATES: 'PASS',
       LIMITATIONS: 'PASS', ACCESSIBILITY: 'PASS', RESPONSIVE: 'PASS', LIFECYCLE: 'PASS',
-      PERFORMANCE: 'UNVERIFIED', DEPENDENCY_ISOLATION: 'PASS', STATE_ISOLATION: 'PASS',
+      PERFORMANCE: 'UNVERIFIED', DEPENDENCY_ISOLATION: 'PASS', STATE_ISOLATION: 'N/A',
       EXPORT: 'PASS', PRIVACY: 'PASS', DEPLOYABILITY: 'OPEN',
     },
     standalone: {

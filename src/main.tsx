@@ -39,11 +39,16 @@ startWorkspace();
  * that the manifests still describe the same sixteen things as the index and
  * the registry, would have been dead from the day it was written.
  *
+ * `system/release` is imported rather than `system/maturity` because it reads
+ * the manifests to apply the release contract, so importing it runs both
+ * guards: the manifests still describe the same sixteen things, AND no reality
+ * has quietly recorded `N/A` against a dimension its own declarations owe.
+ *
  * `import.meta.env.DEV` is statically false in a production build, so this
  * branch and everything it reaches is eliminated: measured, the boot payload
  * does not move.
  */
-if (import.meta.env.DEV) void import('./system/maturity');
+if (import.meta.env.DEV) void import('./system/release');
 
 createRoot(container).render(
   <StrictMode>
