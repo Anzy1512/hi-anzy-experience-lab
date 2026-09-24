@@ -42,9 +42,34 @@ const argPath = argv.indexOf('--path');
 const REPO = argPath > -1 ? argv[argPath + 1] : AGENCY.defaultPath;
 const WANT_FETCH = argv.includes('--fetch');
 
+/*
+ * WHAT A GREEN ROW MEANS, PER TREATMENT.
+ *
+ * Phase 8.12C re-read all four sources at `0208378` and stamped their hashes,
+ * and three of them had drifted. Only one of the three changed anything in the
+ * Lab, so it is worth being exact about what CURRENT claims:
+ *
+ *   MIRROR     the Lab's values ARE these values. `content.js` drifted and the
+ *              changed fields were adopted into `src/content/canonical.ts`.
+ *   REFERENCE  the Lab depends on facts IN this file, not on the file.
+ *              `App.js` drifted by 78 lines and its route table is identical:
+ *              24 paths, none added, none removed. The drift is an error
+ *              boundary and a backdrop component, which the Lab does not have
+ *              and does not want.
+ *   TRANSFORM  the Lab inherits brand truth from this file and expresses it
+ *              its own way. `App.css` drifted by 213 lines and all 25 custom
+ *              properties, every font-family declaration and every brand colour
+ *              are unchanged. The six new colour literals belong to a
+ *              decorative isometric cube on the Agency's own grid.
+ *
+ * So CURRENT here means "read and reconciled at this commit", not "copied".
+ * Stamping a REFERENCE or TRANSFORM hash without reading the file would be
+ * exactly the silent-blessing failure this script was rewritten to prevent.
+ */
+
 /** Canonical commit these hashes were taken from, and when. */
-const CANONICAL_REMOTE_SHA = 'eac228293a2f7f9c8e36079f4f67e9fb9e5b2f9b';
-const SYNC_DATE = '2026-09-12';
+const CANONICAL_REMOTE_SHA = '020837893c0af5e7f2e5cda72734b430c955cd37';
+const SYNC_DATE = '2026-09-24';
 
 /**
  * Every canonical file the Lab mirrors, with its sha256/16 at the synced
@@ -55,7 +80,7 @@ const SYNC_DATE = '2026-09-12';
 const SOURCES = [
   {
     path: 'frontend/src/data/content.js',
-    sha: 'b85506b18ab97f92',
+    sha: 'dfece4ad4159fafe',
     lab: 'src/content/canonical.ts',
     treatment: 'MIRROR',
     exports: [
@@ -73,14 +98,14 @@ const SOURCES = [
   },
   {
     path: 'frontend/src/App.js',
-    sha: 'bb208629591a7e63',
+    sha: 'de4b393007dc71dc',
     lab: 'src/content/canonicalManifest.ts (ROUTES)',
     treatment: 'REFERENCE',
     exports: [],
   },
   {
     path: 'frontend/src/App.css',
-    sha: '521ab287bbdd6c1d',
+    sha: '492c83ab2deb52fe',
     lab: 'src/design-system/* (typography + colour truth)',
     treatment: 'TRANSFORM',
     exports: [],

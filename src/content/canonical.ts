@@ -3,9 +3,14 @@
  *
  * The Experience Lab is an alternate runtime interpretation of a real company,
  * not a parallel invention of one. Everything in this file is mirrored from the
- * commercial frontend — `Anzy1512/hi-anzy-platform`, `frontend/src/data/content.js`
- * — and this is the single place the Lab reads it from. Sixteen realities share
- * these definitions rather than each keeping a private copy of the business.
+ * commercial frontend — `Anzy1512/hi-anzy-website-2.0`,
+ * `frontend/src/data/content.js` — and this is the single place the Lab reads it
+ * from. Sixteen realities share these definitions rather than each keeping a
+ * private copy of the business.
+ *
+ * The Agency repository is READ ONLY from here, and always has been: nothing in
+ * the Lab writes to it, and the Lab builds and runs with no clone of it on the
+ * machine.
  *
  * WHY MIRRORED RATHER THAN IMPORTED
  * The commercial frontend is a separate repository with its own build, its own
@@ -30,22 +35,42 @@
  */
 
 export const CANONICAL_SOURCE = {
-  repo: 'Anzy1512/hi-anzy-platform',
+  repo: 'Anzy1512/hi-anzy-website-2.0',
   file: 'frontend/src/data/content.js',
   mirroredFrom: 'branch main',
   /* The commit these values were read at. `scripts/check-canonical-sync.mjs`
      holds the same string and is what tells you when it has gone stale;
      PERFORMANCE prints it so a visitor can see which version they are looking
      at rather than taking "converged" on trust. */
-  commit: 'eac2282',
-  /* Verified 2026-09-12 against `origin/main`, not a local checkout: the clone
-     used for Phase 8 staging sits on a branch whose `main` is two unpushed
-     commits ahead of the remote, so "HEAD" there was never canonical truth.
-     `content.js` is byte-identical between `6e36db1` and `eac2282` — canonical
-     moved twenty commits without touching one value below, which is why the
-     sync check now hashes sources rather than comparing commits. */
+  commit: '0208378',
+  /* Verified 2026-09-24 against `origin/main`, read with `git show` rather than
+     from a checkout — the clone is standing on `deploy/aws-staging`, and the
+     remote ref was confirmed with `git ls-remote` so a stale fetch could not be
+     mistaken for current truth. */
   verifiedAgainst: 'origin/main',
-  verifiedOn: '2026-09-12',
+  verifiedOn: '2026-09-24',
+  /*
+   * WHERE THIS FILE'S VALUES CAME FROM BEFORE, AND WHY THAT IS RECORDED.
+   *
+   * Until Phase 8.12C every value here was mirrored from `hi-anzy-platform` at
+   * `eac2282` (2026-09-01), which was the commercial repository at the time and
+   * is now LEGACY. That is history and it stays written down: relabelling an old
+   * snapshot with a repository it was never read from is a fabricated
+   * provenance, and this project does not do that even when it would make a
+   * check green.
+   *
+   * What changed in 8.12C is that the sources were actually re-read. Every
+   * mirrored export below was compared field by field against
+   * `hi-anzy-website-2.0` at `0208378`, so the commit above is current rather
+   * than inherited. `docs/PHASE_8_12_RELEASE_AND_CANONICAL.md` lists what was
+   * adopted, what was refused and what the comparison found wrong in the Lab.
+   */
+  previously: {
+    repo: 'Anzy1512/hi-anzy-platform',
+    commit: 'eac2282',
+    read: '2026-09-12',
+    note: 'LEGACY. Correct for everything mirrored before Phase 8.12C.',
+  },
 } as const;
 
 /* -------------------------------------------------------------------------- */
@@ -74,57 +99,57 @@ export interface MethodStage {
 export const METHOD: MethodStage[] = [
   {
     label: 'AUDIT',
-    title: "See what's really happening.",
-    page: 'First, we look.',
+    title: 'Understand what needs to change.',
+    page: 'First, establish a shared diagnosis.',
     duration: '2–4 weeks',
     outputs: [
-      'Findings ranked by what they actually cost',
-      'A named problem, in one sentence',
-      'The shortlist of what to fix first',
+      'Evidence and findings ranked by impact',
+      'A clearly defined problem',
+      'Priorities for the next stage',
     ],
   },
   {
     label: 'ARCHITECT',
-    title: 'Turn the mess into a map.',
-    page: 'Then, we decide.',
+    title: 'Agree the plan and its priorities.',
+    page: 'Next, design the route forward.',
     duration: '2–4 weeks',
     outputs: [
-      'A sequenced blueprint with owners',
-      'What is explicitly not happening',
-      'Dependencies mapped before they bite',
+      'A sequenced roadmap with named owners',
+      'Agreed scope and success measures',
+      'Dependencies and decision points',
     ],
   },
   {
     label: 'BUILD',
-    title: 'Make the plan real.',
-    page: 'Then, we make.',
+    title: 'Turn the blueprint into working tools.',
+    page: 'Then, build and test the system.',
     duration: '6–16 weeks',
     outputs: [
-      'The thing itself, working',
-      'Documentation your team can act on',
-      'A handover that does not need us present',
+      'Tested deliverables ready for use',
+      'Practical documentation',
+      'Training and a clear handover',
     ],
   },
   {
     label: 'CONNECT',
-    title: 'Bring the right minds into the room.',
-    page: 'Then, we bring in whoever the problem needs.',
+    title: 'Bring the right expertise together.',
+    page: 'Connect the people and channels.',
     duration: 'Per engagement',
     outputs: [
-      'A roster assembled for this problem',
-      'Labelled credit: who did what, always',
-      'Relationships that outlast the project',
+      'A team matched to the scope',
+      'Clear roles and credited contributions',
+      'A coordinated activation plan',
     ],
   },
   {
     label: 'SCALE',
-    title: "Keep what works. Improve what doesn't.",
-    page: 'Then, we prove whether it worked.',
+    title: 'Measure, learn and improve.',
+    page: 'Use results to guide the next move.',
     duration: 'Ongoing, reviewed quarterly',
     outputs: [
-      'Results against the measure you agreed',
-      'A shorter list of things you still do',
-      'Systems that survive your growth',
+      'Results against agreed goals',
+      'Prioritised improvements and experiments',
+      'An updated roadmap for growth',
     ],
   },
 ];
@@ -162,7 +187,8 @@ export const SERVICES: ServiceCategory[] = [
     slug: 'business-audit-strategy',
     label: 'SEE CLEARLY',
     title: 'Business Audit & Strategy',
-    copy: 'Before spending money on the solution, make sure you diagnosed the right problem.',
+    copy:
+      'Understand the constraint before choosing where to invest.',
     stage: 'AUDIT',
     typical: '2–6 weeks',
     capabilities: [
@@ -181,7 +207,8 @@ export const SERVICES: ServiceCategory[] = [
     slug: 'brand-experience',
     label: 'MAKE SENSE',
     title: 'Brand & Experience',
-    copy: 'People rarely buy what they do not understand. Clarity converts before the CTA does.',
+    copy:
+      'Make your offer easy to understand and consistent at every customer touchpoint.',
     stage: 'ARCHITECT',
     typical: '4–10 weeks',
     capabilities: [
@@ -201,7 +228,8 @@ export const SERVICES: ServiceCategory[] = [
     slug: 'digital-technology-automation',
     label: 'MAKE IT WORK',
     title: 'Digital, Technology & Automation',
-    copy: 'Technology should remove friction. Not create a new Slack channel about friction.',
+    copy:
+      'Connect websites, data and workflows so your team can spend less time moving information.',
     stage: 'BUILD',
     typical: '6–16 weeks',
     capabilities: [
@@ -222,7 +250,8 @@ export const SERVICES: ServiceCategory[] = [
     slug: 'growth-content-commerce',
     label: 'MAKE IT MOVE',
     title: 'Growth, Content & Commerce',
-    copy: 'Attention is useful. What happens after attention pays the bills.',
+    copy:
+      'Connect content, channels and conversion to the outcomes your business needs.',
     stage: 'SCALE',
     typical: 'Ongoing, reviewed quarterly',
     capabilities: [
@@ -242,7 +271,8 @@ export const SERVICES: ServiceCategory[] = [
     slug: 'media-creators-experiences',
     label: 'MAKE IT TRAVEL',
     title: 'Media, Creators & Experiences',
-    copy: 'A good idea should travel further than your own feed.',
+    copy:
+      'Bring your story to relevant audiences through creators, media and live experiences.',
     stage: 'CONNECT',
     typical: 'Campaign-based',
     capabilities: [
@@ -262,7 +292,8 @@ export const SERVICES: ServiceCategory[] = [
     slug: 'advisory-security-scale',
     label: 'MAKE IT LAST',
     title: 'Advisory, Security & Scale',
-    copy: 'Growth is exciting until the weak systems start introducing themselves.',
+    copy:
+      'Strengthen the processes, responsibilities and safeguards that growth depends on.',
     stage: 'SCALE',
     typical: 'Retained or milestone-based',
     capabilities: [
@@ -278,15 +309,29 @@ export const SERVICES: ServiceCategory[] = [
   },
 ];
 
-/** The company's own positioning line, as the site states it. */
+/**
+ * THE LAB'S OWN LINE ABOUT THE COMPANY — not the company's line about itself.
+ *
+ * This was labelled "the company's own positioning line, as the site states
+ * it" and it is not: Phase 8.12C searched the canonical frontend at 0208378,
+ * the legacy frontend at eac2282, and `docs/HI_ANZY_DECK_CONTENT.md`, and the
+ * sentence appears in none of them. The only place it occurs in the Agency
+ * repository is inside `frontend/lab/`, which is a built copy of this product
+ * — the Lab reading its own output back and mistaking it for a source.
+ *
+ * `system/brief.ts` printed it into every exported brief as "Hi Anzy's own
+ * statement of itself", which made a Lab tagline into a quoted business fact.
+ * The sentence is good and it stays; the attribution does not.
+ *
+ * `questions` was removed with the same correction. It claimed to be
+ * `WHY_HOW_NOW` "reduced to its three questions" and two of the three were not
+ * that export's questions in any version — canonical asks "What needs to exist
+ * for that change to happen?" and "What deserves to happen first?". Nothing
+ * read it, so the reduction was never visible and never checked.
+ */
 export const POSITION = {
+  /** Written for the Lab, by the Lab. Attribute it to nobody else. */
   statement: 'One company. Multiple realities.',
-  /** `WHY_HOW_NOW` reduced to its three questions. */
-  questions: [
-    'What are we actually trying to change?',
-    'How will it actually work?',
-    'Why now, and what happens if we wait?',
-  ],
 } as const;
 
 /** Services grouped by the method stage they belong to. */
@@ -299,16 +344,27 @@ export function servicesForStage(stage: string): ServiceCategory[] {
 /* -------------------------------------------------------------------------- */
 
 /**
- * `TRUST_PRINCIPLES` — how the company says it works, in its own words.
- * Anzy.OS prints these as system policy, which is the honest place for them:
- * a promise the operating environment holds itself to.
+ * `TRUST_PRINCIPLES` — five of the company's nine, condensed to one line each.
+ *
+ * Anzy.OS prints these as system policy, which is the honest place for them: a
+ * promise the operating environment holds itself to. The NAMES are canonical
+ * and now actually are — two of the five read `Labelled credit` and `Measured
+ * outcome`, which are not principle names in any version of the source.
+ * `Labelled credit` was lifted from the CONNECT stage's outputs and `Measured
+ * outcome` was a paraphrase of `Measurable goals`, both presented under a
+ * heading that says these are the company's own words.
+ *
+ * The one-line form IS the Lab's condensation — canonical carries a paragraph
+ * per principle and a terminal cannot — and the four omitted principles
+ * (Relevant specialists, Documentation, Operational thinking, Security where it
+ * matters) are omitted rather than reworded into these five.
  */
 export const PRINCIPLES: { name: string; short: string }[] = [
-  { name: 'Defined problem', short: 'We will not start until the problem fits in one sentence.' },
-  { name: 'Clear roadmap', short: 'What happens, in what order, and what must be true first.' },
-  { name: 'Named ownership', short: 'Every item has a person, not a department.' },
-  { name: 'Labelled credit', short: 'Who did what, always.' },
-  { name: 'Measured outcome', short: 'The measure is agreed in advance or it is not a measure.' },
+  { name: 'Defined problem', short: 'The problem, its evidence and the change it should create, agreed first.' },
+  { name: 'Clear roadmap', short: 'The sequence, the dependencies and the decision points, named.' },
+  { name: 'Named ownership', short: 'Every deliverable and decision has a named owner.' },
+  { name: 'Transparent scope', short: 'Deliverables, exclusions, cost and timing in writing.' },
+  { name: 'Measurable goals', short: 'The measures are agreed before the work begins.' },
 ];
 
 /** `AUDIENCES` — who the work is for. Shapes of business, never named clients. */
@@ -344,18 +400,22 @@ export const DIAGNOSTIC_OUTCOMES: string[] = [
   'How success gets measured',
 ];
 
-/**
- * `SOMETHINGS_OFF` — the symptoms a business notices before it can name the
- * problem. The Agency Simulator opens on one of these because that is the real
- * starting condition: not a brief, a feeling.
+/*
+ * `SOMETHINGS_OFF` WAS MIRRORED HERE AS `SIGNALS` AND IS NOT ANY MORE.
+ *
+ * Its five values were byte-exact canonical and its comment said "the Agency
+ * Simulator opens on one of these because that is the real starting condition:
+ * not a brief, a feeling." The Simulator does not: it opens on a free
+ * statement and five constraint questions, and nothing in `src/` ever imported
+ * `SIGNALS`. A mirrored export with no reader is the dead weight this file
+ * already refuses on ORBIT_CATEGORIES's behalf — carrying one that also
+ * describes behaviour the product does not have is worse, because it reads as
+ * though somebody checked.
+ *
+ * The values are unchanged in canonical between eac2282 and 0208378, so
+ * re-mirroring them is a copy-and-paste on the day something reads them.
+ * `frontend/src/data/content.js`, export `SOMETHINGS_OFF`.
  */
-export const SIGNALS: string[] = [
-  'Sales are growing but margins are not invited.',
-  'Marketing is busy. Nobody can explain what the busy-ness returns.',
-  'The website gets traffic. The traffic gets confused. The confusion leaves.',
-  'Four tools, three spreadsheets and one person who knows how it all connects. She is on leave.',
-  'Everything looks normal. That is occasionally the most expensive symptom of all.',
-];
 
 /** `NETWORK_CATEGORIES_HOME` — the twelve disciplines the network is built from. */
 export const NETWORK_DISCIPLINES: string[] = [
@@ -363,10 +423,20 @@ export const NETWORK_DISCIPLINES: string[] = [
   'CREATORS', 'PRODUCTION', 'EXPERIENCES', 'PR', 'SECURITY', 'OPERATIONS',
 ];
 
-/** `INSIGHT_CATEGORIES` — the knowledge taxonomy. */
-export const INSIGHT_CATEGORIES: string[] = [
-  'Strategy', 'Design', 'Technology', 'Culture', 'Operations',
-];
+/*
+ * `INSIGHT_CATEGORIES` WAS MIRRORED HERE AND IS NOT ANY MORE.
+ *
+ * It held ['Strategy', 'Design', 'Technology', 'Culture', 'Operations'] under
+ * a comment calling it "the knowledge taxonomy". Canonical's taxonomy is five
+ * named categories with blurbs — Business, Unpacked · Brand, Decoded · Tech,
+ * Without Theatre · Growth, With Receipts · Things We Noticed — and six as of
+ * 0208378, which added Media & Creators. The Lab's five matched neither
+ * version, at eac2282 or now: they were invented and labelled as mirrored.
+ *
+ * Nothing read them, which is how five invented values survived two phases of
+ * sync checking. The manifest now records the source as EXCLUDED with this
+ * reason rather than as a completed mirror.
+ */
 
 /* ==========================================================================
    PHASE 6 — the structural content Phase 5.5 saw and did not take.

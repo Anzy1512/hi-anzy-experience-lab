@@ -11,9 +11,22 @@ import { METHOD, POSITION, SERVICES } from './canonical';
  * the only way the demonstration is honest.
  */
 
+/*
+ * WHICH OF THESE FIELDS IS THE COMPANY'S AND WHICH IS THE LAB'S.
+ *
+ * `method` and `services` are canonical — mirrored from
+ * `hi-anzy-website-2.0` and re-read at `0208378` in Phase 8.12C. `statement`
+ * and `blurb` are the Lab's own writing ABOUT the company, consistent with the
+ * canonical material and quoted from none of it. The distinction is recorded
+ * here because it was not: `POSITION.statement` was labelled the company's own
+ * positioning line for three phases, and a block headed ONE SOURCE is exactly
+ * where that kind of mistake goes unnoticed.
+ */
 export const SOURCE = {
   company: 'HI ANZY',
+  /** The Lab's line, not the company's. See `canonical.POSITION`. */
   statement: POSITION.statement,
+  /** The Lab's description of the company. Consistent with canonical; quoted from none of it. */
   blurb:
     'A creative consultancy that works as one system rather than four suppliers: strategy, design, technology and culture assembled per problem.',
   /** The real method. Seven interfaces render this one array. */
@@ -112,8 +125,17 @@ export const ERAS: Era[] = [
 
 export const TM_COPY = {
   recordTitle: 'HI ANZY’S OWN RECORD',
+  /*
+   * NAMED, from Phase 8.12C — it used to say "the company’s own history".
+   *
+   * That was true when there was one commercial repository. There are now two,
+   * and `canonicalEras.ts` was captured from `hi-anzy-platform`, which is the
+   * legacy one. An unnamed "the company’s own history" now reads as a claim
+   * about a repository this record has never been read from, which is the kind
+   * of quiet inaccuracy a Lab that prints NOT RECORDED in capitals cannot keep.
+   */
   recordSpan: (first: string, last: string, commits: number) =>
-    `The seven views above are models of how interfaces have worked. This is the company’s own history, and it is short: ${commits} commits, ${first} to ${last}. Counted from the repository, not described.`,
+    `The seven views above are models of how interfaces have worked. Below is the recorded history of hi-anzy-platform, where the company’s site was built before it moved, and it is short: ${commits} commits, ${first} to ${last}. Counted from that repository, not described. The current one, hi-anzy-website-2.0, has not been read into this record.`,
   recordBefore: (first: string) =>
     `BEFORE ${first} — NOT RECORDED. NOT RECONSTRUCTED, NOT ESTIMATED, NOT KNOWN.`,
   title: 'TIME MACHINE',

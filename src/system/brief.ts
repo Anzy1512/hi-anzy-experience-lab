@@ -276,7 +276,16 @@ export function briefMarkdown(s: BriefState = state): string {
          * without a person attached to it.
          */
         head: 'WHAT THIS IS NOT',
-        body: `${DISCLAIMER} Nothing above is a quotation, a commitment, or a finding. Hi Anzy’s own statement of itself is “${POSITION.statement}”`,
+        /*
+         * This sentence used to end "Hi Anzy’s own statement of itself is
+         * “One company. Multiple realities.”", which put a quotation mark
+         * around a line the company has never published. Phase 8.12C looked for
+         * it in the canonical frontend, the legacy frontend and the source deck
+         * and found it in none of them: it is the Experience Lab’s own line.
+         * Attributing it to the company inside a document whose whole job is to
+         * say what is not a claim was the wrong sentence in the wrong section.
+         */
+        body: `${DISCLAIMER} Nothing above is a quotation, a commitment, or a finding. “${POSITION.statement}” is the Experience Lab’s own line about the company, not a statement Hi Anzy has published.`,
       },
     ],
     footer: {

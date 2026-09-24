@@ -53,12 +53,33 @@ export const LEGACY = {
  * does not do.
  */
 export const MIRRORED_FROM = {
+  repo: AGENCY.repo,
+  commit: '020837893c0af5e7f2e5cda72734b430c955cd37',
+  short: '0208378',
+  date: '2026-09-24',
+  /** True until the sources are re-read from AGENCY.repo. */
+  staleAgainstCanonical: false,
+};
+
+/**
+ * Where the snapshot came from BEFORE the re-read.
+ *
+ * Kept because history does not stop being true when it stops being current.
+ * Everything mirrored into the Lab before 2026-09-24 was read from here, and
+ * any future archaeology on a value that has not moved since lands on this
+ * commit rather than on `MIRRORED_FROM`.
+ *
+ * Phase 8.12C moved MIRRORED_FROM the legitimate way: every mirrored export in
+ * `src/content/canonical.ts` was compared field by field against
+ * `hi-anzy-website-2.0` at `0208378`, the drifted sources were read in full,
+ * and what the Lab inherits was either adopted or refused with a written
+ * reason. `docs/PHASE_8_12_RELEASE_AND_CANONICAL.md` is that record.
+ */
+export const PREVIOUSLY_MIRRORED_FROM = {
   repo: LEGACY.repo,
   commit: 'eac228293a2f7f9c8e36079f4f67e9fb9e5b2f9b',
   short: 'eac2282',
   date: '2026-09-12',
-  /** True until the sources are re-read from AGENCY.repo. */
-  staleAgainstCanonical: true,
 };
 
 /**
@@ -92,6 +113,7 @@ export function provenanceLine() {
     `MIRRORED FROM      ${MIRRORED_FROM.repo} @ ${MIRRORED_FROM.short} (${MIRRORED_FROM.date})` +
     (MIRRORED_FROM.staleAgainstCanonical
       ? `\n                   which is now LEGACY. Canonical is ${AGENCY.repo}.`
-      : '')
+      : `\n                   Before that: ${PREVIOUSLY_MIRRORED_FROM.repo} @ ` +
+        `${PREVIOUSLY_MIRRORED_FROM.short} (${PREVIOUSLY_MIRRORED_FROM.date}), now LEGACY.`)
   );
 }

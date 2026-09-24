@@ -11,9 +11,14 @@
  * to it" is not a state this file can express, which is the point.
  *
  * SOURCE OF TRUTH
- *   repo   github.com/Anzy1512/hi-anzy-platform
+ *   repo   github.com/Anzy1512/hi-anzy-website-2.0
  *   branch main (read from `origin/main`, never a local checkout)
- *   commit eac2282 — verified 2026-09-12
+ *   commit 0208378 — re-read 2026-09-24 in Phase 8.12C
+ *
+ * Before 8.12C this read `hi-anzy-platform` @ `eac2282`, which was the
+ * commercial repository until Phase 8.12 and is now LEGACY. That commit remains
+ * the correct provenance for everything mirrored before the re-read; see
+ * `canonical.ts`'s `CANONICAL_SOURCE.previously`.
  * The commercial frontend is never imported at runtime. See `canonical.ts` for
  * the mirroring decision and `scripts/check-canonical-sync.mjs` for the drift
  * check that tells you when this file has gone stale.
@@ -166,9 +171,10 @@ export const ROUTES: ManifestEntry[] = [
   {
     source: 'pages/Insights.js',
     sourceType: 'route',
-    treatment: 'SYSTEM_SOURCE',
-    destinations: ['canonical.INSIGHT_CATEGORIES'],
-    rationale: 'Category taxonomy only. Individual notes are living editorial and belong on the site.',
+    treatment: 'EXCLUDED',
+    destinations: [],
+    rationale:
+      'Read, and deliberately not mirrored. The Lab held five invented category names under this source’s label for three phases — Strategy, Design, Technology, Culture, Operations — which match neither the taxonomy at eac2282 nor the six at 0208378. Nothing consumed them, which is exactly why nobody noticed. Mirroring the real six is a copy-and-paste on the day a reality needs a knowledge taxonomy; carrying them unread is how the wrong five survived.',
     consentRisk: 'none',
     payloadRisk: 'none',
     status: 'done',
@@ -290,16 +296,46 @@ export const EXPORTS: ManifestEntry[] = [
   sys('METHOD_STAGES', ['canonical.METHOD', 'agency-simulator', 'anzy-os', 'director', 'memory', 'time-machine'], 'The real methodology. Replaced the obsolete deck sequence across five realities.'),
   sys('CATEGORIES', ['canonical.SERVICES', 'anzy-os', 'agency-simulator', 'time-machine'], 'The six-category service taxonomy.'),
   sys('CATEGORY_BY_SLUG', ['canonical.SERVICES'], 'A lookup over CATEGORIES; the Lab derives its own.'),
-  sys('WHY_HOW_NOW', ['canonical.POSITION'], 'The three positioning questions.'),
-  sys('TRUST_PRINCIPLES', ['canonical.PRINCIPLES', 'anzy-os'], 'How the company says it works. Printed by the OS as system policy.'),
+  {
+    source: 'WHY_HOW_NOW',
+    sourceType: 'export',
+    treatment: 'EXCLUDED',
+    destinations: [],
+    rationale:
+      'Read, and not mirrored. `canonical.POSITION.questions` claimed to be this export reduced to three questions and two of the three were never its questions — canonical asks "What needs to exist for that change to happen?" and "What deserves to happen first?". Nothing read it, so the reduction was never checked. Removed in Phase 8.12C rather than corrected, because a mirrored export with no reader is dead weight either way.',
+    consentRisk: 'none',
+    payloadRisk: 'none',
+    status: 'done',
+  },
+  sys('TRUST_PRINCIPLES', ['canonical.PRINCIPLES', 'anzy-os'], 'Five of the nine, condensed to one line each for the OS’s system-policy readout. Names are canonical; the one-line form is the Lab’s. Two names were not canonical at all until Phase 8.12C corrected them.', 'partial'),
   sys('AUDIENCES', ['canonical.AUDIENCES', 'agency-simulator'], 'Who the work is for — shapes, not names.'),
   sys('DIAGNOSTIC_AREAS', ['canonical.DIAGNOSTIC_AREAS', 'agency-simulator'], 'The eleven areas an audit covers. Becomes the simulator’s coverage readout.'),
   sys('DIAGNOSTIC_OUTCOMES', ['canonical.DIAGNOSTIC_OUTCOMES'], 'What an audit produces.'),
-  sys('SOMETHINGS_OFF', ['canonical.SIGNALS', 'agency-simulator'], 'The symptoms a business notices before it can name the problem.'),
+  {
+    source: 'SOMETHINGS_OFF',
+    sourceType: 'export',
+    treatment: 'EXCLUDED',
+    destinations: [],
+    rationale:
+      'Read, mirrored byte-exact as `canonical.SIGNALS`, and removed in Phase 8.12C. Nothing in src/ ever imported it, and its comment said the Agency Simulator opens on one of these — the Simulator opens on a free statement and five constraint questions. The values are unchanged in canonical between eac2282 and 0208378, so re-mirroring is a copy-and-paste on the day something reads them.',
+    consentRisk: 'none',
+    payloadRisk: 'none',
+    status: 'done',
+  },
   sys('NETWORK_CATEGORIES_HOME', ['living-world'], 'The twelve network disciplines; Living World reads them as territory.'),
   sys('NETWORK_SUBCATS', ['living-world'], 'Sub-disciplines per category.', 'partial'),
   sys('ORBIT_CATEGORIES', ['spatial/translation OrbitCluster'], 'Relationships arranged around a centre — the source of the ORBIT_CLUSTER primitive.'),
-  sys('INSIGHT_CATEGORIES', ['canonical.INSIGHT_CATEGORIES'], 'Knowledge taxonomy.'),
+  {
+    source: 'INSIGHT_CATEGORIES',
+    sourceType: 'export',
+    treatment: 'EXCLUDED',
+    destinations: [],
+    rationale:
+      'Read, and not mirrored. See pages/Insights.js above: the five values carried under this name were invented, matched no version of the source, and had no reader. Canonical gained a sixth category, Media & Creators, at 0208378.',
+    consentRisk: 'none',
+    payloadRisk: 'none',
+    status: 'done',
+  },
   sys('FILTER_LIST', ['living-world'], 'The filter vocabulary the network is navigated by.', 'partial'),
   sys('DISCIPLINES', ['canonical.SERVICES'], 'Per-discipline detail behind the six categories.', 'partial'),
   sys('DISCIPLINE_BY_SLUG', ['canonical.SERVICES'], 'A lookup; the Lab derives its own.'),
