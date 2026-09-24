@@ -326,9 +326,19 @@ export class DirectProvider implements SearchProvider {
  */
 export class ProviderRegistry {
   private readonly providers = new Map<ProviderId, SearchProvider>();
+  /**
+   * The provider this registry prefers, when the caller states one.
+   *
+   * Configuration is the right source for a deployment, and the wrong one for
+   * a caller that already knows which provider it wants — a job pinned to a
+   * particular source, or a harness supplying its own. Stated here it stays
+   * explicit; read from `config` it would be invisible at the call site.
+   */
+  private readonly preferred: ProviderId | null;
 
-  constructor(providers: SearchProvider[]) {
+  constructor(providers: SearchProvider[], preferred: ProviderId | null = null) {
     for (const p of providers) this.providers.set(p.id, p);
+    this.preferred = preferred;
   }
 
   static fromConfig(fetchImpl: typeof fetch = fetch): ProviderRegistry {
@@ -355,7 +365,8 @@ export class ProviderRegistry {
    * service useful with no search at all: it can still be handed URLs.
    */
   default(): SearchProvider {
-    const configured = this.providers.get(config.SEARCH_PROVIDER as ProviderId);
+    const stated = this.preferred === null ? undefined : this.providers.get(this.preferred);
+    const configured = stated ?? this.providers.get(config.SEARCH_PROVIDER as ProviderId);
     return configured ?? (this.providers.get('direct') as SearchProvider);
   }
 

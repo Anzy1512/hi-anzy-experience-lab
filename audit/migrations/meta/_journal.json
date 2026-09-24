@@ -29,6 +29,13 @@
       "when": 1790265943587,
       "tag": "0003_layer4_intelligence",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790269473834,
+      "tag": "0004_layer5_jobs",
+      "breakpoints": true
     }
   ]
 }

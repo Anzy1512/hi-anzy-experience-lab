@@ -11,9 +11,10 @@ import { config, usingPglite } from '../config.ts';
 import { schema as corpusSchema } from './schema.ts';
 import { entitySchema } from './entities.ts';
 import { intelSchema } from './intel.ts';
+import { jobSchema } from './jobs.ts';
 
 /* One schema object for drizzle, assembled from the two files that declare it. */
-const schema = { ...corpusSchema, ...entitySchema, ...intelSchema };
+const schema = { ...corpusSchema, ...entitySchema, ...intelSchema, ...jobSchema };
 
 /**
  * ONE DATABASE, TWO PLACES IT CAN LIVE.
