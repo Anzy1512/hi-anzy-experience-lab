@@ -10,6 +10,8 @@ import {
   type SearchResponse,
 } from './types.ts';
 import { SearxngProvider } from './searxng.ts';
+import { SitemapProvider } from './sitemap.ts';
+import { Crawler } from '../crawl/fetch.ts';
 
 /**
  * THE OTHER PROVIDERS, AND THE REGISTRY THAT MAKES THEM INTERCHANGEABLE.
@@ -341,11 +343,21 @@ export class ProviderRegistry {
     this.preferred = preferred;
   }
 
-  static fromConfig(fetchImpl: typeof fetch = fetch): ProviderRegistry {
+  /**
+   * The crawler is the sitemap provider's, and it is defaulted here rather
+   * than required because every existing caller of `fromConfig` has no crawler
+   * to give and should still get a registry that can discover something. A
+   * `Crawler` costs a limiter and an empty robots cache to construct and makes
+   * no request until asked, so building one to answer "which providers exist"
+   * is free. A caller that already has a crawler — the orchestrator does —
+   * passes it, so one pilot has one politeness budget rather than two.
+   */
+  static fromConfig(fetchImpl: typeof fetch = fetch, crawler?: Crawler): ProviderRegistry {
     return new ProviderRegistry([
       new SearxngProvider(config.SEARXNG_URL, fetchImpl),
       new BraveProvider(config.SEARCH_API_KEY, fetchImpl),
       new TavilyProvider(config.SEARCH_API_KEY, fetchImpl),
+      new SitemapProvider(crawler ?? new Crawler({ fetchImpl })),
       new DirectProvider(),
     ]);
   }

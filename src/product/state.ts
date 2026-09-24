@@ -31,14 +31,16 @@ export function useService(): ServiceState {
 }
 
 /** The views this surface has. Order is the order they appear. */
-export const VIEWS = ['ask', 'jobs', 'evidence', 'map'] as const;
+export const VIEWS = ['ask', 'pilot', 'jobs', 'evidence', 'map', 'review'] as const;
 export type View = (typeof VIEWS)[number];
 
 export const VIEW_LABEL: Record<View, string> = {
   ask: 'ASK',
+  pilot: 'PILOT',
   jobs: 'JOBS',
   evidence: 'EVIDENCE',
   map: 'MAP',
+  review: 'REVIEW',
 };
 
 export const VIEW_DESCRIPTION: Record<View, string> = {
@@ -46,6 +48,10 @@ export const VIEW_DESCRIPTION: Record<View, string> = {
   jobs: 'Research that takes a while. The graph, what each agent did, and what it cost.',
   evidence: 'Every conclusion, and the quotation it rests on.',
   map: 'Where the businesses are — and how many could not be placed.',
+  pilot:
+    'A bounded run against a real area: what was found, what was not researched, and why. Every candidate is listed, including the ones that became nothing.',
+  review:
+    'Read a finding against the passage it cites and say whether it holds. Your verdict is added; the finding is never edited, because the pair is the record.',
 };
 
 /**

@@ -159,6 +159,26 @@ export const capabilityState = pgEnum('capability_state', [
 
 export const geocodeStatus = pgEnum('geocode_status', ['NO_PROVIDER', 'UNRESOLVED', 'RESOLVED']);
 
+/** The geographic providers this service knows how to speak to. */
+export const placeProviderId = pgEnum('place_provider', ['nominatim', 'none']);
+
+/**
+ * How precisely a point was resolved, in the provider's own terms.
+ *
+ * Ordered coarse-ward, and `AREA` is the one that matters. A geocode which
+ * fell back to a city or a postcode district is a point in the middle of
+ * somewhere; plotted without this label it is indistinguishable from a shop
+ * front, and a map full of town centres reads as a map full of businesses.
+ */
+export const placePrecision = pgEnum('place_precision', [
+  'POINT',
+  'BUILDING',
+  'STREET',
+  'POSTAL',
+  'AREA',
+  'UNKNOWN',
+]);
+
 /* -------------------------------------------------------------------------- */
 /* ENTITY                                                                      */
 /* -------------------------------------------------------------------------- */
@@ -569,7 +589,22 @@ export const entityLocation = pgTable(
     latitude: doublePrecision('latitude'),
     longitude: doublePrecision('longitude'),
     geocode: geocodeStatus('geocode').notNull().default('NO_PROVIDER'),
+    /**
+     * WHO placed this point. `declared` means the business's own page published
+     * coordinates; a provider name means a gazetteer was asked. Collapsing the
+     * two would make a third party's guess read as a statement of fact by the
+     * subject, which is the one confusion a map must never make.
+     */
     geocodeProvider: text('geocode_provider'),
+    /** How precisely, in that provider's terms. See `place_precision`. */
+    geocodePrecision: placePrecision('geocode_precision'),
+    /** The string that was geocoded, so a wrong point can be traced to its cause. */
+    geocodeQuery: text('geocode_query'),
+    /** What the provider thought it matched, so a wrong match is visible. */
+    geocodeMatched: text('geocode_matched'),
+    /** The provider's own id for the matched record. */
+    geocodeExternalId: text('geocode_external_id'),
+    geocodedAt: timestamp('geocoded_at', { withTimezone: true }),
     /**
      * A coarse grid cell, for blocking a nearby search before any distance is
      * computed. Without it, "find cafes within 2km" reads every located

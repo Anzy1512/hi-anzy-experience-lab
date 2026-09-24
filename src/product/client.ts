@@ -25,6 +25,15 @@ export interface ServiceCapabilities {
   directIngestion: boolean;
   model: { available: boolean; detail: string };
   search: { configured: boolean; providers: Array<{ id: string; label: string; ok: boolean; detail: string }> };
+  /**
+   * Whether a geocoder answers. Optional, so this surface still reads a service
+   * built before layer 7 rather than crashing on a field it does not send.
+   */
+  geography?: { provider: string; ok: boolean; detail: string };
+  /** How many times a paid model has actually answered here. Not whether one is configured. */
+  liveModel?: { calls: number; lastAt: string | null };
+  pilots?: boolean;
+  humanReview?: boolean;
 }
 
 export type Reach =
@@ -297,5 +306,165 @@ export interface MapBody {
     country: string | null;
   }>;
   unlocated: number;
+  note: string;
+}
+
+/* -------------------------------------------------------------------------- */
+/* LAYER 7                                                                     */
+/* -------------------------------------------------------------------------- */
+
+export interface PilotSummary {
+  id: string;
+  name: string;
+  state: string;
+  detail: string | null;
+  project_id: string | null;
+  job_id: string | null;
+  place_provider: string | null;
+  created_at: string;
+  finished_at: string | null;
+  area: { label?: string; latitude: number; longitude: number; radiusKm: number } | null;
+  categories: string[] | null;
+  candidates: string;
+  subjects: string;
+}
+
+/**
+ * One candidate a geographic provider returned.
+ *
+ * `use` is the field that matters. A surface that showed only the subjects
+ * would let a reader conclude three breweries exist in Leeds, when what
+ * happened is that sixteen were found and thirteen had no website recorded, sat
+ * outside the radius, or fell beyond the subject cap.
+ */
+export interface PilotCandidate {
+  use: string;
+  name: string | null;
+  category: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  precision: string;
+  distance_km: number | null;
+  website_candidate: string | null;
+  address: string | null;
+  external_id: string;
+  provider: string;
+  entity_id: string | null;
+  resolved_name: string | null;
+}
+
+export interface PilotDetail {
+  pilot: PilotSummary & { spec: unknown };
+  candidates: PilotCandidate[];
+  runIds: string[];
+  note: string;
+}
+
+export interface Metrics {
+  discovery: {
+    candidatesDiscovered: number;
+    subjectsTaken: number;
+    rejectedByReason: Record<string, number>;
+    urlsDiscovered: number;
+    sourcesAccepted: number;
+    sourcesRejected: number;
+    robotsRefusals: number;
+    fetchOutcomes: Record<string, number>;
+  };
+  retrieval: {
+    chunksConsidered: number;
+    chunksSelected: number;
+    lexicalContribution: number;
+    denseContribution: number;
+    selectionRate: number | null;
+    evidenceConsidered: number;
+    evidenceIncluded: number;
+    evidenceDroppedByReason: Record<string, number>;
+  };
+  entity: {
+    organisations: number;
+    merged: number;
+    decisions: Record<string, number>;
+    ambiguous: number;
+    conflictingClaims: number;
+    singleSourceEntities: number;
+    located: number;
+    unplaced: number;
+    geocodeProviders: Record<string, number>;
+    geocodePrecision: Record<string, number>;
+  };
+  evidence: {
+    findings: number;
+    sourced: number;
+    unsupported: number;
+    unknown: number;
+    recommendations: number;
+    conflicting: number;
+    citationFailures: number;
+    citations: number;
+    sourceDiversity: number;
+  };
+  model: {
+    calls: number;
+    liveCalls: number;
+    failedCalls: number;
+    tokensIn: number;
+    tokensOut: number;
+    costMicros: number | null;
+    invocationRate: number | null;
+    rejectedGenerations: number;
+    byPurpose: Record<string, number>;
+  };
+  product: {
+    runs: number;
+    findingsReturned: number;
+    unknownFindings: number;
+    recommendations: number;
+    medianLatencyMs: number | null;
+    maxLatencyMs: number | null;
+    costMicros: number | null;
+    pagesCrawled: number;
+    searches: number;
+  };
+}
+
+export interface PendingFinding {
+  id: string;
+  statement: string;
+  status: string | null;
+  findingType: string | null;
+  reasoningType: string | null;
+  ruleId: string | null;
+  modelUsed: string | null;
+  limitations: string | null;
+  verification: string;
+  verificationReason: string | null;
+  entityName: string | null;
+  question: string | null;
+  createdAt: string;
+  citations: Array<{ quote: string; url: string | null; retrievedAt: string | null }>;
+  reviews: number;
+}
+
+export interface ReviewQueue {
+  findings: PendingFinding[];
+  vocabulary: Record<string, string[]>;
+  readThisFirst: string[];
+}
+
+export interface ReviewMetrics {
+  reviews: number;
+  findingsReviewed: number;
+  reviewers: number;
+  byVerdict: Record<string, number>;
+  byCitationValidity: Record<string, number>;
+  byRetrievalQuality: Record<string, number>;
+  byEntityResolution: Record<string, number>;
+  byRecommendationQuality: Record<string, number>;
+  verifierAgreement: { agreed: number; disagreed: number; rate: number | null };
+  withCorrection: number;
+  falseMerges: number;
+  missedMerges: number;
+  correctlyAmbiguous: number;
   note: string;
 }

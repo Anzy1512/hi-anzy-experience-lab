@@ -143,6 +143,18 @@ export class Crawler {
     return this.limiter.stats();
   }
 
+  /**
+   * What sitemaps this origin advertises, read from the rules we already hold.
+   *
+   * Discovery that starts here is discovery a site asked for: a sitemap is a
+   * published invitation to crawl listed pages, which is the opposite of
+   * guessing at URLs. It is also the only discovery path in this service that
+   * needs no API key, so it is the one that can be proven to work.
+   */
+  async sitemaps(origin: string): Promise<{ sitemaps: string[]; refused: string | null }> {
+    return this.robots.sitemapsFor(origin, config.CRAWL_TIMEOUT_MS);
+  }
+
   async fetch(req: FetchRequest): Promise<FetchResult> {
     const startedAt = performance.now();
     const facts = urlFacts(req.url);

@@ -162,16 +162,40 @@ export class RobotsCache {
   }
 
   async decide(url: URL, timeoutMs: number): Promise<RobotsDecision> {
-    const origin = url.origin;
+    const entry = await this.entryFor(url.origin, timeoutMs);
+    if (entry.blanket !== null) return entry.blanket;
+    return isAllowed(entry.rules, url.pathname + url.search);
+  }
+
+  /**
+   * The sitemaps this origin's robots.txt names, and the refusal when it has none.
+   *
+   * `parseRobots` has always collected these; nothing read them. Exposing them
+   * here rather than letting a caller fetch robots.txt for itself matters for
+   * one reason: this is the same cached entry the crawl path decides against,
+   * so a site is asked for its rules once and a site that refuses refuses
+   * both. A separate reader would fetch the file twice and could disagree with
+   * the crawler about what it said.
+   *
+   * A blanket refusal comes back as `refused`, never as an empty list. "The
+   * site told us not to" and "the site publishes no sitemap" are different
+   * facts, and a caller that cannot tell them apart will report the first as
+   * the second.
+   */
+  async sitemapsFor(origin: string, timeoutMs: number): Promise<{ sitemaps: string[]; refused: string | null }> {
+    const entry = await this.entryFor(origin, timeoutMs);
+    if (entry.blanket !== null && !entry.blanket.allowed) return { sitemaps: [], refused: entry.blanket.reason };
+    return { sitemaps: entry.rules.sitemaps, refused: null };
+  }
+
+  private async entryFor(origin: string, timeoutMs: number): Promise<CacheEntry> {
     const now = Date.now();
     let entry = this.cache.get(origin);
-
     if (entry === undefined || entry.expiresAt < now) {
       entry = await this.load(origin, timeoutMs);
       this.cache.set(origin, entry);
     }
-    if (entry.blanket !== null) return entry.blanket;
-    return isAllowed(entry.rules, url.pathname + url.search);
+    return entry;
   }
 
   private async load(origin: string, timeoutMs: number): Promise<CacheEntry> {

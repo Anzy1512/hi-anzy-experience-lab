@@ -160,12 +160,31 @@ function check(
   });
 
   const haystack = cited.map((c) => c.quote).join(' ').replace(/,/g, '');
-  for (const raw of f.statement.match(NUMBER) ?? []) {
+  NUMBER.lastIndex = 0;
+  for (const m of f.statement.matchAll(NUMBER)) {
+    const raw = m[0];
     const n = raw.replace(/,/g, '');
-    /* A year or a small ordinal in prose is not a claim; a figure is. The cut
-       is at three digits, which keeps "two" and "10 minutes" out of the way and
-       catches every price, count and percentage that matters. */
-    if (n.length < 3) continue;
+    /*
+     * A number that QUANTIFIES something is a claim, whatever its size.
+     *
+     * This used to exempt anything under three digits, on the reasoning that a
+     * small number in prose is incidental. A live-model validation found what
+     * that costs: "Harrow Lane Coffee Roasters has 14 employees", cited to
+     * evidence that mentions no employees at all, passed every check. The
+     * figure was two digits so the number check skipped it, and the sentence
+     * shared enough words with the evidence to clear the lexical floor — so a
+     * fabricated commercial fact arrived with a citation attached.
+     *
+     * A bare small number really can be incidental, so that exemption stays.
+     * What ends it is a unit or a noun after the digits: "14 employees",
+     * "3 branches", "20%" are all assertions about the world and all have to be
+     * in the evidence. The cost of being wrong here is a rejected sentence a
+     * person can read in the record; the cost of being wrong the other way is
+     * an invented number in front of a client.
+     */
+    const after = f.statement.slice((m.index ?? 0) + raw.length);
+    const quantifies = /^\s*(?:%|per ?cent\b|[a-z]{3,})/i.test(after);
+    if (n.length < 3 && !quantifies) continue;
     if (!haystack.includes(n)) {
       return { code: 'UNGROUNDED_NUMBER', detail: `the figure ${raw} does not appear in any cited evidence` };
     }

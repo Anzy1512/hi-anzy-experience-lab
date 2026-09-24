@@ -60,6 +60,25 @@ export interface IngestResult {
   reusedEmbeddings: number;
   extractedFields: number;
   elapsedMs: number;
+  /**
+   * The markup exactly as fetched, for the caller that needs it. Null on any
+   * outcome that produced no body — including `unchanged`, where there is no
+   * new body by definition.
+   *
+   * ── WHY THIS IS RETURNED RATHER THAN READ BACK ──────────────────────────
+   *
+   * The corpus stores EXTRACTED text, because that is what gets chunked,
+   * embedded and cited. A cart button, a checkout form and a payment script
+   * are not text — they are markup, and the capability detector is the one
+   * consumer that needs the difference. Without this field a caller wanting to
+   * probe capabilities has to fetch the page a second time, which is what
+   * `closure.ts` did: two requests to somebody's shop to answer one question,
+   * and every job path that did not bother left every capability UNKNOWN.
+   *
+   * It is already in memory when this function returns, so carrying it out
+   * costs nothing; a caller that does not want it drops it.
+   */
+  html: string | null;
 }
 
 interface DocumentRow {
@@ -147,6 +166,7 @@ export async function ingestOne(d: Driver, item: Discovery, opts: IngestOptions 
     reusedEmbeddings: 0,
     extractedFields: 0,
     elapsedMs: 0,
+    html: null,
   };
   const done = (r: Partial<IngestResult>): IngestResult => ({
     ...base,
@@ -349,6 +369,7 @@ export async function ingestOne(d: Driver, item: Discovery, opts: IngestOptions 
     embedded,
     reusedEmbeddings: reused,
     extractedFields: fields,
+    html: fetched.body,
   });
 }
 

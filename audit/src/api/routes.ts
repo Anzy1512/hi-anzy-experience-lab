@@ -9,6 +9,7 @@ import { answer } from '../intel/engine.ts';
 import { IntelligenceRequestSchema } from '../intel/contract.ts';
 import { createJob, loadTasks, runIdsIn, runJob } from '../jobs/orchestrator.ts';
 import * as Q from '../entity/query.ts';
+import { createPlaceProvider } from '../places/nominatim.ts';
 
 /**
  * THE PRODUCT API.
@@ -64,6 +65,31 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
         configured: config.SEARCH_PROVIDER !== 'none',
         providers: await ProviderRegistry.fromConfig().report(),
       },
+      /*
+       * Geography, stated rather than implied by an empty map.
+       *
+       * With no provider, a business is placed only when its own pages publish
+       * coordinates — which most do not — so a client showing a map needs to
+       * know whether a thin plate means a thin dataset or an absent geocoder.
+       */
+      geography: await (async () => {
+        const place = createPlaceProvider();
+        const a = await place.available();
+        return { provider: place.id, ...a };
+      })(),
+      /*
+       * Whether a live model has EVER answered in this deployment, which is not
+       * the same question as whether one is configured.
+       */
+      liveModel: await (async () => {
+        const d = await getDriver();
+        const rows = await d.query<{ n: string; last: string | null }>(
+          'select count(*)::text as n, max(called_at)::text as last from live_model_call where ok = 1',
+        );
+        return { calls: Number(rows[0]?.n ?? 0), lastAt: rows[0]?.last ?? null };
+      })(),
+      pilots: true,
+      humanReview: true,
       /* True with or without discovery, and the reason this service is useful
          to somebody who has URLs and no search account. */
       directIngestion: true,
@@ -397,7 +423,17 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
      * somewhere.
      */
     const rows = await d.query<Record<string, unknown>>(
-      `select e.id, e.canonical_name as name, e.type, l.latitude, l.longitude, l.geocode, l.city, l.country
+      /*
+       * Who placed each point, and how precisely.
+       *
+       * `declared` means the business's own page published coordinates; a
+       * provider name means a gazetteer was asked. A map that cannot tell a
+       * reader which is which invites them to treat a third party's guess as the
+       * subject's own statement — and `geocode_precision` is what separates a
+       * shop front from a town centre.
+       */
+      `select e.id, e.canonical_name as name, e.type, l.latitude, l.longitude, l.geocode,
+              l.geocode_provider, l.geocode_precision, l.geocode_matched, l.city, l.country
          from entity e join entity_location l on l.entity_id = e.id
         where e.status = 'ACTIVE' and e.type = 'ORGANIZATION' and l.latitude is not null
         limit $1`,
@@ -413,7 +449,9 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
       /* Stated, not omitted. A map that silently shows only the businesses it
          happens to have coordinates for reads as a complete picture. */
       unlocated: Number(unlocated[0]?.n ?? 0),
-      note: 'Only businesses with a resolved coordinate appear. Nothing here is geocoded speculatively.',
+      note:
+        'Only businesses with a resolved coordinate appear. Nothing here is geocoded speculatively, ' +
+        'and a point that resolved only to an area is recorded as unresolved rather than plotted.',
     });
   });
 

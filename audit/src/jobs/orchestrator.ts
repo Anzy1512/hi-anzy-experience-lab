@@ -179,7 +179,10 @@ export async function runJob(d: Driver, jobId: string, opts: JobOptions = {}): P
   const loop = new LoopControl(opts.maxRounds ?? 2);
   const provider = opts.provider ?? createProvider();
   const crawler = opts.crawler ?? new Crawler();
-  const search = opts.search ?? ProviderRegistry.fromConfig();
+  /* The job's own crawler, so sitemap discovery and page fetching share one
+     rate limiter and one robots cache rather than politely queuing against
+     themselves. */
+  const search = opts.search ?? ProviderRegistry.fromConfig(fetch, crawler);
 
   /* A task left RUNNING belongs to a process that is no longer here. Its
      attempt counted, so a task that crashes the worker twice is given up on

@@ -10,6 +10,7 @@ import { EMBEDDING_DIM } from './db/schema.ts';
 import { ProviderRegistry } from './search/providers.ts';
 import { getEmbedder } from './embed/index.ts';
 import { productRoutes } from './api/routes.ts';
+import { layer7Routes } from './api/layer7.ts';
 
 /**
  * THE SERVICE, AND THE THREE THINGS IT REFUSES TO DO WITHOUT.
@@ -152,6 +153,8 @@ export async function build(): Promise<FastifyInstance> {
   });
 
   await app.register(productRoutes);
+  /* Layer 7: pilots, metrics and human review. One API, two files. */
+  await app.register(layer7Routes);
 
   app.setNotFoundHandler((req, reply) => {
     reply.code(404).send({ error: 'not found', path: req.url });

@@ -4,6 +4,8 @@ import { Ask } from './views/Ask.tsx';
 import { Evidence } from './views/Evidence.tsx';
 import { Jobs } from './views/Jobs.tsx';
 import { MapView } from './views/MapView.tsx';
+import { Pilot } from './views/Pilot.tsx';
+import { Review } from './views/Review.tsx';
 import { useService, VIEWS, VIEW_DESCRIPTION, VIEW_LABEL, type View } from './state.ts';
 
 /**
@@ -51,6 +53,9 @@ export function App(): React.JSX.Element {
               <span className="reach__detail">
                 {reach.capabilities.model.available ? 'model available' : 'no model — findings only'}
                 {reach.capabilities.search.configured ? ' · discovery configured' : ' · no discovery, URLs only'}
+                {reach.capabilities.geography?.ok === true
+                  ? ` · geography via ${reach.capabilities.geography.provider}`
+                  : ' · no geocoder — declared coordinates only'}
               </span>
             ) : null}
           </p>
@@ -129,6 +134,8 @@ export function App(): React.JSX.Element {
         {view === 'jobs' ? <Jobs /> : null}
         {view === 'evidence' ? <Evidence /> : null}
         {view === 'map' ? <MapView /> : null}
+        {view === 'pilot' ? <Pilot /> : null}
+        {view === 'review' ? <Review /> : null}
       </main>
 
       <footer className="colophon">

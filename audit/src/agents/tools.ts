@@ -169,6 +169,16 @@ const crawlUrl = tool({
     }
     const r = await ingestEntitiesFromDocument(ctx.d, ing.documentId, {
       ...(ctx.country !== undefined ? { country: ctx.country } : {}),
+      /*
+       * The markup, so the capability detector runs.
+       *
+       * Without it the pipeline records what a page SAYS and never what it
+       * DOES, so "does this business sell online" came back UNKNOWN from every
+       * job — correctly, since no probe had run, but uselessly. The detector
+       * needs a cart link and a checkout form, and neither survives extraction
+       * to text.
+       */
+      ...(ing.html !== null ? { html: ing.html } : {}),
     });
     return {
       ok: true,

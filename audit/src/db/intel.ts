@@ -155,12 +155,79 @@ export const evidenceSelection = pgTable(
 /* -------------------------------------------------------------------------- */
 
 /**
+ * What a human concluded about one finding.
+ *
+ * Six values, because four would collapse the two distinctions that matter
+ * most. `UNSUPPORTED` and `INCORRECT` are different failures: the first is a
+ * citation problem, the second is a world problem, and a finding can be either
+ * without being the other — a true statement citing the wrong page is a bug
+ * this system must be able to see. `STALE` is a third kind entirely: it was
+ * right, the page has moved on, and nothing in the pipeline is broken.
+ */
+export const reviewVerdict = pgEnum('review_verdict', [
+  'SUPPORTED',
+  'PARTIALLY_SUPPORTED',
+  'UNSUPPORTED',
+  'INCORRECT',
+  'STALE',
+  'AMBIGUOUS',
+]);
+
+/** A reviewer's grade. NULL means not assessed, which is not the same as POOR. */
+export const reviewGrade = pgEnum('review_grade', ['GOOD', 'PARTIAL', 'POOR']);
+
+export const citationValidity = pgEnum('citation_validity', ['VALID', 'PARTIAL', 'INVALID', 'NO_CITATION']);
+
+/**
+ * Whether the resolver got the identity right.
+ *
+ * `CORRECTLY_AMBIGUOUS` is the value this system needs and most schemas would
+ * not have. Refusing to merge two records that genuinely cannot be told apart
+ * is the resolver working exactly as layer 3 designed it to, and scoring that
+ * as a miss would train away the single behaviour the whole resolution layer
+ * exists to produce.
+ */
+export const resolutionReview = pgEnum('resolution_review', [
+  'CORRECT',
+  'FALSE_MERGE',
+  'MISSED_MERGE',
+  'CORRECTLY_AMBIGUOUS',
+  'NOT_APPLICABLE',
+]);
+
+export const recommendationReview = pgEnum('recommendation_review', [
+  'ACTIONABLE',
+  'GENERIC',
+  'WRONG',
+  'NOT_APPLICABLE',
+]);
+
+/**
  * The supervision record: what a person said about a finding.
  *
  * Separate from layer 1's `feedback`, which is keyed to a finding's TEXT being
  * right or wrong. This records the pipeline decision around it — whether the
  * verifier was correct to accept or reject — which is the signal a future
  * evaluation needs and the one nothing else captures.
+ *
+ * ── APPEND-ONLY, AND THAT IS THE WHOLE DESIGN ───────────────────────────────
+ *
+ * A review is a NEW OBSERVATION, never a correction applied to the finding.
+ * The finding stays exactly as the system produced it, because the pair — what
+ * it said, and what a person said about what it said — is the training
+ * example. Editing the first to record the second destroys the only thing
+ * worth keeping, and destroys it invisibly: the row still looks complete.
+ *
+ * So nothing here is unique on `finding_id`. Two reviewers may disagree, one
+ * reviewer may change their mind later, and both are simply rows.
+ *
+ * ── AND WHY THE VERSIONS ARE COPIED IN ──────────────────────────────────────
+ *
+ * A label refers to a judgement made by a particular rule set, a particular
+ * orchestrator and possibly a particular model. Without a snapshot of those,
+ * the label silently migrates onto whatever the code does next month, and a
+ * corpus whose labels describe software that no longer exists is worse than no
+ * corpus — it is a corpus that will be trained on.
  */
 export const verificationFeedback = pgTable(
   'verification_feedback',
@@ -175,8 +242,29 @@ export const verificationFeedback = pgTable(
     note: text('note'),
     author: text('author'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+
+    /* ---- layer 7: the vocabulary that makes this a dataset ------------- */
+
+    verdict: reviewVerdict('verdict'),
+    retrievalQuality: reviewGrade('retrieval_quality'),
+    citationValidity: citationValidity('citation_validity'),
+    entityResolution: resolutionReview('entity_resolution'),
+    recommendationQuality: recommendationReview('recommendation_quality'),
+    /** Specifically about what was NOT looked at. Kept apart from `note`. */
+    sourceCoverageNote: text('source_coverage_note'),
+    /** What it should have said. The supervision signal, not merely the label. */
+    correction: text('correction'),
+    /** When the person judged, which is not when the row happened to be written. */
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+    ruleSetVersion: text('rule_set_version'),
+    orchestratorVersion: text('orchestrator_version'),
+    engineVersion: text('engine_version'),
+    modelUsed: text('model_used'),
   },
-  (t) => [index('verification_feedback_finding_idx').on(t.findingId)],
+  (t) => [
+    index('verification_feedback_finding_idx').on(t.findingId),
+    index('verification_feedback_verdict_idx').on(t.verdict),
+  ],
 );
 
 /**

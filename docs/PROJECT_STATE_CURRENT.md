@@ -20,12 +20,15 @@ records of what each phase did, and stay that way.
 | 8.11 — product + brand convergence | **CLOSED** |
 | 8.12 — lab independence + product launch foundation | **IN PROGRESS** — §1–§10 done (separation + product architecture), 8.12C done (release contract + canonical re-read); §11–§14 open |
 | Audit service, layers 1–6 | **CLOSED** — corpus, crawl/index/retrieve, entity graph, intelligence engine, jobs and agents, product API and surface |
+| Audit service, layer 7 | **PARTIAL — blocked on owner review** — live discovery, a real commercial pilot, geography with provenance, quality metrics and the human-review workflow are all built and run; no human has labelled a finding, and the live model path is blocked on a missing key |
 
 - Branch: `audit-osint-service`
 - Gates: `tsc -b` = 0 · `eslint .` = 0 · `npm run build` passes
-- Audit gates: `npm test` = 232/232 (PGlite) · `npm run test:pg` = 125/125
-  (Postgres, from a clean schema) · `npm run closure`, `closure:l4`,
-  `closure:l6` and `final-test` all pass
+- Audit gates: `npm test` = 274/274 (PGlite) · `npm run closure`, `closure:l4`,
+  `closure:l6`, `closure:l7` and `final-test` all pass.
+  `npm run test:pg` was 128/128 at the layer 6 closure and could not be re-run
+  for layer 7 — the Docker engine is not running on this machine, so no
+  Postgres was listening on 5433. Layer 7 added no driver-specific SQL.
 
 ## THE AUDIT SERVICE
 
@@ -42,6 +45,7 @@ produces a Lab that runs with no backend present, exactly as before.
 | 4 | the intelligence engine: intent, plan, evidence packet, rules, citation gate |
 | 5 | jobs, a task DAG, one orchestrator, three agents with tool contracts |
 | 6 | the product API, and a reading surface built on the Lab's design system |
+| 7 | a real commercial pilot: live discovery, geography with provenance, quality metrics, and a human-review dataset |
 
 The surface is a **separate build** (`npm run build:product` → `dist-product/`).
 It shares the Lab's tokens, its three typefaces and its easing vocabulary, and
@@ -52,6 +56,33 @@ Lab's entry document for a page the visitor is not on.
 
 The service holds a key that can spend money and fetch pages, so **no key is
 ever built into the surface**. It asks for one and keeps it in the tab.
+
+### What layer 7 changed
+
+Two discovery paths that need **no credentials**, so the discovery half of the
+architecture can be run rather than described: `SitemapProvider` reads what a
+site published about itself, and a `PlaceProvider` (Nominatim) names businesses
+in an area. Both are adapters behind contracts; neither is special-cased
+downstream.
+
+A **pilot** is a stored specification — area, category, capability filters, and
+every budget — not a script. Its subjects come from a provider, and every
+candidate that did *not* become a subject is stored with the reason, because
+"three breweries in Leeds" and "sixteen found, thirteen unusable" are different
+statements about the world.
+
+Geography now has provenance. `declared` means the business's own page published
+coordinates; a provider name means a gazetteer was asked; `geocode_precision`
+separates a shop front from a town centre, and an AREA match is recorded without
+being plotted.
+
+`verification_feedback` gained a six-value vocabulary and is **append-only**: a
+review never edits the finding, because the pair is the training example.
+
+**Layer 7 is not closed.** Every gate the machine can decide passes
+(`npm run closure:l7`), but no human has reviewed a finding, so the evaluation
+dataset has no labels and the product's accuracy is unmeasured. The live model
+path is BLOCKED with no `ANTHROPIC_API_KEY` and is not faked in its absence.
 
 ## THE PRODUCT
 

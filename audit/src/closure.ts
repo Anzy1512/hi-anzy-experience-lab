@@ -84,13 +84,9 @@ for (const url of SOURCES) {
   console.log(
     `${url.padEnd(46)} ${r.outcome} — ${r.chunks} chunks, ${r.extractedFields} extracted values`,
   );
-  /* Re-fetched once for capability markup only. Identity never needs it. */
-  let html: string | null = null;
-  if (r.documentId !== null && r.outcome === 'ok') {
-    const res = await fetch(url, { headers: { 'user-agent': 'hi-anzy-audit/0.1 (+https://hianzy.com)' } }).catch(() => null);
-    html = res !== null && res.ok ? await res.text() : null;
-  }
-  ingested.push({ url, documentId: r.documentId, outcome: r.outcome, html });
+  /* The markup comes back from the ingest that already fetched it. This used
+     to be a second request to the same page purely to read a cart button. */
+  ingested.push({ url, documentId: r.documentId, outcome: r.outcome, html: r.html });
 }
 
 rule('2. OBSERVATIONS AND IDENTITY');

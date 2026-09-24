@@ -173,8 +173,39 @@ export function classifyIntent(request: IntelligenceRequest): IntentResult {
   if (namesOneSubject && !wantsDiscovery) add('ENTITY_LOOKUP', 3, 'a single subject was named and nothing asks for more');
   if (namesOneSubject && wantsDiscovery) add('ENTITY_DISCOVERY', 1, 'a subject was named but the question asks to find others');
   if (!namesOneSubject && wantsDiscovery) add('ENTITY_DISCOVERY', 2, 'asks to find businesses that are not named');
-  if (request.geography !== undefined) add('LOCAL_DISCOVERY', 3, 'the request carries a geography');
-  if (request.categories.length > 0) add('CATEGORY_DISCOVERY', 2, `categories were given: ${request.categories.join(', ')}`);
+  /*
+   * An area NARROWS unless the question also asks to find something.
+   *
+   * The two lines above already draw exactly this distinction for a named
+   * subject: naming one means ENTITY_LOOKUP when nothing asks for more, and
+   * ENTITY_DISCOVERY when something does. A geography is the same kind of
+   * structured evidence and was the one field not reading it that way — it
+   * voted a full 3 for LOCAL_DISCOVERY merely by being present.
+   *
+   * That tied with whatever the words plainly asked for, and a tie is a
+   * refusal, so "audit the digital presence of these Leeds breweries" came
+   * back UNKNOWN_INTENT because it mentioned Leeds. A caller who has already
+   * chosen their subjects and is scoping the answer to an area has not asked
+   * the engine to go and find businesses; a caller who wrote "find" has.
+   */
+  if (request.geography !== undefined) {
+    add(
+      'LOCAL_DISCOVERY',
+      wantsDiscovery ? 3 : 1,
+      wantsDiscovery
+        ? 'the request carries a geography and the question asks to find businesses'
+        : 'the request carries a geography, which narrows the answer rather than asking for one',
+    );
+  }
+  /* The same reading, for the same reason: a category is a filter until a verb
+     turns it into a request. */
+  if (request.categories.length > 0) {
+    add(
+      'CATEGORY_DISCOVERY',
+      wantsDiscovery ? 2 : 1,
+      `categories were given: ${request.categories.join(', ')}`,
+    );
+  }
   if (request.evidencePolicy.has.length > 0 || request.evidencePolicy.lacks.length > 0) {
     add('GAP_ANALYSIS', 2, 'the request filters on capabilities present or not observed');
   }

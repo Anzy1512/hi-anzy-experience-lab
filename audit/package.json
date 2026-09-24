@@ -16,13 +16,14 @@
     "db:studio": "drizzle-kit studio",
     "db:reset": "tsx src/db/reset.ts",
     "check": "tsx src/db/doctor.ts",
-    "test": "tsx --test --test-concurrency=1 test/unit.test.ts test/crawl.test.ts test/storage.test.ts test/entity.test.ts test/graph.test.ts test/intel.test.ts test/jobs.test.ts test/api.test.ts",
-    "test:pg": "tsx src/db/expect-clean.ts && tsx --test test/storage.test.ts && tsx --test test/graph.test.ts && tsx --test test/intel.test.ts && tsx --test test/jobs.test.ts && tsx --test test/api.test.ts",
+    "test": "tsx --test --test-concurrency=1 test/unit.test.ts test/crawl.test.ts test/storage.test.ts test/entity.test.ts test/graph.test.ts test/intel.test.ts test/jobs.test.ts test/api.test.ts test/layer7.test.ts",
+    "test:pg": "tsx src/db/expect-clean.ts && tsx --test test/storage.test.ts && tsx --test test/graph.test.ts && tsx --test test/intel.test.ts && tsx --test test/jobs.test.ts && tsx --test test/api.test.ts && tsx --test test/layer7.test.ts",
     "closure": "tsx src/closure.ts",
     "closure:l4": "tsx src/closure-l4.ts",
     "closure:l6": "tsx src/closure-l6.ts",
     "final-test": "tsx src/final-test.ts && tsx src/final-test.ts --phase=2",
-    "bench:entity": "tsx src/bench-entity.ts"
+    "bench:entity": "tsx src/bench-entity.ts",
+    "closure:l7": "tsx src/closure-l7.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.3.11",

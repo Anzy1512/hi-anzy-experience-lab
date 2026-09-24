@@ -115,10 +115,35 @@ const Schema = z.object({
    */
   MODEL_PRICES: blank(z.string().optional()),
   MODEL_TIMEOUT_MS: z.coerce.number().int().positive().default(60_000),
-  /** Web search. Not required until the ingestion layer exists. */
-  SEARCH_PROVIDER: z.enum(['none', 'brave', 'tavily', 'searxng']).default('none'),
+  /**
+   * Which provider discovery prefers.
+   *
+   * `sitemap` and `direct` are here because they are selectable states a
+   * deployment can actually be in, and leaving them out of this enum meant the
+   * two providers that need no credentials were the two that could not be
+   * chosen. `sitemap` reads what a site published about itself and needs no
+   * key; `none` still leaves direct URL ingestion working.
+   */
+  SEARCH_PROVIDER: z.enum(['none', 'brave', 'tavily', 'searxng', 'sitemap', 'direct']).default('none'),
   SEARCH_API_KEY: blank(z.string().optional()),
   SEARXNG_URL: blank(z.string().url().optional()),
+
+  /**
+   * Geography. `none` by default, and that default is the honest one.
+   *
+   * A geographic provider is a third party whose coordinates get READ rather
+   * than merely followed, so switching one on is a decision about what the map
+   * is allowed to assert — not a convenience. With `none`, a business is placed
+   * only when its own pages publish coordinates, and everything else stays
+   * visibly unplaced.
+   *
+   * The public Nominatim instance is donated capacity with a published policy:
+   * one request per second and identify yourself. The adapter enforces both.
+   * Anything beyond a bounded pilot belongs on an instance you host, which is
+   * what NOMINATIM_URL is for.
+   */
+  PLACE_PROVIDER: z.enum(['none', 'nominatim']).default('none'),
+  NOMINATIM_URL: z.string().url().default('https://nominatim.openstreetmap.org'),
 
   /**
    * Crawler manners, and the one that is not manners.

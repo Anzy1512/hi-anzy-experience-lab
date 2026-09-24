@@ -211,6 +211,27 @@
   resize: vertical;
 }
 
+/*
+ * A select, kept in the same stock as every other field.
+ *
+ * `appearance: none` removes the platform chrome so the control reads as part
+ * of the sheet rather than as an operating-system widget dropped onto it, and
+ * the 32px floor is inherited from `.field__input` above rather than restated.
+ */
+select.field__input {
+  appearance: none;
+  border-radius: 0;
+  cursor: pointer;
+  padding-right: var(--s-4);
+  background-image: linear-gradient(45deg, transparent 50%, var(--figure-dim) 50%),
+    linear-gradient(135deg, var(--figure-dim) 50%, transparent 50%);
+  background-position:
+    right var(--s-2) center,
+    right calc(var(--s-2) - 4px) center;
+  background-size: 4px 4px, 4px 4px;
+  background-repeat: no-repeat;
+}
+
 .field__input:focus-visible,
 .field__area:focus-visible,
 .tabs__item:focus-visible,
@@ -360,6 +381,29 @@
   font-size: var(--t-mono-xs);
   color: var(--figure-dim);
   overflow-wrap: anywhere;
+}
+
+/*
+ * A citation that is a link has to be reachable with a thumb.
+ *
+ * Everywhere else in this surface a source is text, and 13px of mono is right
+ * for something you read. In the review queue it is the control a person uses
+ * to open the page they are judging — the single most important action on that
+ * card — and at 13px tall it failed the 32px floor. Inline-flex with a minimum
+ * height gives it a real target without changing how it reads.
+ */
+.citation__source a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  color: var(--signal-text);
+  text-decoration-thickness: var(--rule-w);
+  text-underline-offset: 3px;
+}
+
+.citation__source a:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
 }
 
 /* ---- tables ------------------------------------------------------------- */
