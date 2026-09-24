@@ -18,7 +18,7 @@ records of what each phase did, and stay that way.
 | 8.9 — workflows | **CLOSED** |
 | 8.10 — project memory + persistence | **CLOSED** |
 | 8.11 — product + brand convergence | **CLOSED** |
-| 8.12 — lab independence + product launch foundation | **IN PROGRESS** — §1–§10 done (separation + product architecture); §11–§14 open |
+| 8.12 — lab independence + product launch foundation | **IN PROGRESS** — §1–§10 done (separation + product architecture), 8.12C done (release contract + canonical re-read); §11–§14 open |
 
 - Branch: `phase-8-12-independence`
 - Gates: `tsc -b` = 0 · `eslint src --max-warnings 0` = 0 ·
@@ -54,8 +54,8 @@ behind it, an eighteen-dimension **graduation contract** and its standalone
 blockers. Loaded in development only; absent from every production chunk.
 
 Maturity is evidence, never polish: EXPERIMENT · PROTOTYPE · ALPHA · BETA ·
-PRODUCT · STANDALONE. **Nothing is PRODUCT or STANDALONE** — the Lab's release
-contract is not written and nothing has been built or deployed alone.
+PRODUCT · STANDALONE. **Nothing is PRODUCT or STANDALONE**, and since 8.12C that
+is a computed result rather than a statement of intent.
 
 BETA: ANZY.OS, Agency Simulator, Reality Compiler, Matter Engine, Director.
 ALPHA: Portal (delivery handoff never exercised), X-Ray and Performance
@@ -64,6 +64,41 @@ Lab's one sibling import).
 
 Graduation answers are `PASS` / `OPEN` / `UNVERIFIED` / `N/A` — never a score.
 `graduationGaps(id)` returns what actually stands in the way.
+
+## THE RELEASE CONTRACT
+
+`src/system/release.ts` classifies the eighteen dimensions by weight and makes
+`is this a PRODUCT` executable. It adds no dimension, no state and no maturity
+level. Dev-only, absent from every production chunk, and imported by `main.tsx`
+in place of `maturity.ts` so both guards run.
+
+- **RELEASE_BLOCKING (9)** — INPUT · TRANSFORMATION · OUTPUT · LIMITATIONS ·
+  ERROR_STATES · LIFECYCLE · ACCESSIBILITY · RESPONSIVE · PRIVACY. `OPEN` or
+  `UNVERIFIED` here blocks PRODUCT with no appeal.
+- **CONDITIONAL (8)** — ARTIFACT · EXPORT · CONTINUE · PERSISTENCE · RESUME ·
+  STATE_ISOLATION · PERFORMANCE · DEPENDENCY_ISOLATION. Owed only when the
+  product's own declarations invoke them, and blocking exactly as hard where
+  they do.
+- **INFORMATIONAL (1)** — DEPLOYABILITY. Never blocking for PRODUCT; the whole
+  question for STANDALONE.
+
+`N/A` is legitimate only when traceable to a declaration — a `null` in the
+registry contract, or `persistence: NONE | SESSION`. A dimension a reality owes
+and records `N/A` is a blocker, and a dev guard fails on it. **It caught one on
+its first run**: X-Ray declared `persistence: 'PROJECT'` while recording
+`RESUME: N/A`; it reads the project and never writes to it, so its persistence
+is now `NONE`.
+
+`PERFORMANCE` scales to the workload. A reality that holds a WebGL surface
+(`WEBGL_SURFACE`, each entry naming the file that mounts it) owes a real-hardware
+reading; a text-and-DOM reality owes the lifecycle evidence. STANDALONE requires
+`PERFORMANCE: PASS` regardless.
+
+**Closest to PRODUCT**, computed: Agency Simulator, Matter Engine and Director,
+one blocker each — `PERFORMANCE: UNVERIFIED`. **Strongest STANDALONE candidate**:
+Agency Simulator (no siblings, no WebGL, no owned runtime dependency, smallest
+platform surface of any product). Full contract, the applied table and the eight
+STANDALONE conditions: `docs/PHASE_8_12_RELEASE_AND_CANONICAL.md`.
 
 **One sibling coupling exists in the whole Lab**: `presence → matter/ParticleField`,
 retained deliberately with its removal path recorded in the manifest. Full
@@ -182,8 +217,8 @@ does not exist in production, where the chunk is pre-built and served statically
 
 | | Value |
 |---|---|
-| Boot, 5 files, raw | 351,182 B |
-| Boot, gzip | 118,251 B |
+| Boot, 5 files, raw | 351,356 B |
+| Boot, gzip | 118,743 B |
 | CSS raw | 42,588 B |
 | modulepreloads | 4 |
 | Dependencies | 5 runtime + 13 build |
@@ -196,10 +231,15 @@ three/R3F, ever**; no QA harness ships.
 
 ## CANONICAL SYNC
 
-`node scripts/check-canonical-sync.mjs` → **DRIFT (exit 2)** against canonical
-`hi-anzy-website-2.0`, and **MEASURED AGAINST LEGACY (exit 0)** when pointed at
-`hi-anzy-platform`. Both are the honest answer; see REPOSITORIES above.
-`CANONICAL_PAGES_COMMIT = 'eac2282'` — the commit the snapshot was read at.
+`node scripts/check-canonical-sync.mjs` → **CURRENT (exit 0)** against canonical
+`hi-anzy-website-2.0` @ `0208378`, and **DRIFT (exit 2)** when pointed at
+`hi-anzy-platform`, which it still identifies by name. Both are the honest
+answer, and the second is now the expected direction.
+
+CURRENT means *read and reconciled at this commit*, not *copied*: only the
+`MIRROR` rows put values into the Lab. `App.js` (REFERENCE) drifted with its
+24-path route table identical, and `App.css` (TRANSFORM) drifted with all 25
+custom properties, every `font-family` and every brand colour identical.
 
 ## REPOSITORIES
 
@@ -216,23 +256,29 @@ Content flows Agency → Lab, development-time only, as a checked-in snapshot.
 **Nothing in this project writes to any Agency repository**, and no runtime code
 reads one: every canonical value is checked-in TypeScript under `src/content/`.
 
-### Canonical provenance — currently STALE, deliberately
+### Canonical provenance
 
-The snapshot was mirrored from **`hi-anzy-platform` @ `eac2282` (2026-09-12)**,
-the legacy repository. Measured against canonical `hi-anzy-website-2.0` @
-`0208378`, **three of four mirrored sources have drifted**: `content.js`,
-`App.js` and `App.css` (the last being the typography and colour source).
-`disciplines.js` is unchanged.
+Mirrored from **`hi-anzy-website-2.0` @ `0208378` (read 2026-09-24)**. Before
+Phase 8.12C it was **`hi-anzy-platform` @ `eac2282` (2026-09-12)**, which is
+retained in `PREVIOUSLY_MIRRORED_FROM` rather than overwritten — relabelling an
+old snapshot with a repository it was never read from is a fabricated
+provenance.
 
-This is known. Phase 8.12 separates the repositories **without changing product
-behaviour**; the re-sync alters what visitors read and what the design tokens
-resolve to, so it is its own scoped work. The Lab's content is not false — it
-accurately mirrors what it says it mirrors, and every surface that prints the
-canonical commit prints the one it was read at.
+All four mirrored sources are CURRENT. What the re-read adopted (the five method
+stages' titles, pages and outputs; the six service lines), what it refused (all
+route changes, all design-token changes, `site.js`, `INSIGHT_TOPICS`) and the
+three untrue mirrors it removed are recorded in
+`docs/PHASE_8_12_RELEASE_AND_CANONICAL.md`.
 
-`node scripts/check-canonical-sync.mjs` now identifies which repository it is
-measuring before it measures it, and refuses to present a legacy match as a
-statement about canonical.
+### One artefact crosses the other way
+
+`hi-anzy-website-2.0` carries a **built copy of the Lab** at `frontend/lab/`,
+which its `vercel.json` copies into `build/lab`. The Lab as deployed today is a
+sub-path of the Agency site, under the Agency's headers — and
+`customHttp.yml` applies `Permissions-Policy: camera=(), microphone=(),
+geolocation=()` to `**/*`, so **Presence's camera path is disabled by policy in
+the only deployment that exists**. Nothing in this repository put that copy
+there. It is why §12 is a product question and not a DNS one.
 
 ## HARDWARE PENDING
 
@@ -266,6 +312,15 @@ are Playwright driver snippets, not standalone Node programs).
 - **The orientation sheet has not been tested with real first-time visitors.**
   Discoverability was measured structurally — accessible name, tab position,
   focus visibility, what is on screen cold — not observed in a human.
+- **`PERFORMANCE` is `UNVERIFIED` across the Lab** and is the only blocker
+  between three products and PRODUCT. It needs a person on real hardware; no
+  number from this environment will be invented to close it.
+- **Whether Presence reports a policy-blocked camera honestly is unverified.**
+  The Agency deployment blocks `getUserMedia` for `/lab`; which of Presence's
+  nine camera states that produces has not been checked.
+- **`canonicalEras.ts` records the legacy repository's history.** Named on
+  screen since 8.12C; re-capturing it from `hi-anzy-website-2.0` is a separate
+  decision, because it changes what Time Machine displays.
 
 ## STANDING RULES
 

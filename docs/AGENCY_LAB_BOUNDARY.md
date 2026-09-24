@@ -107,35 +107,74 @@ worse than a red one.
 **Never update a hash to make the check pass.** The hash records what was read;
 changing it without reading is how a mirror starts lying quietly.
 
-## CURRENT PROVENANCE — READ THIS BEFORE TRUSTING CANONICAL CONTENT
+## CURRENT PROVENANCE
 
-The Lab's snapshot was mirrored from **`Anzy1512/hi-anzy-platform` @ `eac2282`,
-2026-09-12** — the legacy repository.
+The Lab's snapshot is mirrored from **`Anzy1512/hi-anzy-website-2.0` @
+`0208378`** (2026-09-23), re-read on 2026-09-24 in Phase 8.12C.
 
-Measured against canonical `hi-anzy-website-2.0` @ `0208378` (2026-09-23),
-**three of the four mirrored sources have drifted**:
+Before that it was mirrored from **`Anzy1512/hi-anzy-platform` @ `eac2282`**
+(2026-09-01), the legacy repository. That remains the correct provenance for
+everything mirrored before the re-read, and it is kept in
+`PREVIOUSLY_MIRRORED_FROM` rather than overwritten. Relabelling an old snapshot
+with a repository it was never read from is a fabricated provenance.
 
-| Source | State | Lab destination |
-|---|---|---|
-| `frontend/src/data/content.js` | **DRIFT** | `src/content/canonical.ts` |
-| `frontend/src/data/disciplines.js` | CURRENT | — |
-| `frontend/src/App.js` | **DRIFT** | `canonicalManifest.ts` (ROUTES) |
-| `frontend/src/App.css` | **DRIFT** | `src/design-system/*` (typography + colour) |
+All four mirrored sources are **CURRENT** against canonical:
 
-This is **known and deliberately not yet fixed.** Phase 8.12 separates the
-repositories without changing product behaviour; re-syncing alters what visitors
-read and what the design tokens resolve to, so it is its own scoped work with
-its own verification.
+| Source | Treatment | State | Lab destination |
+|---|---|---|---|
+| `frontend/src/data/content.js` | MIRROR | CURRENT | `src/content/canonical.ts` |
+| `frontend/src/data/disciplines.js` | MIRROR | CURRENT | — |
+| `frontend/src/App.js` | REFERENCE | CURRENT | `canonicalManifest.ts` (ROUTES) |
+| `frontend/src/App.css` | TRANSFORM | CURRENT | `src/design-system/*` |
 
-The Lab's content is not false — it accurately mirrors what it says it mirrors.
-It is **provenance-stale**, and every surface that prints the canonical commit
-prints the one it was actually read at.
+**What CURRENT means differs by treatment**, and the distinction matters here
+because only one of the three drifted sources changed anything in the Lab:
+
+- **MIRROR** — the Lab's values ARE these values. `content.js` drifted and the
+  changed fields were adopted.
+- **REFERENCE** — the Lab depends on facts in the file, not on the file.
+  `App.js` drifted by 78 lines and its route table is identical: 24 paths, none
+  added, none removed.
+- **TRANSFORM** — the Lab inherits brand truth and expresses it its own way.
+  `App.css` drifted by 213 lines with all 25 custom properties, every
+  `font-family` and every brand colour unchanged.
+
+So CURRENT means *read and reconciled at this commit*, never *copied*.
+`docs/PHASE_8_12_RELEASE_AND_CANONICAL.md` records what was adopted, what was
+refused, and what the comparison found wrong in the Lab.
+
+## THE ONE THING THAT CROSSES THE OTHER WAY
+
+The arrow above describes **source and content**, and in that direction it holds
+absolutely. There is one artefact flowing the other way, and it is worth naming
+because the diagram alone would hide it:
+
+`Anzy1512/hi-anzy-website-2.0` carries a **built copy of the Lab** at
+`frontend/lab/` — `index.html`, content-hashed `assets/`, `brand/`, `fonts/`.
+Its `vercel.json` build command copies that directory into `build/lab`, and its
+`customHttp.yml` gives `lab/assets/**` an immutable cache policy. **The Lab as
+deployed today is a sub-path of the Agency site.**
+
+Nothing in this repository put it there and nothing here maintains it; it is
+build output committed by work in the Agency repository. What it means for this
+project:
+
+- the Lab's own build still requires no Agency repository — the independence
+  test below is unaffected;
+- but the Lab currently runs under the **Agency's** headers. `customHttp.yml`
+  applies `Permissions-Policy: camera=(), microphone=(), geolocation=()` to
+  `**/*`, which includes `/lab/**`, so **Presence's camera path is disabled by
+  policy in the only deployment that exists**;
+- so `lab.hianzy.com` is not merely a nicer URL. Moving to its own origin
+  changes what one reality is able to do, and that belongs in §12 rather than
+  being discovered after the move.
 
 ## DEPLOYMENT
 
 | | |
 |---|---|
-| Lab | `lab.hianzy.com` (intended), built from `hi-anzy-experience-lab` |
+| Lab, today | served as `/lab` from the Agency's own build — see above |
+| Lab, intended | `lab.hianzy.com`, built from `hi-anzy-experience-lab` (§12, not started) |
 | Agency | its own deployment, from `hi-anzy-website-2.0` |
 
 `vite.config` already takes `base` from `process.env.LAB_BASE`, defaulting to

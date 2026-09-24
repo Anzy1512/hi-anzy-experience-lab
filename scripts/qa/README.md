@@ -1,6 +1,6 @@
-# QA DRIVERS — PHASE 8.10
+# QA DRIVERS
 
-Nine scripts that each prove one contract this product has committed to. They
+Eleven scripts that each prove one contract this product has committed to. They
 are kept because they were expensive to write and cheap to re-run: every one of
 them found something, and several of them describe behaviour that has no other
 executable record.
@@ -32,7 +32,7 @@ Each script assumes `http://localhost:5173` and opens its own browser context
 per case, so storage starts empty and is discarded afterwards. Nothing here
 writes to the repository.
 
-## The nine
+## The eleven
 
 | Script | What it proves |
 |---|---|
@@ -45,6 +45,8 @@ writes to the repository.
 | `flows-acceptance.js` | Flows B, C and D end to end, including the reload in the middle, driven through each product's real controls. |
 | `export-inspection.js` | Flow C, plus the project export **read back as a document** — every section, the per-artifact limits line, and the absence of any cloud or fabricated-proof wording. |
 | `viewport-accessibility.js` | Flow D, then overflow and target sizes measured at 1920×1080, 1440×900, 768×1024 and 390×844, then reduced motion. |
+| `release-guards.js` | All three dev guards — `[registry]`, `[maturity]`, `[release]` — are silent; all 16 realities enter with zero overflow; same-reality navigation does not restart the room; lifecycle returns to zero over two cycles; the orientation sheet opens and Escape closes it without leaving the mode. Added in Phase 8.12C, because the release guard is the only thing standing between the graduation model and a dimension quietly recorded `N/A`. |
+| `canonical-copy.js` | The re-synced canonical copy, on screen. Every adopted string appears, every replaced string is gone, nothing is clipped, and the page does not overflow at 1920×1080, 1440×900, 768×1024 or 390×844. Also reads the OS terminal's `principles` and `method` output and the commit PERFORMANCE prints. Run it after any canonical re-sync: the adopted copy is longer than what it replaces, and a mirror going stale is not the only way it can go wrong. |
 
 ## Reading the results
 
