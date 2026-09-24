@@ -22,6 +22,13 @@
       "when": 1790258401019,
       "tag": "0002_layer3_entities",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790265943587,
+      "tag": "0003_layer4_intelligence",
+      "breakpoints": true
     }
   ]
 }

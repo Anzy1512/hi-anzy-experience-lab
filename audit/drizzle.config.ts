@@ -9,7 +9,7 @@ import type { Config } from 'drizzle-kit';
  * corpus is on PGlite or a server.
  */
 export default {
-  schema: ['./src/db/schema.ts', './src/db/entities.ts'],
+  schema: ['./src/db/schema.ts', './src/db/entities.ts', './src/db/intel.ts'],
   out: './migrations',
   dialect: 'postgresql',
   migrations: { prefix: 'index' },

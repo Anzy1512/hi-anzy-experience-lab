@@ -84,8 +84,26 @@ const Schema = z.object({
   RATE_LIMIT_MAX: z.coerce.number().int().positive().default(60),
   RATE_LIMIT_WINDOW: z.string().default('1 minute'),
 
-  /** Model access. Not required until the synthesis layer exists. */
+  /**
+   * Model access.
+   *
+   * Absent is a supported state, not a broken one: the engine plans around it,
+   * answers everything it can answer structurally, and reports the synthesis it
+   * could not perform. A research service that cannot run without a paid key is
+   * a research service nobody can verify.
+   */
   ANTHROPIC_API_KEY: blank(z.string().optional()),
+  /** Which model answers a SMALL_MODEL step, and which answers a REASONING_MODEL one. */
+  MODEL_SMALL: z.string().default('claude-haiku-4-5-20251001'),
+  MODEL_REASONING: z.string().default('claude-sonnet-5'),
+  /**
+   * Prices as {"model-id":{"in":3,"out":15}}, in currency units per million
+   * tokens. Unset means unpriced, and an unpriced call reports its cost as
+   * UNKNOWN rather than as zero. An invented price is worse than a missing one:
+   * it turns an absent fact into a number somebody will put in a budget.
+   */
+  MODEL_PRICES: blank(z.string().optional()),
+  MODEL_TIMEOUT_MS: z.coerce.number().int().positive().default(60_000),
   /** Web search. Not required until the ingestion layer exists. */
   SEARCH_PROVIDER: z.enum(['none', 'brave', 'tavily', 'searxng']).default('none'),
   SEARCH_API_KEY: blank(z.string().optional()),
@@ -128,3 +146,22 @@ export const config = load();
 
 /** True when the corpus is in-process rather than on a server. */
 export const usingPglite = config.DATABASE_URL === undefined;
+
+/**
+ * The price table, parsed once.
+ *
+ * A malformed table is a configuration error and is reported as one, but it
+ * does not stop the service: unpriced is already a supported state, so falling
+ * back to it loses nothing except the numbers nobody could trust anyway.
+ */
+export const modelPrices: Record<string, { in: number; out: number }> = (() => {
+  if (config.MODEL_PRICES === undefined) return {};
+  try {
+    const parsed: unknown = JSON.parse(config.MODEL_PRICES);
+    const shape = z.record(z.string(), z.object({ in: z.number().nonnegative(), out: z.number().nonnegative() }));
+    return shape.parse(parsed);
+  } catch {
+    console.error('MODEL_PRICES is not valid JSON of the form {"model":{"in":N,"out":N}} - running unpriced.');
+    return {};
+  }
+})();

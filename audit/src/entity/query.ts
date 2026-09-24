@@ -322,6 +322,15 @@ export async function getRelationships(d: Driver, entityId: string): Promise<Rel
 }
 
 export interface EvidenceChain {
+  /**
+   * The claim row this chain belongs to.
+   *
+   * Added in layer 4: a finding that cites a claim has to be able to anchor to
+   * it, and `finding_citation.claim_id` cannot be populated by a caller that
+   * was never told the id. Without this the column exists and is always null,
+   * which is worse than not having it.
+   */
+  claimId: string;
   field: string;
   value: string;
   status: string;
@@ -373,6 +382,7 @@ export async function getEntityEvidence(d: Driver, entityId: string): Promise<Ev
       [c.id],
     );
     out.push({
+      claimId: c.id,
       field: c.field,
       value: c.value,
       status: c.status,

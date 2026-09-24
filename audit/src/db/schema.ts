@@ -520,6 +520,18 @@ export const auditRun = pgTable(
     embeddingModel: text('embedding_model'),
     /** The retrieval budget this run was allowed. Cost control, recorded. */
     budget: integer('budget'),
+    /*
+     * Layer 4. The question as a structured request, the intent it was
+     * classified as, and the machine-readable plan that was executed.
+     *
+     * The plan is stored as data rather than narrated in prose because a plan
+     * you cannot query is a plan you cannot audit: "which runs used a model
+     * for a geographic filter" has to be answerable by SELECT.
+     */
+    intent: text('intent'),
+    request: jsonb('request'),
+    plan: jsonb('plan'),
+    modelCalls: integer('model_calls').notNull().default(0),
     /** Spend, per run, recorded rather than estimated afterwards. */
     tokensIn: integer('tokens_in'),
     tokensOut: integer('tokens_out'),
@@ -568,14 +580,42 @@ export const finding = pgTable(
     auditRunId: uuid('audit_run_id')
       .notNull()
       .references(() => auditRun.id, { onDelete: 'cascade' }),
-    area: diagnosticArea('area').notNull(),
-    outcome: diagnosticOutcome('outcome').notNull(),
+    /*
+     * Nullable from layer 4.
+     *
+     * The canonical areas are the Agency's own diagnostic vocabulary and they
+     * remain the right frame for an audit of a business. A rule finding about
+     * a crawler's own coverage — SINGLE_SOURCE_ENTITY, STALE_EVIDENCE — is
+     * about the research rather than about the company, and forcing it into
+     * "Brand" or "Operations" would be inventing a category to make a row fit.
+     */
+    area: diagnosticArea('area'),
+    outcome: diagnosticOutcome('outcome'),
     /** The conclusion, in plain prose. This is what a reader sees. */
     statement: text('statement').notNull(),
     basis: findingBasis('basis').notNull(),
     /** For a `derived` finding: the inference, named. Never shown, always kept. */
     inference: text('inference'),
     confidence: real('confidence'),
+    /*
+     * Layer 4.
+     *
+     * `status` is what the finding IS; `basis` above is how it stands to its
+     * evidence. They are close but not the same, and collapsing them would
+     * lose the distinction between CONFLICTING (two sources disagree) and
+     * UNSUPPORTED (nothing says it at all).
+     */
+    entityId: uuid('entity_id'),
+    findingType: text('finding_type'),
+    status: text('status'),
+    reasoningType: text('reasoning_type'),
+    ruleId: text('rule_id'),
+    ruleVersion: text('rule_version'),
+    modelUsed: text('model_used'),
+    /** What this finding cannot tell you. Written by whatever produced it. */
+    limitations: text('limitations'),
+    verification: text('verification').notNull().default('UNVERIFIED'),
+    verificationReason: text('verification_reason'),
     ord: integer('ord').notNull().default(0),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -598,6 +638,14 @@ export const findingCitation = pgTable(
       .notNull()
       .references(() => finding.id, { onDelete: 'cascade' }),
     chunkId: uuid('chunk_id').references(() => chunk.id, { onDelete: 'set null' }),
+    /*
+     * Layer 4 anchors. One citation table with three possible targets rather
+     * than three tables: a citation is a citation, and splitting them by what
+     * they point at would produce three half-populated provenance chains and a
+     * permanent question about which is authoritative.
+     */
+    observationId: uuid('observation_id'),
+    claimId: uuid('claim_id'),
     /** Copied, not referenced: the page changes, the evidence should not. */
     quote: text('quote').notNull(),
     url: text('url').notNull(),
