@@ -68,7 +68,12 @@ export function Ask(): React.JSX.Element {
             <label className="field__label" htmlFor="name">
               Business name (optional)
             </label>
-            <input id="name" className="field__input" value={entityName} onChange={(e) => setEntityName(e.target.value)} />
+            <input
+              id="name"
+              className="field__input"
+              value={entityName}
+              onChange={(e) => setEntityName(e.target.value)}
+            />
           </div>
           <div className="field">
             <label className="field__label" htmlFor="domain">
@@ -90,13 +95,18 @@ export function Ask(): React.JSX.Element {
               onChange={(e) => setMaxModelCalls(Math.max(0, Math.min(4, Number(e.target.value))))}
             />
           </div>
-          <button type="button" className="button" onClick={() => void ask()} disabled={busy || question.trim().length < 3}>
+          <button
+            type="button"
+            className="button"
+            onClick={() => void ask()}
+            disabled={busy || question.trim().length < 3}
+          >
             {busy ? 'Asking' : 'Ask'}
           </button>
         </div>
         <p className="prose dim">
-          Zero model calls is the normal setting. Most questions this service is for are answered by a
-          query over resolved businesses, which is exact, instant and free.
+          Zero model calls is the normal setting. Most questions this service is for are answered by a query over
+          resolved businesses, which is exact, instant and free.
         </p>
       </section>
 
@@ -124,8 +134,8 @@ function AnswerSheet({ answer }: { answer: AnswerBody }): React.JSX.Element {
       {answer.intent === 'UNKNOWN_INTENT' ? (
         <Notice title="The question was not researched">
           <p className="notice__body">
-            It reads as more than one kind of request, and the service will not pick one silently.
-            Rephrasing it as a single question, or naming the intent, lets it proceed.
+            It reads as more than one kind of request, and the service will not pick one silently. Rephrasing it as a
+            single question, or naming the intent, lets it proceed.
           </p>
         </Notice>
       ) : null}
@@ -155,7 +165,9 @@ function AnswerSheet({ answer }: { answer: AnswerBody }): React.JSX.Element {
           <h2 className="section__title">In short</h2>
           <p className="prose">{answer.summary}</p>
           <p className="finding__meta">
-            <span>written by {answer.summarySource === 'MODEL' ? 'a model, checked against the evidence' : 'the rules'}</span>
+            <span>
+              written by {answer.summarySource === 'MODEL' ? 'a model, checked against the evidence' : 'the rules'}
+            </span>
           </p>
         </section>
       ) : null}
@@ -184,8 +196,7 @@ function AnswerSheet({ answer }: { answer: AnswerBody }): React.JSX.Element {
           {/* Advice, kept in its own section because it has no evidence — it is
               about something that has not happened. */}
           <p className="prose dim">
-            These carry no citations. They are advice, not findings, and nothing was measured to
-            produce them.
+            These carry no citations. They are advice, not findings, and nothing was measured to produce them.
           </p>
           {answer.findings.recommendations.map((f, i) => (
             <FindingItem key={`rec-${i}`} finding={f} />
@@ -209,9 +220,8 @@ function AnswerSheet({ answer }: { answer: AnswerBody }): React.JSX.Element {
         {answer.findings.withheldCount > 0 ? (
           <p className="prose dim">
             {answer.findings.withheldCount} generated statement
-            {answer.findings.withheldCount === 1 ? ' was' : 's were'} rejected before rendering because
-            the evidence cited did not support them. They are kept in the record so the rate stays
-            countable.
+            {answer.findings.withheldCount === 1 ? ' was' : 's were'} rejected before rendering because the evidence
+            cited did not support them. They are kept in the record so the rate stays countable.
           </p>
         ) : null}
       </section>

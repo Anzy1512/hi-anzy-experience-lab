@@ -51,9 +51,9 @@ export function MapView(): React.JSX.Element {
             <p className="prose dim">{map.note}</p>
             {map.unlocated > 0 ? (
               <p className="prose dim">
-                {map.unlocated} business{map.unlocated === 1 ? '' : 'es'} in the store {map.unlocated === 1 ? 'has' : 'have'} no
-                resolved coordinate and {map.unlocated === 1 ? 'is' : 'are'} absent from this plate. A
-                thin plate is a thin dataset before it is a thin market.
+                {map.unlocated} business{map.unlocated === 1 ? '' : 'es'} in the store{' '}
+                {map.unlocated === 1 ? 'has' : 'have'} no resolved coordinate and {map.unlocated === 1 ? 'is' : 'are'}{' '}
+                absent from this plate. A thin plate is a thin dataset before it is a thin market.
               </p>
             ) : null}
           </>
@@ -65,28 +65,30 @@ export function MapView(): React.JSX.Element {
           <h2 className="section__title">The same list, readable</h2>
           {/* The plate is a picture; this is the accessible record of the same
               data, which is the version a screen reader and a keyboard get. */}
-          <table className="table">
-            <thead>
-              <tr>
-                <th scope="col">Business</th>
-                <th scope="col">Type</th>
-                <th scope="col">Place</th>
-                <th scope="col">Latitude</th>
-                <th scope="col">Longitude</th>
-              </tr>
-            </thead>
-            <tbody>
-              {map.located.map((l) => (
-                <tr key={l.id} onMouseEnter={() => setSelected(l.id)} onMouseLeave={() => setSelected(null)}>
-                  <td>{l.name}</td>
-                  <td>{l.type}</td>
-                  <td>{[l.city, l.country].filter(Boolean).join(', ') || '—'}</td>
-                  <td>{l.latitude.toFixed(4)}</td>
-                  <td>{l.longitude.toFixed(4)}</td>
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th scope="col">Business</th>
+                  <th scope="col">Type</th>
+                  <th scope="col">Place</th>
+                  <th scope="col">Latitude</th>
+                  <th scope="col">Longitude</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {map.located.map((l) => (
+                  <tr key={l.id} onMouseEnter={() => setSelected(l.id)} onMouseLeave={() => setSelected(null)}>
+                    <td>{l.name}</td>
+                    <td>{l.type}</td>
+                    <td>{[l.city, l.country].filter(Boolean).join(', ') || '—'}</td>
+                    <td>{l.latitude.toFixed(4)}</td>
+                    <td>{l.longitude.toFixed(4)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
       )}
     </ServiceGate>

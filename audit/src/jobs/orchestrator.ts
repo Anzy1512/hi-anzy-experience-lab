@@ -480,7 +480,28 @@ async function resolveInput(d: Driver, jobId: string, t: TaskNode, x: ExecContex
     for (const v of Array.isArray(out?.entityIds) ? out.entityIds : []) if (typeof v === 'string') ids.add(v);
   }
   if (typeof input['entityId'] === 'string') ids.add(input['entityId']);
-  input['entityIds'] = [...ids];
+
+  /*
+   * Only businesses are audited.
+   *
+   * The pipeline creates entities for the things a business IS RELATED TO as
+   * well — a WEBSITE row for its domain, a CONTACT_POINT for each email and
+   * phone — because those are real nodes with their own evidence. They are not
+   * subjects of a commercial audit, and running the rule set over them produced
+   * findings like "whether hello@example.com has a website has not been
+   * established": true, meaningless, and indistinguishable in the output from a
+   * finding about a company. Found by reading the final test's own report.
+   */
+  const subjects =
+    ids.size === 0
+      ? []
+      : (
+          await d.query<{ id: string }>(
+            `select id from entity where id = any($1::uuid[]) and type = 'ORGANIZATION' and status = 'ACTIVE'`,
+            [[...ids]],
+          )
+        ).map((r) => r.id);
+  input['entityIds'] = subjects;
   input['question'] ??= x.request.question;
   return input;
 }

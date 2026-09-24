@@ -53,9 +53,8 @@ export function ServiceGate({ children }: { children: ReactNode }): React.JSX.El
     return (
       <Notice title="No key entered">
         <p className="notice__body">
-          This surface reads a running audit service. The service holds a key that can fetch pages and
-          spend money, so the key is never built into this page — enter it above and it stays in this
-          tab only.
+          This surface reads a running audit service. The service holds a key that can fetch pages and spend money, so
+          the key is never built into this page — enter it above and it stays in this tab only.
         </p>
       </Notice>
     );
@@ -65,8 +64,8 @@ export function ServiceGate({ children }: { children: ReactNode }): React.JSX.El
     <Notice title={reach.state === 'UNAUTHORISED' ? 'Key refused' : 'No service'} refused>
       <p className="notice__body">{reach.detail}</p>
       <p className="notice__body">
-        Nothing is shown below, rather than an empty result. An empty list here would say something
-        about the world; the truth is only that nothing answered.
+        Nothing is shown below, rather than an empty result. An empty list here would say something about the world; the
+        truth is only that nothing answered.
       </p>
       <p className="notice__body">
         <button type="button" className="button button--quiet" onClick={refresh}>
@@ -91,7 +90,9 @@ export function FindingItem({
       <p className="finding__meta">
         <span data-status={finding.status}>{finding.status}</span>
         <span>{finding.type}</span>
-        <span>{finding.rule !== null && finding.rule !== '' ? `rule ${finding.rule}` : finding.reasoning.toLowerCase()}</span>
+        <span>
+          {finding.rule !== null && finding.rule !== '' ? `rule ${finding.rule}` : finding.reasoning.toLowerCase()}
+        </span>
       </p>
       {finding.limitations !== '' && finding.limitations !== null ? (
         /* Part of the finding, not a disclaimer under it. */

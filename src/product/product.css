@@ -364,8 +364,24 @@
 
 /* ---- tables ------------------------------------------------------------- */
 
+/*
+ * A data table on a phone, scrolled rather than hidden.
+ *
+ * Seven columns of measured values do not fit in 375px, and the alternatives
+ * are worse: dropping columns hides evidence, and stacking each row into a
+ * definition list turns a table somebody is scanning for one number into a
+ * page. The compromise is honest — every column is still there, and reaching
+ * it is a sideways drag, which is a first-class touch gesture rather than a
+ * degraded one.
+ */
+.table-wrap {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
 .table {
   width: 100%;
+  min-inline-size: 34rem;
   border-collapse: collapse;
   font-family: var(--f-mono);
   font-size: var(--t-mono-s);

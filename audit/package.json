@@ -21,6 +21,7 @@
     "closure": "tsx src/closure.ts",
     "closure:l4": "tsx src/closure-l4.ts",
     "closure:l6": "tsx src/closure-l6.ts",
+    "final-test": "tsx src/final-test.ts && tsx src/final-test.ts --phase=2",
     "bench:entity": "tsx src/bench-entity.ts"
   },
   "dependencies": {

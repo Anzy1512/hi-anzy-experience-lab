@@ -93,7 +93,12 @@ export function App(): React.JSX.Element {
               />
               Keep for this tab
             </label>
-            <button type="button" className="button" onClick={() => setKey(draftKey.trim(), remember)} disabled={draftKey.trim() === ''}>
+            <button
+              type="button"
+              className="button"
+              onClick={() => setKey(draftKey.trim(), remember)}
+              disabled={draftKey.trim() === ''}
+            >
               Connect
             </button>
             <button type="button" className="button button--quiet" onClick={refresh}>

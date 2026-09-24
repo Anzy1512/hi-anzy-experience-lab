@@ -8,6 +8,7 @@ import {
   normalizeEmail,
   normalizeName,
   normalizePhone,
+  geoCell,
   normalizePostalCode,
   normalizeSocial,
 } from './normalize.ts';
@@ -48,6 +49,9 @@ const DECLARED = new Set(['jsonld', 'link', 'microdata']);
 
 /** Fields where two different values across sources is worth flagging. */
 const ADJUDICABLE = new Set(['phone', 'email', 'address', 'orgName']);
+
+/** The trailing token of an address line that looks like a postal code. */
+const POSTAL_TAIL = /\b[A-Z0-9][A-Z0-9 -]{2,9}\b\s*$/i;
 
 export interface EntityIngestResult {
   documentId: string;
@@ -186,6 +190,12 @@ export function observationsFrom(
         if (u !== null) push({ ...base, field: 'domain', normalized: u });
         break;
       }
+      case 'latitude':
+      case 'longitude':
+        /* Kept verbatim. A coordinate is already normalised by the standard
+           that produced it, and rounding one here would move a business. */
+        push({ ...base, field: v.field, normalized: v.value });
+        break;
       case 'description':
       case 'headline':
       case 'product':
@@ -648,17 +658,40 @@ export async function ingestEntitiesFromDocument(
 
   /* ---- location -------------------------------------------------------- */
   const addressObs = observations.find((o) => o.field === 'address');
-  if (addressObs !== undefined) {
-    const postal = (addressObs.raw.match(/\b[A-Z0-9][A-Z0-9 -]{2,9}\b\s*$/i)?.[0] ?? '').trim();
+  const latObs = observations.find((o) => o.field === 'latitude');
+  const lonObs = observations.find((o) => o.field === 'longitude');
+  /*
+   * A coordinate the page PUBLISHED, and only that.
+   *
+   * `RESOLVED` here means the business stated where it is, with `declared` as
+   * the provider — not that anything geocoded an address. Nothing in this
+   * service turns a street address into a coordinate, so a business that
+   * publishes only an address stays `NO_PROVIDER` and never appears on a map.
+   * That is the correct outcome, and the map reports how many it is.
+   */
+  const lat = latObs === undefined ? NaN : Number(latObs.normalized ?? latObs.raw);
+  const lon = lonObs === undefined ? NaN : Number(lonObs.normalized ?? lonObs.raw);
+  const located = Number.isFinite(lat) && Number.isFinite(lon);
+
+  if (addressObs !== undefined || located) {
+    const postal =
+      addressObs === undefined ? '' : (addressObs.raw.match(POSTAL_TAIL)?.[0] ?? '').trim();
     await d.query(
-      `insert into entity_location (entity_id, address_raw, address_normalized, postal_code, geocode, observation_id)
-       values ($1,$2,$3,$4,'NO_PROVIDER',$5)`,
+      `insert into entity_location
+         (entity_id, address_raw, address_normalized, postal_code, latitude, longitude, geo_cell,
+          geocode, geocode_provider, observation_id)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
       [
         entityId,
-        addressObs.raw.slice(0, 1000),
-        addressObs.normalized,
+        addressObs?.raw.slice(0, 1000) ?? null,
+        addressObs?.normalized ?? null,
         postal === '' ? null : normalizePostalCode(postal),
-        addressObs.id,
+        located ? lat : null,
+        located ? lon : null,
+        located ? geoCell(lat, lon) : null,
+        located ? 'RESOLVED' : 'NO_PROVIDER',
+        located ? 'declared' : null,
+        (addressObs ?? latObs)?.id ?? null,
       ],
     );
   }

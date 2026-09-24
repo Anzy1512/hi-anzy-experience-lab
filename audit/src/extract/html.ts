@@ -137,6 +137,34 @@ function valuesFromJsonLd(nodes: unknown[]): ExtractedValue[] {
       if (Array.isArray(sameAs)) for (const s of sameAs) push('social', s, '@type Organization sameAs');
       else push('social', sameAs, '@type Organization sameAs');
 
+      /*
+       * A coordinate the publisher stated, as data.
+       *
+       * This is extraction, not geocoding. The difference matters: a geocoder
+       * turns an address into a guess at where it is, and this service has none
+       * on purpose. `schema.org/GeoCoordinates` is the business saying where it
+       * is, in the same breath as its phone number, and reading it is the same
+       * act as reading the phone number.
+       *
+       * Out-of-range values are dropped rather than clamped. A latitude of 412
+       * is a broken page, and clamping it to 90 would put a business at the
+       * North Pole with a straight face.
+       */
+      const geo = o.geo;
+      if (geo !== null && typeof geo === 'object') {
+        const g = geo as Record<string, unknown>;
+        const num = (v: unknown): number | null => {
+          const n = typeof v === 'number' ? v : typeof v === 'string' ? Number(v) : NaN;
+          return Number.isFinite(n) ? n : null;
+        };
+        const lat = num(g.latitude);
+        const lon = num(g.longitude);
+        if (lat !== null && lon !== null && Math.abs(lat) <= 90 && Math.abs(lon) <= 180) {
+          push('latitude', String(lat), '@type GeoCoordinates latitude');
+          push('longitude', String(lon), '@type GeoCoordinates longitude');
+        }
+      }
+
       const address = o.address;
       if (address !== null && typeof address === 'object') {
         const a = address as Record<string, unknown>;

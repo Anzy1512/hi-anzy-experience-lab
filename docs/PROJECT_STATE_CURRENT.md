@@ -19,10 +19,39 @@ records of what each phase did, and stay that way.
 | 8.10 — project memory + persistence | **CLOSED** |
 | 8.11 — product + brand convergence | **CLOSED** |
 | 8.12 — lab independence + product launch foundation | **IN PROGRESS** — §1–§10 done (separation + product architecture), 8.12C done (release contract + canonical re-read); §11–§14 open |
+| Audit service, layers 1–6 | **CLOSED** — corpus, crawl/index/retrieve, entity graph, intelligence engine, jobs and agents, product API and surface |
 
-- Branch: `phase-8-12-independence`
-- Gates: `tsc -b` = 0 · `eslint src --max-warnings 0` = 0 ·
-  `npm run build` passes
+- Branch: `audit-osint-service`
+- Gates: `tsc -b` = 0 · `eslint .` = 0 · `npm run build` passes
+- Audit gates: `npm test` = 232/232 (PGlite) · `npm run test:pg` = 125/125
+  (Postgres, from a clean schema) · `npm run closure`, `closure:l4`,
+  `closure:l6` and `final-test` all pass
+
+## THE AUDIT SERVICE
+
+A second product, in `audit/`, with its own `package.json`, its own dependency
+tree and its own tests. It is **not** part of the Lab's build: `npm ci && npm
+run build` at the root resolves the same 5 runtime and 13 build dependencies and
+produces a Lab that runs with no backend present, exactly as before.
+
+| Layer | What it is |
+|---|---|
+| 1 | a corpus that can be retrieved from, on PGlite or Postgres, and proof that it can |
+| 2 | discovery → crawl → extract → chunk → embed → index → hybrid retrieval |
+| 3 | entity resolution and a commercial knowledge graph, with a resolver allowed to refuse |
+| 4 | the intelligence engine: intent, plan, evidence packet, rules, citation gate |
+| 5 | jobs, a task DAG, one orchestrator, three agents with tool contracts |
+| 6 | the product API, and a reading surface built on the Lab's design system |
+
+The surface is a **separate build** (`npm run build:product` → `dist-product/`).
+It shares the Lab's tokens, its three typefaces and its easing vocabulary, and
+imports none of its runtime — no modes, no engine, no spatial layer, no RAF
+loop. It is built separately so the Lab's entry graph is not disturbed: a second
+Rollup input would make the two share chunks and put a `modulepreload` in the
+Lab's entry document for a page the visitor is not on.
+
+The service holds a key that can spend money and fetch pages, so **no key is
+ever built into the surface**. It asks for one and keeps it in the tab.
 
 ## THE PRODUCT
 
@@ -249,6 +278,7 @@ Agency repository present. Full boundary: `docs/AGENCY_LAB_BOUNDARY.md`.
 | Role | Repository | State |
 |---|---|---|
 | **Lab** (this project) | `Anzy1512/hi-anzy-experience-lab` | canonical, public, default `main` |
+| **Audit service** | `audit/` in this repository | its own package; not in the Lab's build |
 | **Agency** (commercial production) | `Anzy1512/hi-anzy-website-2.0` | canonical, **read only from here** |
 | Previous commercial site | `Anzy1512/hi-anzy-platform` | **LEGACY** — reference only |
 

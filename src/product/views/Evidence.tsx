@@ -86,7 +86,12 @@ export function Evidence(): React.JSX.Element {
           <label className="field__label" htmlFor="job-pick">
             Which piece of research
           </label>
-          <select id="job-pick" className="field__input" value={jobId} onChange={(e) => void loadFindings(e.target.value)}>
+          <select
+            id="job-pick"
+            className="field__input"
+            value={jobId}
+            onChange={(e) => void loadFindings(e.target.value)}
+          >
             <option value="">—</option>
             {jobs.map((j) => (
               <option value={j.id} key={j.id}>
@@ -99,8 +104,8 @@ export function Evidence(): React.JSX.Element {
         {findings === null ? null : findings.findings.length === 0 ? (
           <Notice title="Nothing was established">
             <p className="notice__body">
-              This job produced no findings that survived verification. That is a result, not a blank
-              screen: the research ran and could not establish anything it was willing to state.
+              This job produced no findings that survived verification. That is a result, not a blank screen: the
+              research ran and could not establish anything it was willing to state.
             </p>
           </Notice>
         ) : (
@@ -133,7 +138,12 @@ export function Evidence(): React.JSX.Element {
           <label className="field__label" htmlFor="entity-pick">
             Which business
           </label>
-          <select id="entity-pick" className="field__input" value={entityId} onChange={(e) => void loadChain(e.target.value)}>
+          <select
+            id="entity-pick"
+            className="field__input"
+            value={entityId}
+            onChange={(e) => void loadChain(e.target.value)}
+          >
             <option value="">—</option>
             {entities.map((e) => (
               <option value={e.id} key={e.id}>

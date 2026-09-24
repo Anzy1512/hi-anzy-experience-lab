@@ -118,7 +118,7 @@ export async function researcher(ctx: AgentContext, input: Record<string, unknow
     turn('read what is already held about the subject', inv);
   } else {
     const inv = await ctx.call('find_entities', {
-      ...(str(input['domain']) !== undefined ? { domain: str(input['domain']) } : {}),
+      ...(str(input['domain']) !== undefined ? { domain: str(input['domain']) } : { type: 'ORGANIZATION' }),
       limit: 25,
     });
     turn('look for the subject among businesses already resolved', inv);

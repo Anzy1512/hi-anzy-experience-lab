@@ -85,7 +85,12 @@ export function Jobs(): React.JSX.Element {
             <label className="field__label" htmlFor="proj">
               Project (optional)
             </label>
-            <input id="proj" className="field__input" value={projectId} onChange={(e) => setProjectId(e.target.value)} />
+            <input
+              id="proj"
+              className="field__input"
+              value={projectId}
+              onChange={(e) => setProjectId(e.target.value)}
+            />
           </div>
           <div className="field">
             <label className="field__label" htmlFor="pages">
@@ -101,13 +106,18 @@ export function Jobs(): React.JSX.Element {
               onChange={(e) => setMaxPages(Math.max(0, Math.min(50, Number(e.target.value))))}
             />
           </div>
-          <button type="button" className="button" onClick={() => void start()} disabled={busy || question.trim().length < 3}>
+          <button
+            type="button"
+            className="button"
+            onClick={() => void start()}
+            disabled={busy || question.trim().length < 3}
+          >
             {busy ? 'Starting' : 'Start'}
           </button>
         </div>
         <p className="prose dim">
-          Fetching costs somebody else's bandwidth. The limit is yours to set, the job stops at it, and
-          it says so rather than quietly stopping short.
+          Fetching costs somebody else's bandwidth. The limit is yours to set, the job stops at it, and it says so
+          rather than quietly stopping short.
         </p>
       </section>
 
@@ -126,41 +136,43 @@ export function Jobs(): React.JSX.Element {
         {jobs.length === 0 ? (
           <p className="prose dim">No research has been run here yet.</p>
         ) : (
-          <table className="table">
-            <thead>
-              <tr>
-                <th scope="col">Question</th>
-                <th scope="col">State</th>
-                <th scope="col">Ended</th>
-                <th scope="col">Pages</th>
-                <th scope="col">Model</th>
-                <th scope="col">Cost</th>
-                <th scope="col"> </th>
-              </tr>
-            </thead>
-            <tbody>
-              {jobs.map((j) => (
-                <tr key={j.id}>
-                  <td>{j.question}</td>
-                  <td data-state={j.state}>{j.state}</td>
-                  <td>{j.termination ?? '—'}</td>
-                  <td>{j.pages_crawled}</td>
-                  <td>{j.model_calls}</td>
-                  <td>{formatCost(j.cost_micros)}</td>
-                  <td>
-                    <button
-                      type="button"
-                      className="button button--quiet"
-                      onClick={() => setSelected(j.id)}
-                      aria-pressed={selected === j.id}
-                    >
-                      Open
-                    </button>
-                  </td>
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th scope="col">Question</th>
+                  <th scope="col">State</th>
+                  <th scope="col">Ended</th>
+                  <th scope="col">Pages</th>
+                  <th scope="col">Model</th>
+                  <th scope="col">Cost</th>
+                  <th scope="col"> </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {jobs.map((j) => (
+                  <tr key={j.id}>
+                    <td>{j.question}</td>
+                    <td data-state={j.state}>{j.state}</td>
+                    <td>{j.termination ?? '—'}</td>
+                    <td>{j.pages_crawled}</td>
+                    <td>{j.model_calls}</td>
+                    <td>{formatCost(j.cost_micros)}</td>
+                    <td>
+                      <button
+                        type="button"
+                        className="button button--quiet"
+                        onClick={() => setSelected(j.id)}
+                        aria-pressed={selected === j.id}
+                      >
+                        Open
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
 
@@ -202,7 +214,9 @@ function JobSheet({ jobId }: { jobId: string }): React.JSX.Element {
   const download = async (): Promise<void> => {
     const res = await client.get<unknown>(`/v1/jobs/${jobId}/handoff`);
     if (!res.ok) return;
-    const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(res.data, null, 2)], {
+      type: 'application/json',
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -256,61 +270,65 @@ function JobSheet({ jobId }: { jobId: string }): React.JSX.Element {
       {trace === null || trace.steps.length === 0 ? null : (
         <section className="section section--wide">
           <h2 className="section__title">What the agents did</h2>
-          <table className="table">
-            <thead>
-              <tr>
-                <th scope="col">Task</th>
-                <th scope="col">Agent</th>
-                <th scope="col">Turn</th>
-                <th scope="col">Purpose</th>
-                <th scope="col">Added</th>
-                <th scope="col">Result</th>
-              </tr>
-            </thead>
-            <tbody>
-              {trace.steps.map((s, i) => (
-                <tr key={`${s.task}-${s.turn}-${i}`}>
-                  <td>{s.task}</td>
-                  <td>{s.agent}</td>
-                  <td>{s.turn}</td>
-                  <td>{s.purpose}</td>
-                  <td>{s.new_observations + s.new_entities + s.new_findings}</td>
-                  <td>{s.note}</td>
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th scope="col">Task</th>
+                  <th scope="col">Agent</th>
+                  <th scope="col">Turn</th>
+                  <th scope="col">Purpose</th>
+                  <th scope="col">Added</th>
+                  <th scope="col">Result</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {trace.steps.map((s, i) => (
+                  <tr key={`${s.task}-${s.turn}-${i}`}>
+                    <td>{s.task}</td>
+                    <td>{s.agent}</td>
+                    <td>{s.turn}</td>
+                    <td>{s.purpose}</td>
+                    <td>{s.new_observations + s.new_entities + s.new_findings}</td>
+                    <td>{s.note}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
       )}
 
       {trace === null || trace.toolCalls.length === 0 ? null : (
         <section className="section section--wide">
           <h2 className="section__title">Every tool call</h2>
-          <table className="table">
-            <thead>
-              <tr>
-                <th scope="col">Agent</th>
-                <th scope="col">Tool</th>
-                <th scope="col">Outcome</th>
-                <th scope="col">Took</th>
-                <th scope="col">Result</th>
-              </tr>
-            </thead>
-            <tbody>
-              {trace.toolCalls.map((c, i) => (
-                <tr key={`${c.tool}-${i}`}>
-                  <td>{c.agent}</td>
-                  <td>{c.tool}</td>
-                  {/* -1 is a refusal: the contract or the budget said no. It is
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th scope="col">Agent</th>
+                  <th scope="col">Tool</th>
+                  <th scope="col">Outcome</th>
+                  <th scope="col">Took</th>
+                  <th scope="col">Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                {trace.toolCalls.map((c, i) => (
+                  <tr key={`${c.tool}-${i}`}>
+                    <td>{c.agent}</td>
+                    <td>{c.tool}</td>
+                    {/* -1 is a refusal: the contract or the budget said no. It is
                       shown, because an agent repeatedly reaching for something
                       it does not have is worth seeing. */}
-                  <td data-outcome={c.outcome}>{c.outcome === 1 ? 'ok' : c.outcome === 0 ? 'failed' : 'refused'}</td>
-                  <td>{formatDuration(c.duration_ms)}</td>
-                  <td>{c.result}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <td data-outcome={c.outcome}>{c.outcome === 1 ? 'ok' : c.outcome === 0 ? 'failed' : 'refused'}</td>
+                    <td>{formatDuration(c.duration_ms)}</td>
+                    <td>{c.result}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
       )}
 

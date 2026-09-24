@@ -242,9 +242,13 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
     if (runIds.length === 0) return reply.send({ findings: [], withheldCount: 0 });
 
     const rows = await d.query<Record<string, unknown>>(
+      /* The name travels with the finding. Five identical recommendations with
+         no indication of which business each is about is not a report. */
       `select f.id, f.statement, f.status, f.finding_type, f.reasoning_type, f.rule_id,
-              f.limitations, f.verification, f.verification_reason, f.entity_id, f.area
+              f.limitations, f.verification, f.verification_reason, f.entity_id, f.area,
+              e.canonical_name as entity_name
          from finding f
+         left join entity e on e.id = f.entity_id
         where f.audit_run_id = any($1::uuid[])
         order by f.ord`,
       [runIds],
@@ -275,12 +279,29 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
       category: z.string().max(60).optional(),
       has: z.string().max(200).optional(),
       lacks: z.string().max(200).optional(),
+      /* The headline question of this product is "businesses in this area with
+         this gap". Two calls and an intersection in the client is not that. */
+      lat: z.coerce.number().min(-90).max(90).optional(),
+      lon: z.coerce.number().min(-180).max(180).optional(),
+      radiusKm: z.coerce.number().positive().max(500).optional(),
       limit: z.coerce.number().int().min(1).max(200).default(50),
     });
     const parsed = parse(q, req.query);
     if (!parsed.ok) return reply.code(400).send({ error: 'invalid query', detail: parsed.detail });
     const a = parsed.data;
     const d = await getDriver();
+
+    /*
+     * The geography narrows the set BEFORE the capability filter.
+     *
+     * `findWithCapability` runs two queries per entity per capability, so
+     * handing it every business in the store and discarding the distant ones
+     * afterwards does the expensive part for rows that were never candidates.
+     */
+    const inArea =
+      a.lat !== undefined && a.lon !== undefined
+        ? new Set((await Q.findNearby(d, a.lat, a.lon, a.radiusKm ?? 10)).map((e) => e.id))
+        : null;
 
     if (a.has !== undefined || a.lacks !== undefined) {
       const rows = await Q.findWithCapability(d, {
@@ -290,7 +311,18 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
         limit: a.limit,
       });
       return reply.send({
-        entities: rows,
+        entities: inArea === null ? rows : rows.filter((e) => inArea.has(e.id)),
+        ...(inArea === null
+          ? {}
+          : {
+              /* Stated, because a business with no published coordinate cannot
+                 be inside or outside a radius — it is simply not on the map. */
+              geography: {
+                centre: { lat: a.lat, lon: a.lon },
+                radiusKm: a.radiusKm ?? 10,
+                note: 'Only businesses with a resolved coordinate can match a radius. Ones with an address and no coordinate are absent from this result rather than excluded by it.',
+              },
+            }),
         /* The wording is the product. "Lacks" here means a probe looked and
            found nothing, which is not the same as absence, and saying so in
            the payload means a client cannot label the column wrongly by
@@ -303,9 +335,9 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
 
     if (a.domain !== undefined) return reply.send({ entities: await Q.findByDomain(d, a.domain) });
     if (a.category !== undefined) return reply.send({ entities: await Q.findByCategory(d, a.category, a.limit) });
-    return reply.send({
-      entities: await Q.findEntities(d, { ...(a.type !== undefined ? { type: a.type } : {}), limit: a.limit }),
-    });
+
+    const plain = await Q.findEntities(d, { ...(a.type !== undefined ? { type: a.type } : {}), limit: a.limit });
+    return reply.send({ entities: inArea === null ? plain : plain.filter((e) => inArea.has(e.id)) });
   });
 
   app.get('/v1/entities/:id', async (req, reply) => {
@@ -356,16 +388,24 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
       return reply.send({ located: await Q.findNearby(d, a.lat, a.lon, a.radiusKm), centre: { lat: a.lat, lon: a.lon } });
     }
 
+    /*
+     * Businesses only.
+     *
+     * The pipeline creates entities for a business's website and for each of
+     * its contact points, and counting those as "not placed" made a map of four
+     * shops report five businesses it could not locate. A contact point is not
+     * somewhere.
+     */
     const rows = await d.query<Record<string, unknown>>(
       `select e.id, e.canonical_name as name, e.type, l.latitude, l.longitude, l.geocode, l.city, l.country
          from entity e join entity_location l on l.entity_id = e.id
-        where e.status = 'ACTIVE' and l.latitude is not null
+        where e.status = 'ACTIVE' and e.type = 'ORGANIZATION' and l.latitude is not null
         limit $1`,
       [a.limit],
     );
     const unlocated = await d.query<{ n: string }>(
       `select count(*)::text as n from entity e
-        where e.status = 'ACTIVE'
+        where e.status = 'ACTIVE' and e.type = 'ORGANIZATION'
           and not exists (select 1 from entity_location l where l.entity_id = e.id and l.latitude is not null)`,
     );
     return reply.send({
@@ -406,8 +446,10 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
       runIds.length === 0
         ? []
         : await d.query<Record<string, unknown>>(
-            `select f.id, f.statement, f.status, f.finding_type, f.reasoning_type, f.rule_id, f.limitations
+            `select f.id, f.statement, f.status, f.finding_type, f.reasoning_type, f.rule_id,
+                    f.limitations, e.canonical_name as entity_name
                from finding f
+               left join entity e on e.id = f.entity_id
               where f.audit_run_id = any($1::uuid[])
                 and f.verification <> 'REJECTED' and coalesce(f.status,'') <> 'UNSUPPORTED'
               order by f.ord`,

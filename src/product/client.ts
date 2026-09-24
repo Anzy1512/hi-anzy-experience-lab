@@ -35,8 +35,7 @@ export type Reach =
   | { state: 'UNREACHABLE'; detail: string };
 
 /** Where the service is. A build-time default, overridable at runtime. */
-export const DEFAULT_BASE =
-  (import.meta.env['VITE_AUDIT_API'] as string | undefined) ?? 'http://127.0.0.1:8787';
+export const DEFAULT_BASE = (import.meta.env['VITE_AUDIT_API'] as string | undefined) ?? 'http://127.0.0.1:8787';
 
 const KEY_STORAGE = 'hi-anzy-audit-key';
 
@@ -117,7 +116,10 @@ export class AuditClient {
     }
   }
 
-  private async call<T>(path: string, init: RequestInit = {}): Promise<{ ok: true; data: T } | { ok: false; status: number; detail: string }> {
+  private async call<T>(
+    path: string,
+    init: RequestInit = {},
+  ): Promise<{ ok: true; data: T } | { ok: false; status: number; detail: string }> {
     try {
       const res = await fetch(`${this.base}${path}`, { ...init, headers: this.headers() });
       const text = await res.text();
@@ -200,7 +202,19 @@ export interface AnswerBody {
     durationMs: number;
   };
   limitations: string[];
-  plan: { intent: string; steps: Array<{ id: string; description: string; source: string; modelClass: string; rationale: string; skipped?: { reason: string } }>; deterministicOnly: boolean; openQuestions: string[] };
+  plan: {
+    intent: string;
+    steps: Array<{
+      id: string;
+      description: string;
+      source: string;
+      modelClass: string;
+      rationale: string;
+      skipped?: { reason: string };
+    }>;
+    deterministicOnly: boolean;
+    openQuestions: string[];
+  };
 }
 
 export interface JobSummary {
@@ -273,7 +287,15 @@ export interface JobFindings {
 }
 
 export interface MapBody {
-  located: Array<{ id: string; name: string; type: string; latitude: number; longitude: number; city: string | null; country: string | null }>;
+  located: Array<{
+    id: string;
+    name: string;
+    type: string;
+    latitude: number;
+    longitude: number;
+    city: string | null;
+    country: string | null;
+  }>;
   unlocated: number;
   note: string;
 }
