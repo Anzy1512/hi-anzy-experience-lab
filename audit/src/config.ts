@@ -81,6 +81,17 @@ const Schema = z.object({
    */
   API_KEY: z.string().min(32, 'API_KEY must be at least 32 characters'),
 
+  /**
+   * Browser origins allowed to call this API, comma separated.
+   *
+   * Empty by default, which means no browser may call it at all. That is the
+   * correct default for a service holding a key that can spend money and fetch
+   * pages: a wildcard would let any page a visitor happens to have open make
+   * requests with their credentials, and "it is only development" is how that
+   * reaches production. A developer states the origin they want.
+   */
+  CORS_ORIGINS: blank(z.string().optional()),
+
   RATE_LIMIT_MAX: z.coerce.number().int().positive().default(60),
   RATE_LIMIT_WINDOW: z.string().default('1 minute'),
 
@@ -165,3 +176,9 @@ export const modelPrices: Record<string, { in: number; out: number }> = (() => {
     return {};
   }
 })();
+
+/** The parsed allowlist. Exact origins only; no patterns, no wildcards. */
+export const corsOrigins: string[] =
+  config.CORS_ORIGINS === undefined
+    ? []
+    : config.CORS_ORIGINS.split(',').map((o) => o.trim()).filter((o) => o !== '');

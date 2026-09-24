@@ -232,6 +232,16 @@ export async function runJob(d: Driver, jobId: string, opts: JobOptions = {}): P
         loop.record(subject);
         budget.spend({ tasks: 1 });
 
+        /*
+         * A follow-up inherits the request's own restrictions.
+         *
+         * Without this the verifier's extra research task tries to search,
+         * gets refused, and records a budget refusal for a job that was never
+         * allowed to fetch anything — work done to produce a misleading line in
+         * the report.
+         */
+        if (request.maxPages === 0 && request.maxSearches === 0) req.input['indexedOnly'] = true;
+
         const round = `${req.key}:r${loop.mayRepeat(subject) ? '2' : 'final'}`;
         await insertTask(d, jobId, { ...req, key: round }, 100 + budget.ledger.tasks, t.key);
         /* The analysis waits for the extra work rather than racing it. */
@@ -267,7 +277,7 @@ export async function runJob(d: Driver, jobId: string, opts: JobOptions = {}): P
    * search is not saturation. "Two more attempts found nothing" means something
    * only when two more attempts were allowed.
    */
-  if (termination === 'COMPLETE' && budget.refusals.length > 0) {
+  if (termination === 'COMPLETE' && budget.curtailed.length > 0) {
     termination = 'BUDGET_EXHAUSTED';
   }
 
@@ -280,7 +290,24 @@ export async function runJob(d: Driver, jobId: string, opts: JobOptions = {}): P
     if (typeof sat.reason === 'string') limitations.push(sat.reason);
   }
 
-  if (termination === 'BUDGET_EXHAUSTED') limitations.push(...budget.limitationLines());
+  limitations.push(...budget.limitationLines());
+
+  /*
+   * Stated from the REQUEST, not from whether a tool happened to ask.
+   *
+   * With fetching disallowed the agents never attempt it, so no refusal is
+   * recorded and the budget has nothing to report — and the job comes back with
+   * an empty limitations list, reading as though it had looked everywhere. What
+   * was excluded is a property of the request and belongs in the answer whether
+   * or not anything bumped into it.
+   */
+  if (request.maxPages === 0 && request.maxSearches === 0) {
+    limitations.push(
+      'This run was not permitted to fetch anything. It answered from material already in the ' +
+        'store, so nothing that would only be found by looking further was looked for.',
+    );
+  }
+
   if (pending.length > 0 && termination === 'COMPLETE') termination = 'BUDGET_EXHAUSTED';
 
   const answers = done
@@ -288,6 +315,19 @@ export async function runJob(d: Driver, jobId: string, opts: JobOptions = {}): P
     .flatMap((t) => ((t.output as { answers?: unknown[] } | null)?.answers ?? []));
 
   if (answers.length === 0 && termination === 'COMPLETE') termination = 'INSUFFICIENT_EVIDENCE';
+
+  /*
+   * What the answers themselves could not establish.
+   *
+   * The layer 4 engine states its limits per answer — unresolved fields, thin
+   * coverage, synthesis that did not happen. A job that dropped those on the
+   * floor would present the same conclusions with the qualifications removed,
+   * which is the one transformation this whole system exists to prevent.
+   */
+  for (const a of answers) {
+    const stated = (a as { limitations?: unknown }).limitations;
+    if (Array.isArray(stated)) limitations.push(...stated.filter((v): v is string => typeof v === 'string'));
+  }
   if (!provider.available && request.maxModelCalls > 0) {
     limitations.push(`No narrative was written: ${provider.unavailableReason ?? 'no model provider is configured'}.`);
   }
@@ -391,6 +431,21 @@ async function executeTask(d: Driver, jobId: string, t: TaskNode, x: ExecContext
       output: run.output,
       ...(run.ok ? {} : { error: run.note }),
     });
+
+    /*
+     * Link the task to the run it produced.
+     *
+     * The column was declared with layer 5 and nothing wrote it, which meant a
+     * finding could not be traced back to the job that caused it — the join
+     * existed on paper and returned nothing. Set only when there is exactly one
+     * run, because a task that answered for six businesses produced six, and
+     * picking one of those to be "the" run would be a false record. All of them
+     * are in the task's output either way.
+     */
+    const produced = runIdsIn(run.output);
+    if (produced.length === 1) {
+      await d.query('update task set audit_run_id = $2 where id = $1', [t.id, produced[0] ?? null]);
+    }
     /* A task that failed on its first attempt goes back in the queue; one that
        has used its attempts stays FAILED and blocks what depends on it. */
     if (!run.ok && t.attempts + 1 < MAX_ATTEMPTS) await setTaskState(d, t.id, 'PENDING', { error: run.note });
@@ -524,6 +579,15 @@ async function systemTask(
     requests: [],
     note: 'reported',
   };
+}
+
+/** Every layer-4 run named in a task's output, in order. */
+export function runIdsIn(output: unknown): string[] {
+  const answers = (output as { answers?: unknown } | null)?.answers;
+  if (!Array.isArray(answers)) return [];
+  return answers
+    .map((a) => (a as { runId?: unknown }).runId)
+    .filter((v): v is string => typeof v === 'string');
 }
 
 /* -------------------------------------------------------------------------- */

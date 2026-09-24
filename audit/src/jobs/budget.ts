@@ -44,6 +44,14 @@ export interface Refusal {
   resource: Resource;
   used: number;
   limit: number;
+  /**
+   * True when the limit was zero — the caller excluded this entirely.
+   *
+   * "You allowed five pages and I wanted ten" and "you allowed none and I
+   * fetched none" are different facts, and collapsing them makes a run that did
+   * exactly what it was told report itself as having stopped short.
+   */
+  deliberate: boolean;
   /** A sentence for the job's limitations list, not a log line. */
   reason: string;
 }
@@ -177,23 +185,33 @@ export class Budget {
   }
 
   private refuse(resource: Resource, used: number, limit: number): Refusal {
+    const deliberate = limit === 0;
     const r: Refusal = {
       resource,
       used,
       limit,
-      reason: `stopped at the ${resource} budget: ${used} of ${limit} used`,
+      deliberate,
+      reason: deliberate
+        ? `${resource} were not permitted by the request`
+        : `stopped at the ${resource} budget: ${used} of ${limit} used`,
     };
     /* Deduplicated: the same wall hit forty times is one fact about the job. */
     if (!this.refusals.some((x) => x.resource === resource)) this.refusals.push(r);
     return r;
   }
 
+  /** Refusals that actually cut the research short, as against ones asked for. */
+  get curtailed(): Refusal[] {
+    return this.refusals.filter((r) => !r.deliberate);
+  }
+
   /** The sentences a job's `limitations` should carry because of this budget. */
   limitationLines(): string[] {
-    return this.refusals.map(
-      (r) =>
-        `Research stopped short on ${r.resource}: ${r.used} of a permitted ${r.limit}. ` +
-        'Raising that limit would let it look further; it does not mean nothing more exists.',
+    return this.refusals.map((r) =>
+      r.deliberate
+        ? `No ${r.resource} were permitted by this request, so none were used. Anything only obtainable that way was not looked for.`
+        : `Research stopped short on ${r.resource}: ${r.used} of a permitted ${r.limit}. ` +
+          'Raising that limit would let it look further; it does not mean nothing more exists.',
     );
   }
 }

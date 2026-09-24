@@ -4,11 +4,12 @@ import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import sensible from '@fastify/sensible';
 
-import { config, usingPglite } from './config.ts';
+import { config, corsOrigins, usingPglite } from './config.ts';
 import { getDriver, vectorReady } from './db/client.ts';
 import { EMBEDDING_DIM } from './db/schema.ts';
 import { ProviderRegistry } from './search/providers.ts';
 import { getEmbedder } from './embed/index.ts';
+import { productRoutes } from './api/routes.ts';
 
 /**
  * THE SERVICE, AND THE THREE THINGS IT REFUSES TO DO WITHOUT.
@@ -93,8 +94,40 @@ export async function build(): Promise<FastifyInstance> {
     keyGenerator: (req) => presentedKey(req) ?? req.ip,
   });
 
+  /*
+   * CORS, by hand and by allowlist, BEFORE authentication.
+   *
+   * Twenty lines rather than a dependency: exact origins from configuration,
+   * no credentials, no wildcard, no pattern matching. The dangerous parts of
+   * CORS are all in the features not used here, and a version that cannot
+   * express them cannot get them wrong.
+   *
+   * The order is the part that matters and the part that was wrong first time.
+   * A GET carrying an `authorization` header is not a simple request, so the
+   * browser sends an OPTIONS preflight — with no credentials, because it never
+   * sends them on one. Registered after the auth hook, that preflight is
+   * answered 401 with no CORS headers, and every request from the browser fails
+   * with "Failed to fetch" for a reason that has nothing to do with the key.
+   * Found by opening the page rather than by reading the code.
+   */
+  if (corsOrigins.length > 0) {
+    app.addHook('onRequest', async (req, reply) => {
+      const origin = req.headers.origin;
+      if (typeof origin !== 'string' || !corsOrigins.includes(origin)) return;
+      reply.header('access-control-allow-origin', origin);
+      reply.header('vary', 'origin');
+      reply.header('access-control-allow-headers', 'authorization, x-api-key, content-type');
+      reply.header('access-control-allow-methods', 'GET, POST, OPTIONS');
+      reply.header('access-control-max-age', '600');
+      if (req.method === 'OPTIONS') await reply.code(204).send();
+    });
+  }
+
   /* ---- authentication ---------------------------------------------------- */
   app.addHook('onRequest', async (req, reply) => {
+    /* A preflight carries no credentials by definition; it is answered above
+       when the origin is allowed, and refused by the browser when it is not. */
+    if (req.method === 'OPTIONS') return;
     if (PUBLIC_ROUTES.has(req.url.split('?')[0] ?? '')) return;
     const presented = presentedKey(req);
     if (presented === null || !keyMatches(presented)) {
@@ -117,6 +150,8 @@ export async function build(): Promise<FastifyInstance> {
       requestId: req.id,
     });
   });
+
+  await app.register(productRoutes);
 
   app.setNotFoundHandler((req, reply) => {
     reply.code(404).send({ error: 'not found', path: req.url });
@@ -176,8 +211,10 @@ export async function build(): Promise<FastifyInstance> {
         corpus: true,
         ingestion: true,
         retrieval: true,
-        /* Layer 4. False, and said out loud rather than discovered by 404. */
-        synthesis: false,
+        /* Layers 4 and 5, both built. `/v1/capabilities` says the same thing
+           in more detail; this stays so a readiness probe is self-contained. */
+        synthesis: true,
+        jobs: true,
         search: config.SEARCH_PROVIDER !== 'none',
         /* Direct URL ingestion never depends on a search provider, so this is
            true whether or not one is configured. It is the reason the service

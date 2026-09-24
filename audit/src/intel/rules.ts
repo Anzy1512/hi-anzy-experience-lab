@@ -163,8 +163,14 @@ const ecommerce: Rule = {
         key: 'ecommerce',
         entityId: ctx.entityId,
         findingType: 'ECOMMERCE_NOT_OBSERVED',
+        /*
+         * The presence rule has already said there is a site, and repeating it
+         * here made the summary read "X has a website. X has a website, and…".
+         * What this finding adds is the absence of a way to buy, and where it
+         * was looked for.
+         */
         statement: hasSite
-          ? `${ctx.entityName} has a website, and no way to buy from it was found.`
+          ? `No way to buy from ${ctx.entityName} was found on the site that was read.`
           : `No way to buy from ${ctx.entityName} online was found.`,
         inference:
           'The pages that were fetched were searched for cart paths, checkout routes, product markup and ' +
@@ -265,6 +271,13 @@ const corroboration: Rule = {
   run(ctx) {
     if (ctx.sourceCount === 0) return [];
     if (ctx.sourceCount > 1) return [];
+    /*
+     * Cite the source, not whatever happened to be first in the packet.
+     * An observation carries the URL it was read from, which is the single
+     * source this finding is about; a capability probe does not, and citing one
+     * made the finding point at something unrelated to its own claim.
+     */
+    const source = ctx.packet.items.find((i) => i.kind === 'observation') ?? ctx.packet.items[0];
     return [
       derived({
         key: 'corroboration',
@@ -272,7 +285,7 @@ const corroboration: Rule = {
         findingType: 'SINGLE_SOURCE_ENTITY',
         statement: `Everything known about ${ctx.entityName} comes from one source.`,
         inference: 'Distinct documents behind this entity were counted, and there is one.',
-        citations: ctx.packet.items.slice(0, 1).map((i) => i.id),
+        citations: source === undefined ? [] : [source.id],
         /* About the research rather than about the company, so no diagnostic
            area is claimed. Forcing it into one would invent a category. */
         area: null,

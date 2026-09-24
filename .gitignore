@@ -1,5 +1,6 @@
 node_modules
 dist
+dist-product
 .playwright-mcp
 *.local
 .DS_Store
