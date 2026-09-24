@@ -15,6 +15,13 @@
       "when": 1790256432749,
       "tag": "0001_layer2",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790258401019,
+      "tag": "0002_layer3_entities",
+      "breakpoints": true
     }
   ]
 }

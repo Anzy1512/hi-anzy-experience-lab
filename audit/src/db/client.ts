@@ -8,7 +8,11 @@ import { mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { config, usingPglite } from '../config.ts';
-import { schema } from './schema.ts';
+import { schema as corpusSchema } from './schema.ts';
+import { entitySchema } from './entities.ts';
+
+/* One schema object for drizzle, assembled from the two files that declare it. */
+const schema = { ...corpusSchema, ...entitySchema };
 
 /**
  * ONE DATABASE, TWO PLACES IT CAN LIVE.

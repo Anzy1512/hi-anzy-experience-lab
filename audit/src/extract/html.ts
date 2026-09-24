@@ -214,7 +214,34 @@ export interface HtmlExtraction extends Extraction {
   blocks: Block[];
 }
 
-export function extractHtml(html: string, url: string): HtmlExtraction {
+/**
+ * Wrap anything that is not a document in one.
+ *
+ * linkedom throws on `document.body` when there is no `<html>` element, and an
+ * empty string, whitespace or a bare text fragment all produce exactly that.
+ * Each of those is reachable: the crawler has an explicit empty-body path, and
+ * `text/plain` is in its content-type allowlist. Found when the entity layer
+ * ran the extractor over a body the fixture served empty — which is the same
+ * shape a real 200-with-no-content produces.
+ *
+ * Wrapping rather than refusing is deliberate: a plain-text page still has
+ * content worth extracting, and returning an empty extraction would lose it.
+ */
+function asDocumentHtml(html: string): string {
+  const trimmed = html.trim();
+  if (trimmed === '') return '<html><head></head><body></body></html>';
+  if (/^\s*(<!doctype|<html)/i.test(trimmed)) return html;
+  /* A fragment with markup keeps it; plain text is escaped so that a stray
+     angle bracket cannot invent an element. */
+  const looksLikeMarkup = /<[a-z][\s\S]*>/i.test(trimmed);
+  const body = looksLikeMarkup
+    ? trimmed
+    : `<pre>${trimmed.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
+  return `<html><head></head><body>${body}</body></html>`;
+}
+
+export function extractHtml(rawHtml: string, url: string): HtmlExtraction {
+  const html = asDocumentHtml(rawHtml);
   const { document } = parseHTML(html);
 
   const jsonld = parseJsonLd(document);

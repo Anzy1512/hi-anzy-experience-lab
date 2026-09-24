@@ -52,8 +52,8 @@ Built one over another. Each is runnable and verified before the next starts.
 |---|---|---|
 | **1** | **Corpus + service foundation** — schema, migrations, dual driver, security baseline, health | **DONE, verified** |
 | **2** | **Discovery → crawl → extract → chunk → embed → index → retrieve**, with provenance at every step | **DONE, verified** |
-| 3 | Subject resolution, evidence assembly, scheduled enrichment | next |
-| 4 | Synthesis — findings against the canonical areas | |
+| **3** | **Observations → entities → relationships → commercial knowledge graph**, with a resolver allowed to refuse | **DONE, verified** |
+| 4 | Synthesis — findings against the canonical areas | next |
 | 5 | API + Agency Simulator integration | |
 | 6 | Continuous enrichment — freshness decay, re-crawl policy | |
 | 7 | Evaluation / training export — the dataset layers 1 and 2 have been accumulating all along | |
@@ -213,6 +213,144 @@ That is not decoration. It means the deterministic Simulator and this service
 speak one language, a real audit drops into the surface the Lab already built,
 and **neither side can invent a category to make an answer fit** — the database
 rejects it.
+
+---
+
+## LAYER 3
+
+```
+SOURCE → OBSERVATION → ENTITY → RELATIONSHIP → EVIDENCE
+```
+
+Four things kept apart, because collapsing any two produces the same failure in
+different costumes. An `entity` row with a `phone` column gets overwritten by
+whichever crawl ran last, and the fact that two sources disagreed — the
+interesting part — vanishes with no trace it existed.
+
+So `entity` carries almost nothing: an identity and a status. Everything else
+hangs off it as claims, and every claim points back at the observations that
+support it. No model is consulted anywhere in this layer.
+
+### A false merge is worse than a duplicate
+
+Two rows for one cafe is untidy and reversible. One row fusing two different
+cafes silently attributes one business's phone number, address and categories
+to another, every query downstream inherits it, and **the fused row looks
+exactly like a well-evidenced one**. There is no signal that anything is wrong.
+
+Every rule is set to fail toward AMBIGUOUS, and the refusal is stored rather
+than resolved away:
+
+| | |
+|---|---|
+| `SAME_ENTITY` | a shared identifier that is unique by construction |
+| `PROBABLE_SAME` | suggestive, and a human should decide — **does not auto-merge** |
+| `AMBIGUOUS` | similar, with nothing corroborating either way |
+| `PROBABLE_DIFFERENT` | something concrete says these are two businesses |
+| `DIFFERENT_ENTITY` | no shared identifier, no shared place, names do not match |
+
+Never one number. `confidence = 87` cannot be argued with, acted on or
+corrected; *"PROBABLE_DIFFERENT: names are alike (0.67) but both declare a
+different domain"* can be all three.
+
+### Three rules that came from being wrong
+
+- **A domain is not unique by construction.** A company number, a marketplace
+  storefront, a social account and a mailbox each belong to one party by how
+  they are issued. A domain does not — group sites, agencies and directories
+  put many businesses behind one. A fixture serving two unrelated businesses
+  from one host merged them, and now a shared domain with unrelated names is
+  `PROBABLE_SAME`, not `SAME_ENTITY`.
+- **A blocker is positive evidence of difference, not an absence of evidence.**
+  "Grand Hotel Delhi" against "Grand Hotel Gurgaon" scores 0.67 and shares two
+  of three tokens. The guard's threshold started at 0.8, let it fall through to
+  AMBIGUOUS, and a test caught it.
+- **Conflicts are across sources, not within a document.** The first version
+  compared only the values in the page being processed, so a phone number that
+  changed between two crawls — the whole point of the conflict model — never
+  disagreed with itself.
+
+### Only the same type is ever compared
+
+A BRAND and a BUSINESS_LOCATION are never candidates to be the same thing,
+however alike their names. The relationship between them is `OPERATES` or
+`BRAND_OF`, and merging them would destroy the distinction a chain depends on.
+**PERSON is not in the enum** — an OSINT tool that names private individuals
+is a different product with different obligations, so the database refuses it
+rather than a convention discouraging it.
+
+### UNKNOWN is a value, never an absence
+
+`NOT_OBSERVED` and `UNKNOWN` are separate states, and neither is `false`:
+
+| | |
+|---|---|
+| `CONFIRMED` | a platform fingerprint, or equivalent |
+| `PROBABLE` | signals totalling enough to lean on |
+| `NOT_OBSERVED` | **somebody looked and did not find** |
+| `UNKNOWN` | nobody looked |
+
+"This business has no ecommerce" is not something a crawler can establish. It
+can establish that it fetched four pages and found no cart — the shop may be on
+a subdomain nobody linked, on a marketplace, in an app, or behind robots.txt.
+`capability_probe` records what was looked FOR, which is the only thing that
+makes the distinction possible.
+
+### Merges are reversible because nothing is deleted
+
+The merged entity keeps its row, its status becomes `MERGED`, `merged_into`
+points at the survivor, and every row that moved is listed in
+`entity_merge.moved`. `undoMerge` reads that list — it is implemented and
+tested, not merely designed for. A stale id still resolves through
+`resolveAlias`.
+
+### Nothing is geocoded, and no country is assumed
+
+`geocode_status` distinguishes NO_PROVIDER, UNRESOLVED and RESOLVED, which a
+nullable latitude cannot. Coordinates are never derived from a postcode or a
+city name: an approximate point renders on a map exactly like a real one, and
+"near this address" becomes a confident wrong answer.
+
+`normalizePhone` takes `defaultCountry` as a **parameter with no default**. A
+number with no country stated normalises to its national significant digits and
+is treated as weaker evidence — it brings candidates together without asserting
+they are the same number.
+
+### Blocking, because O(N²) is not slow, it is unrunnable
+
+`npx tsx src/bench-entity.ts`:
+
+| Corpus | Blocking lookup | Resolve 1 pair | findByDomain |
+|---|---|---|---|
+| 200 | 6.1 ms | 0.60 ms | 1.7 ms |
+| 1,000 | 11.5 ms | 0.14 ms | 1.4 ms |
+| 4,000 | 28.0 ms | 0.07 ms | 1.0 ms |
+
+Normalisation runs at roughly 259k names/sec, 478k phones/sec, 280k
+similarities/sec. The corpus grew 20x and the blocking lookup grew 4.5x;
+pairwise comparison would have grown 400x. Candidates per record are **capped**
+at 50 — a bound by choice, not a measurement of natural flatness.
+
+### The closure gate, against the real public web
+
+`npm run closure`:
+
+```
+https://hianzy.com/                 blocked_robots — disallowed by robots.txt
+https://www.postgresql.org/about/   ok
+https://www.postgresql.org/support/security/  ok  → SAME_ENTITY (same domain)
+https://www.mozilla.org/en-US/about/          ok  → NEW
+https://foundation.mozilla.org/en/            ok  → PROBABLE_DIFFERENT
+        because: names are alike (0.67) but both declare a different domain
+```
+
+The intended subject was hianzy.com, whose robots.txt is `Disallow: /`. The
+crawler refuses it. That is shown rather than worked around.
+
+Mozilla and the Mozilla Foundation are genuinely two organisations with
+confusable names — exactly where a similarity score merges and a rule set must
+not. Given the same pair as a stockist list would record them, with no site of
+their own, the engine answers `AMBIGUOUS` and leaves it for a person.
 
 ---
 

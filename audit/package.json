@@ -16,8 +16,10 @@
     "db:studio": "drizzle-kit studio",
     "db:reset": "tsx src/db/reset.ts",
     "check": "tsx src/db/doctor.ts",
-    "test": "tsx --test test/unit.test.ts test/crawl.test.ts test/storage.test.ts",
-    "test:pg": "tsx --test test/storage.test.ts"
+    "test": "tsx --test test/unit.test.ts test/crawl.test.ts test/storage.test.ts test/entity.test.ts test/graph.test.ts",
+    "test:pg": "tsx --test --test-concurrency=1 test/storage.test.ts test/graph.test.ts",
+    "closure": "tsx src/closure.ts",
+    "bench:entity": "tsx src/bench-entity.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.3.11",
