@@ -1,4 +1,5 @@
 import { fieldAt, fieldRange } from '../../graphics/field';
+import { hash01 } from '../../graphics/particles';
 
 /**
  * MATERIAL STATES — where every particle is supposed to be.
@@ -51,12 +52,10 @@ export const STATE_NOTE: Record<MatterState, string> = {
 };
 
 /** Deterministic per-particle pseudo-random in [0,1). */
-function rnd(i: number, salt: number): number {
-  let h = (i * 374761393 + salt * 668265263) >>> 0;
-  h = (h ^ (h >>> 13)) >>> 0;
-  h = Math.imul(h, 1274126177) >>> 0;
-  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
-}
+/* The hash lives in `graphics/particles` with the delays and seeds it feeds.
+   Aliased rather than renamed at every call site, because this file uses it
+   forty times and the diff would bury the one change that matters. */
+const rnd = hash01;
 
 export interface TargetOptions {
   count: number;
@@ -307,15 +306,7 @@ export function buildTargets(state: MatterState, { count, spread }: TargetOption
 }
 
 /** Per-particle transition delay, so a state change sweeps rather than snaps. */
-export function buildDelays(count: number): Float32Array {
-  const out = new Float32Array(count);
-  for (let i = 0; i < count; i++) out[i] = rnd(i, 41) * 0.55;
-  return out;
-}
+/* `buildDelays` and `buildSeeds` moved to `graphics/particles`: they take a
+   count and nothing else, so they were always the renderer's, not Matter's. */
 
-/** Per-particle seed, used for size variation and force response. */
-export function buildSeeds(count: number): Float32Array {
-  const out = new Float32Array(count);
-  for (let i = 0; i < count; i++) out[i] = rnd(i, 51);
-  return out;
-}
+

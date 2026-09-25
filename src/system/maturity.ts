@@ -288,7 +288,6 @@ export const MANIFESTS: Manifest[] = [
     standalone: {
       candidate: true,
       blockers: [
-        'PRESENCE imports its ParticleField. Matter can be extracted; Presence would break unless the renderer moves to the platform first — see that manifest.',
         'Requires WebGL and the SPATIAL canvas; the reduced/no-WebGL path lists states rather than rendering them, which is correct but is a second surface to carry.',
       ],
     },
@@ -451,16 +450,15 @@ export const MANIFESTS: Manifest[] = [
     layer: 'INSTRUMENT',
     owns: 'modes/presence',
     consumes: [...BASE, 'BRAND', 'SPATIAL'],
-    dependsOnSiblings: [
-      {
-        id: 'matter-engine',
-        what: 'modes/presence/PresenceMode.tsx imports modes/matter/ParticleField.tsx',
-        why:
-          'The renderer is not generic: it calls Matter\'s own buildTargets() over Matter\'s MatterState vocabulary. Moving it to the platform would drag a product\'s domain model into shared code, and giving Presence its own formation would change what it draws — a behaviour regression this phase does not permit. Presence uses exactly one state ("field"), statically.',
-        removalPath:
-          'Change ParticleField to accept prebuilt from/to Float32Array buffers instead of MatterState names, move it to graphics/, and have each caller build its own formation. Matter keeps buildTargets and its state vocabulary; Presence gains a single static formation of its own. Needs a visual comparison before and after, because the field is the mode.',
-      },
-    ],
+    /* Cut. The renderer took Matter's `MatterState` vocabulary and called its
+       `buildTargets` itself; it now takes two prebuilt Float32Array buffers and
+       lives in `graphics/`, so each caller composes its own formation. Matter
+       keeps its six states; Presence has one lattice of its own in
+       `modes/presence/field.ts`. Verified by digesting all six formations plus
+       the delays and seeds before and after — every one identical — and by
+       confirming Presence's lattice matches what Matter's `field` produced at
+       the same spread. */
+    dependsOnSiblings: [],
     persistence: 'NONE',
     maturity: 'ALPHA',
     evidence:
@@ -469,14 +467,14 @@ export const MANIFESTS: Manifest[] = [
       INPUT: 'PASS', TRANSFORMATION: 'PASS', OUTPUT: 'PASS', ARTIFACT: 'N/A',
       CONTINUE: 'N/A', PERSISTENCE: 'N/A', RESUME: 'N/A', ERROR_STATES: 'PASS',
       LIMITATIONS: 'PASS', ACCESSIBILITY: 'PASS', RESPONSIVE: 'PASS', LIFECYCLE: 'PASS',
-      PERFORMANCE: 'UNVERIFIED', DEPENDENCY_ISOLATION: 'OPEN', STATE_ISOLATION: 'PASS',
+      PERFORMANCE: 'UNVERIFIED', DEPENDENCY_ISOLATION: 'PASS', STATE_ISOLATION: 'PASS',
       EXPORT: 'N/A', PRIVACY: 'PASS', DEPLOYABILITY: 'OPEN',
     },
     standalone: {
       candidate: false,
       blockers: [
-        'DEPENDENCY_ISOLATION is OPEN — the only sibling import in the Lab. Extracting Presence today would take Matter Engine with it.',
         'The camera path is UNVERIFIED on physical hardware and must stay marked so.',
+        'DEPLOYABILITY is OPEN for every reality: no independent route or build target exists yet.',
       ],
     },
   },

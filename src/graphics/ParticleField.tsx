@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { useDisposable } from '../../spatial/disposal';
-import { buildDelays, buildSeeds, buildTargets, type MatterState } from './targets';
+import { useDisposable } from '../spatial/disposal';
+import { buildDelays, buildSeeds } from './particles';
 
 /**
  * THE FIELD — one draw call, N particles, no physics sandbox.
@@ -30,10 +30,21 @@ import { buildDelays, buildSeeds, buildTargets, type MatterState } from './targe
  */
 
 interface Props {
-  count: number;
-  state: MatterState;
-  previous: MatterState;
-  /** 0 → previous formation, 1 → current formation. */
+  /**
+   * The two formations, as flat xyz buffers of the same length.
+   *
+   * Prebuilt by the caller rather than named. This used to take Matter
+   * Engine's `MatterState` vocabulary and call its `buildTargets` itself,
+   * which meant Presence — a mode that draws one static field and has no
+   * states at all — imported a sibling mode to get a renderer. The formations
+   * are the caller's domain; arranging them is this component's.
+   *
+   * Identity matters: the geometry is rebuilt when `to` changes, so a caller
+   * that builds a new array every render would rebuild every frame. Memoise.
+   */
+  from: Float32Array;
+  to: Float32Array;
+  /** 0 → `from`, 1 → `to`. */
   progressRef: { current: number };
   /** Pointer in world space plus force sign: +1 attract, −1 repel, 0 off. */
   forceRef: { current: { x: number; y: number; sign: number } };
@@ -116,9 +127,8 @@ const FRAG = /* glsl */ `
 `;
 
 export function ParticleField({
-  count,
-  state,
-  previous,
+  from,
+  to,
   progressRef,
   forceRef,
   spread,
@@ -129,8 +139,7 @@ export function ParticleField({
 
   const geometry = useMemo(() => {
     const g = new THREE.BufferGeometry();
-    const from = buildTargets(previous, { count, spread });
-    const to = buildTargets(state, { count, spread });
+    const count = to.length / 3;
     g.setAttribute('position', new THREE.Float32BufferAttribute(to.slice(), 3));
     g.setAttribute('tFrom', new THREE.Float32BufferAttribute(from, 3));
     g.setAttribute('tTo', new THREE.Float32BufferAttribute(to, 3));
@@ -140,10 +149,11 @@ export function ParticleField({
     // a generous sphere so nothing is wrongly frustum-culled.
     g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), spread * 3);
     return g;
-    // `previous` deliberately excluded: a new formation is built when `state`
-    // changes, reading whatever `previous` was at that moment.
+    // `from` deliberately excluded: the geometry is rebuilt when the
+    // DESTINATION changes, reading whatever `from` was at that moment — which
+    // is what makes a transition start from where the last one ended.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state, count, spread]);
+  }, [to, spread]);
 
   useDisposable(geometry);
 
