@@ -1104,3 +1104,36 @@
   align-items: end;
   gap: var(--s-2) var(--s-3);
 }
+
+/* ---- survey by category: a form's filters, in the desk's own fields ----------- */
+.sv-filters {
+  margin-top: var(--s-2);
+}
+/* a set of inputs under one label: no box, the label set like a field's */
+.sv-filters__set {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.sv-filters__set legend {
+  padding: 0;
+  margin-bottom: 4px;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+}
+/* a range: at least, at most, side by side */
+.sv-filters__set:not(.sv-filters__options) {
+  display: flex;
+  gap: 6px;
+}
+.sv-filters__set input[type='number'] {
+  width: 13ch;
+}
+/* options run across the sheet, as many to a line as fit */
+.sv-filters__options {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--s-3);
+}

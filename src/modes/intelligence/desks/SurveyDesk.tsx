@@ -12,9 +12,11 @@ import {
   type Judgement,
   type ResultItem,
   type ReviewPair,
+  type SearchForm,
   type SearchStatus,
   type Verdict,
 } from '../engine';
+import CategoryAsk from './CategoryAsk';
 import { Plate, type Mark } from '../Plate';
 import { NeedsEngine } from '../EngineLine';
 import { POLL_MS, domainOf, isReady, when, type DeskProps, type Handover } from '../link';
@@ -33,6 +35,10 @@ import { POLL_MS, domainOf, isReady, when, type DeskProps, type Handover } from 
  * A saved search from the ARCHIVE opens here as it was saved; a place handed
  * over from AREAS or LOCATORS is added to the next question when it is not
  * already named in it.
+ *
+ * The same survey can be asked BY CATEGORY instead of in words (D-066): kinds of
+ * business from the engine's catalogue, a place and filters, which the engine
+ * turns into the specification a question would have become.
  */
 
 const PAGE = 100;
@@ -42,6 +48,10 @@ const EXAMPLES = [
   'cafés without a website within 2 km of connaught place',
 ];
 const DEPTHS = ['quick', 'standard', 'deep', 'exhaustive'] as const;
+const HOW: ['words' | 'category', string][] = [
+  ['words', 'IN WORDS'],
+  ['category', 'BY CATEGORY AND FILTERS'],
+];
 
 type View = 'ledger' | 'relations' | 'review';
 
@@ -99,6 +109,8 @@ function whyNot(item: ResultItem, c: { field: string; reason: string | null }): 
 export default function SurveyDesk({ engineState, signal, go, receive, take }: DeskProps) {
   const [initial] = useState<Handover | undefined>(() => take('survey'));
   const [question, setQuestion] = useState(initial?.question ?? '');
+  const [how, setHow] = useState<'words' | 'category'>('words');
+  const [form, setForm] = useState<SearchForm | null>(null);
   const [place, setPlace] = useState<string | null>(initial?.place ?? null);
   const [depth, setDepth] = useState<(typeof DEPTHS)[number]>('standard');
   const [checks, setChecks] = useState('');
@@ -196,13 +208,15 @@ export default function SurveyDesk({ engineState, signal, go, receive, take }: D
   const submit = useCallback(
     (event?: FormEvent) => {
       event?.preventDefault();
-      if (!ready || asked.length < 3) return;
+      const byCategory = how === 'category';
+      if (!ready || (byCategory ? form === null : asked.length < 3)) return;
       const run = reset();
       const started = performance.now();
       void (async () => {
         const n = Number.parseInt(checks, 10);
+        const extra = { depth, ...(Number.isFinite(n) && n >= 0 ? { checks: n } : {}) };
         const begun = await engine.start(
-          { query: asked, depth, ...(Number.isFinite(n) && n >= 0 ? { checks: n } : {}) },
+          byCategory && form ? { form, ...extra } : { query: asked, ...extra },
           signal,
         );
         if (run !== runId.current) return;
@@ -214,7 +228,7 @@ export default function SurveyDesk({ engineState, signal, go, receive, take }: D
         await follow(begun.value.id, run, started);
       })();
     },
-    [asked, checks, depth, follow, ready, reset, signal],
+    [asked, checks, depth, follow, form, how, ready, reset, signal],
   );
 
   /* ---- what other desks hand this one ------------------------------------- */
@@ -230,6 +244,7 @@ export default function SurveyDesk({ engineState, signal, go, receive, take }: D
     () =>
       receive('survey', (h) => {
         if (h.question !== undefined) {
+          setHow('words');
           setQuestion(h.question);
           setPlace(h.place ?? null);
           setFocusAsk((n) => n + 1);
@@ -335,41 +350,61 @@ export default function SurveyDesk({ engineState, signal, go, receive, take }: D
     <>
       <NeedsEngine state={engineState} />
       <form className="sv-ask" onSubmit={submit} aria-label="Ask the engine">
-        <label className="t-mono t-mono-xs sv-label" htmlFor="sv-question">
-          QUESTION
-        </label>
-        <input
-          id="sv-question"
-          ref={input}
-          className="sv-question"
-          type="text"
-          value={question}
-          maxLength={500}
-          autoComplete="off"
-          spellCheck={false}
-          placeholder={place ? `what to look for in ${place}` : EXAMPLES[0]}
-          onChange={(e) => setQuestion(e.target.value)}
-        />
-        {place && (
-          <p className="t-mono t-mono-xs sv-place">
-            <span className="t-faint">PLACE · </span>
-            {place.toUpperCase()}
-            <span className="t-faint"> — ADDED AS “IN {place.toUpperCase()}” WHEN THE QUESTION DOES NOT NAME IT · </span>
-            <button type="button" className="sv-link" onClick={() => setPlace(null)}>
-              DROP IT
+        <div className="sv-views sv-views--flush" role="radiogroup" aria-label="How to ask">
+          {HOW.map(([h, label]) => (
+            <button
+              key={h}
+              type="button"
+              role="radio"
+              aria-checked={how === h}
+              className="t-mono t-mono-xs sv-tab"
+              onClick={() => setHow(h)}
+            >
+              {label}
             </button>
-          </p>
+          ))}
+        </div>
+        {how === 'category' ? (
+          <CategoryAsk ready={ready} signal={signal} initialPlace={place} onForm={setForm} />
+        ) : (
+          <>
+            <label className="t-mono t-mono-xs sv-label" htmlFor="sv-question">
+              QUESTION
+            </label>
+            <input
+              id="sv-question"
+              ref={input}
+              className="sv-question"
+              type="text"
+              value={question}
+              maxLength={500}
+              autoComplete="off"
+              spellCheck={false}
+              placeholder={place ? `what to look for in ${place}` : EXAMPLES[0]}
+              onChange={(e) => setQuestion(e.target.value)}
+            />
+            {place && (
+              <p className="t-mono t-mono-xs sv-place">
+                <span className="t-faint">PLACE · </span>
+                {place.toUpperCase()}
+                <span className="t-faint"> — ADDED AS “IN {place.toUpperCase()}” WHEN THE QUESTION DOES NOT NAME IT · </span>
+                <button type="button" className="sv-link" onClick={() => setPlace(null)}>
+                  DROP IT
+                </button>
+              </p>
+            )}
+            <p className="t-mono t-mono-xs sv-reading" aria-live="polite">
+              {readAs ? (
+                <>
+                  <span className="t-faint">READ AS · </span>
+                  {readAs}
+                </>
+              ) : (
+                <span className="t-faint">READ AS · —</span>
+              )}
+            </p>
+          </>
         )}
-        <p className="t-mono t-mono-xs sv-reading" aria-live="polite">
-          {readAs ? (
-            <>
-              <span className="t-faint">READ AS · </span>
-              {readAs}
-            </>
-          ) : (
-            <span className="t-faint">READ AS · —</span>
-          )}
-        </p>
         <div className="sv-ask__row">
           <label className="t-mono t-mono-xs sv-field">
             DEPTH
@@ -393,34 +428,42 @@ export default function SurveyDesk({ engineState, signal, go, receive, take }: D
               onChange={(e) => setChecks(e.target.value)}
             />
           </label>
-          <button type="submit" className="sv-btn sv-btn--signal" disabled={!ready || asked.length < 3 || running}>
+          <button
+            type="submit"
+            className="sv-btn sv-btn--signal"
+            disabled={!ready || running || (how === 'category' ? form === null : asked.length < 3)}
+          >
             {running ? 'SURVEYING…' : 'SURVEY'}
           </button>
-          <button
-            type="button"
-            className="sv-btn"
-            disabled={asked.length < 3}
-            onClick={() => go('datasets', { questions: [asked] })}
-          >
-            ADD TO A DATASET
-          </button>
+          {how === 'words' && (
+            <button
+              type="button"
+              className="sv-btn"
+              disabled={asked.length < 3}
+              onClick={() => go('datasets', { questions: [asked] })}
+            >
+              ADD TO A DATASET
+            </button>
+          )}
         </div>
-        <ul className="sv-examples" aria-label="Example questions">
-          {EXAMPLES.map((ex) => (
-            <li key={ex}>
-              <button
-                type="button"
-                className="sv-example t-body-s"
-                onClick={() => {
-                  setQuestion(ex);
-                  setPlace(null);
-                }}
-              >
-                {ex}
-              </button>
-            </li>
-          ))}
-        </ul>
+        {how === 'words' && (
+          <ul className="sv-examples" aria-label="Example questions">
+            {EXAMPLES.map((ex) => (
+              <li key={ex}>
+                <button
+                  type="button"
+                  className="sv-example t-body-s"
+                  onClick={() => {
+                    setQuestion(ex);
+                    setPlace(null);
+                  }}
+                >
+                  {ex}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </form>
 
       {problem && (

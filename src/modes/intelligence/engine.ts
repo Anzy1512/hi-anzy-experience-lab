@@ -86,6 +86,80 @@ export interface SearchStatus {
   report?: SurveyReport | null;
   area?: { description: string | null; geojson: GeoJSONGeometry | null } | null;
   attribution?: string[];
+  /** a form search's filters its categories do not usually carry (D-066) */
+  warnings?: string[];
+}
+
+/* ---- the catalogue: what can be searched for, and by what (D-064–D-066) ---- */
+
+export interface CatalogueGroup {
+  id: string;
+  label: string;
+  categories: number;
+}
+
+export interface CatalogueSummary {
+  groups: CatalogueGroup[];
+  categories: number;
+  filters: number;
+}
+
+export interface CatalogueCategory {
+  id: string;
+  label: string;
+  aliases: string[];
+  group: string;
+  /** hand-written, an iD editor preset, or an Overture category */
+  origin: 'hand' | 'preset' | 'overture';
+  /** the vocabularies that can ask for it: openstreetmap, overture */
+  sources: string[];
+  presets: string[];
+  overture: string[];
+  /** places in the India extract under its Overture names, as counted when the catalogue was built */
+  overture_places_in: number;
+}
+
+export interface CatalogueFilterOption {
+  value: string;
+  label: string;
+  field?: string;
+}
+
+export type CatalogueFilterKind = 'yes_no' | 'presence' | 'options' | 'number' | 'values';
+
+export interface CatalogueFilter {
+  id: string;
+  label: string;
+  kind: CatalogueFilterKind;
+  field: string;
+  origin: 'hand' | 'preset' | 'site';
+  options: CatalogueFilterOption[];
+  unit: string | null;
+  /** null: every category */
+  applies_to: string[] | null;
+  phrases: string[];
+}
+
+export type FormOp = 'is' | 'is_not' | 'at_least' | 'at_most' | 'between' | 'any_of' | 'none_of';
+
+export interface FormFilter {
+  filter: string;
+  op: FormOp;
+  value: boolean | number | string[] | [number, number];
+}
+
+/** A search by category, place and filters — no sentence to parse. */
+export interface SearchForm {
+  categories: string[];
+  place?: string;
+  radius_km?: number;
+  filters: FormFilter[];
+}
+
+export interface FormPreview {
+  description: string;
+  warnings: string[];
+  specification: Record<string, unknown>;
 }
 
 export interface GeoJSONGeometry {
@@ -733,8 +807,10 @@ export const engine = {
   parse: (text: string, signal: AbortSignal) => call<ParsedQuestion>(`/api/parse?q=${q(text)}`, signal),
 
   /* searches */
-  start: (body: { query: string; depth?: string; checks?: number; fresh?: boolean }, signal: AbortSignal) =>
-    call<SearchStatus>('/api/searches', signal, post(body)),
+  start: (
+    body: ({ query: string } | { form: SearchForm }) & { depth?: string; checks?: number; fresh?: boolean },
+    signal: AbortSignal,
+  ) => call<SearchStatus>('/api/searches', signal, post(body)),
   status: (id: string, signal: AbortSignal) => call<SearchStatus>(`/api/searches/${q(id)}`, signal),
   results: (id: string, verdict: Verdict, offset: number, limit: number, signal: AbortSignal) =>
     call<{ items: ResultItem[] }>(
@@ -838,6 +914,21 @@ export const engine = {
     call<Task<unknown>>(`/api/tasks/${q(id)}/cancel`, signal, { method: 'POST' }),
   cancelSearch: (id: string, signal: AbortSignal) =>
     call<SearchStatus>(`/api/searches/${q(id)}/cancel`, signal, { method: 'POST' }),
+
+  /* the catalogue (D-064–D-066) */
+  catalogue: (signal: AbortSignal) => call<CatalogueSummary>('/api/catalogue', signal),
+  catalogueCategories: (words: string, group: string | null, limit: number, signal: AbortSignal) =>
+    call<CatalogueCategory[]>(
+      `/api/catalogue/categories?q=${q(words)}&limit=${limit}${group ? `&group=${q(group)}` : ''}`,
+      signal,
+    ),
+  catalogueFilters: (categories: string[], signal: AbortSignal) =>
+    call<CatalogueFilter[]>(
+      `/api/catalogue/filters?${categories.map((c) => `category=${q(c)}`).join('&')}`,
+      signal,
+    ),
+  cataloguePreview: (form: SearchForm, signal: AbortSignal) =>
+    call<FormPreview>('/api/catalogue/preview', signal, post(form)),
 
   /* what the engine is, and holds */
   knowledge: (signal: AbortSignal) => call<Knowledge>('/api/knowledge', signal),

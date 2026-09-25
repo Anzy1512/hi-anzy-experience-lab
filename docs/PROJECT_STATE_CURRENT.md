@@ -23,6 +23,7 @@ records of what each phase did, and stay that way.
 | 9.1 — INTELLIGENCE, a section with a desk for each thing the engine does | **DONE** — nine desks, verified against the live engine |
 | 9.2 — ATLAS and EXTRACTS over the engine's local maps; SURVEY shows what it set apart | **DONE** — built and verified against the live engine with India loaded; branch `lab-engine-frontend` |
 | 9.3 — ASK: one question the engine routes itself, over the passages it holds; providers and files brought in | **IN PROGRESS** — built and verified against the live engine (its D-058); branch `lab-engine-frontend` |
+| 9.4 — SURVEY by category and filters, over the engine's catalogue | **DONE** — built and verified against the live engine (its D-064–D-067); branch `lab-engine-frontend` |
 
 - Branch: `phase-8-12-independence`
 - Gates: `tsc -b` = 0 · `eslint src --max-warnings 0` = 0 ·
@@ -75,6 +76,14 @@ their own (I1–I12), each entering the reality at that desk
   engine's words. The two new desks read the engine's database; when it is off
   they say so, with the engine's reason and the command that starts it, and make
   no request.
+- **Phase 9.4 (SURVEY).** The same survey can be asked BY CATEGORY AND FILTERS instead
+  of in words (`desks/CategoryAsk.tsx`): kinds of business from the engine's catalogue
+  (1,057, in 18 sectors, each with how many places India's Overture extract holds), a
+  place or a radius, and the filters that apply to those kinds — yes/no, any-of options,
+  ranges — then those that apply to any business. The engine reads the form back (READ
+  AS) and runs it as the specification a question would become; everything after the
+  SURVEY button is the existing desk. Built only from SURVEY's own controls (the radio
+  switch, fields, checks, the READ AS line, `.sv-done` disclosures).
 - **The address names the desk** (`#/intelligence/brands`), replaced rather than
   pushed, so a reload or a deep link opens the same desk and Back still leaves.
   The experience engine reads only the first segment as the reality.
