@@ -21,10 +21,19 @@ export function EngineLine({ state, onRetry }: { state: EngineState; onRetry: ()
     );
   }
   const ready = state.sources.filter((s) => (s.usable ?? !s.problem) && s.available).length;
+  // the model providers by kind, as the engine names them — none is the usual, honest state
+  const models = Object.entries(state.health.providers ?? {}).filter(([, p]) => p);
   return (
     <p className="t-mono t-mono-xs sv-engine">
       <span className="t-signal">ENGINE</span> · V{state.health.version} · LOCAL KNOWLEDGE{' '}
       {state.health.local_knowledge ? 'ON' : 'OFF'} · SOURCES READY {ready} OF {state.sources.length}
+      {state.health.providers && (
+        <>
+          {' '}
+          · MODELS{' '}
+          {models.length ? models.map(([k, p]) => `${k.toUpperCase()} ${String(p).toUpperCase()}`).join(', ') : 'NONE'}
+        </>
+      )}
     </p>
   );
 }

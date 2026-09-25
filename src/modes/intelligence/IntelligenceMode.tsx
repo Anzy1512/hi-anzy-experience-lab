@@ -17,6 +17,7 @@ import ArchiveDesk from './desks/ArchiveDesk';
 import SourcesDesk from './desks/SourcesDesk';
 import AtlasDesk from './desks/AtlasDesk';
 import ExtractsDesk from './desks/ExtractsDesk';
+import AskDesk from './desks/AskDesk';
 import './intelligence.css';
 
 /**
@@ -26,7 +27,9 @@ import './intelligence.css';
  * read a brand, resolve an area, read a store locator, read a site, look up a
  * domain, build a dataset, open what is already known, see every source and
  * the registry behind them, count a brand or a kind of business by state and
- * district, and see the maps the engine keeps on its own machine.
+ * district, see the maps the engine keeps on its own machine, and ask one
+ * question that the engine routes itself — to a search, or to the passages
+ * it has read.
  *
  * The rules of the rest of the Lab hold on every desk:
  *
@@ -56,6 +59,7 @@ const DESK_VIEWS: Record<DeskId, ComponentType<DeskProps>> = {
   sources: SourcesDesk,
   atlas: AtlasDesk,
   extracts: ExtractsDesk,
+  ask: AskDesk,
 };
 
 const MODE_ID = 'intelligence';

@@ -21,7 +21,8 @@ records of what each phase did, and stay that way.
 | 8.12 — lab independence + product launch foundation | **IN PROGRESS** — §1–§10 done (separation + product architecture), 8.12C done (release contract + canonical re-read); §11–§14 open |
 | 9.0 — SURVEY, the front end for the Commercial Intelligence Engine | **DONE** — became INTELLIGENCE in 9.1 |
 | 9.1 — INTELLIGENCE, a section with a desk for each thing the engine does | **DONE** — nine desks, verified against the live engine |
-| 9.2 — ATLAS and EXTRACTS over the engine's local maps; SURVEY shows what it set apart | **IN PROGRESS** — built and verified against the live engine with India loaded; branch `lab-engine-frontend` |
+| 9.2 — ATLAS and EXTRACTS over the engine's local maps; SURVEY shows what it set apart | **DONE** — built and verified against the live engine with India loaded; branch `lab-engine-frontend` |
+| 9.3 — ASK: one question the engine routes itself, over the passages it holds; providers and files brought in | **IN PROGRESS** — built and verified against the live engine (its D-058); branch `lab-engine-frontend` |
 
 - Branch: `phase-8-12-independence`
 - Gates: `tsc -b` = 0 · `eslint src --max-warnings 0` = 0 ·
@@ -45,7 +46,7 @@ asks public sources for businesses, brands and places.
 
 Phase 9.0 built one reality, SURVEY. Phase 9.1 made it a section: one reality with
 a desk for each thing the engine does, and the index prints the desks as rows of
-their own (I1–I11), each entering the reality at that desk
+their own (I1–I12), each entering the reality at that desk
 (`src/content/intelligence.ts`; the handover is `src/experience/desk.ts`):
 
 | Desk | What it asks the engine |
@@ -61,6 +62,7 @@ their own (I1–I11), each entering the reality at that desk
 | I9 SOURCES | every source and research tool, ready or why not, and the registry of 1,471 tools behind them |
 | I10 ATLAS | a brand's outlets, or a kind of business, counted by state and district from the maps the engine keeps on its own machine (its D-055) — each map's count beside the other's, never added; a brand's offices, works, sellers and namesakes counted apart (D-056) |
 | I11 EXTRACTS | those maps: each extract's date, places and regions, whether it is young enough to answer a search in place of the live service, and loading or refreshing one as a task on the engine |
+| I12 ASK | one question, planned by the engine's rules: a subject and a place become a search (served from a fresh enough saved one, refreshed when stale, handed to SURVEY); anything else is read from the passages local knowledge holds — pages a survey read, files brought in on the desk — each with its source and the day it was confirmed. A written answer appears only when a model provider is configured on the engine and every sentence cites a passage shown; the providers are named by the variables that configure them, never a value; a verdict on a passage or an answer is sent as reviewed feedback (the engine's D-058) |
 
 - **Desks hand work to each other** — a brand to its stores, a survey or its count
   by state, a place to a survey or a store locator, a business to its site and

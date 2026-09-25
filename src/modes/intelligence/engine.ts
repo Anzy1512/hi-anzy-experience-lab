@@ -21,6 +21,8 @@ export const ENGINE_BASE: string =
 export interface EngineHealth {
   status: string;
   version: string;
+  /** Which model provider serves each kind, or null when none is configured (D-058). */
+  providers?: Record<string, string | null>;
   local_knowledge: boolean;
   notes: string[];
 }
@@ -504,6 +506,168 @@ export interface Region {
   parent_id: string | null;
 }
 
+/* ---- asking: the query workflow (D-058) ----------------------------------- */
+
+/** A passage local knowledge holds, with its document: which record, which version, when. */
+export interface PassageHit {
+  id: number;
+  version_id: number;
+  ordinal: number;
+  section: string | null;
+  start: number;
+  end: number;
+  text: string;
+  rank: number;
+  source_id: string;
+  record_key: string;
+  source_url: string | null;
+  retrieved_at: string;
+  last_confirmed: string;
+  content_hash: string;
+}
+
+export interface AskAnswer {
+  status: 'generated' | 'fallback';
+  text: string | null;
+  provider: string;
+  model: string | null;
+  citations: number[];
+  reason: string;
+  label: string;
+}
+
+export interface QuestionPlan {
+  question: string;
+  route: 'list' | 'explain';
+  reason: string;
+  requested: string;
+  specification: Record<string, unknown> | null;
+  parse: {
+    parser: string;
+    coverage: number;
+    assumptions: string[];
+    warnings: string[];
+    unparsed: string[];
+    error: string | null;
+  };
+  terms: string;
+  phrases: string[];
+  domain: string | null;
+  warnings: string[];
+}
+
+export interface Freshness {
+  max_age_hours?: number;
+  search_id?: string | null;
+  finished_at?: string | null;
+  age_hours?: number;
+  stale?: boolean | null;
+  refresh?: string | null;
+  oldest_confirmed?: string;
+  newest_confirmed?: string;
+}
+
+export interface QueryRun {
+  id: string;
+  question: string;
+  route: string;
+  status: string;
+  strategy: Record<string, unknown>;
+  models: Record<string, ProviderStatus>;
+  search_id: string | null;
+  results: Record<string, unknown>;
+  answer: AskAnswer | null;
+  freshness: Freshness;
+  created_at: string;
+  finished_at: string | null;
+  error: string | null;
+}
+
+export interface AskOutcome {
+  run: QueryRun;
+  plan: QuestionPlan;
+  passages: PassageHit[];
+  answer: AskAnswer | null;
+  retrieval: { strategy: Record<string, unknown>; notes: string[] } | null;
+  results: ResultItem[];
+  search: SearchStatus | null;
+}
+
+/** A model provider as the engine reports it: by the NAMES of what configures it, never a value. */
+export interface ProviderStatus {
+  kind: 'generation' | 'embeddings' | 'decisions';
+  provider: string;
+  configured: boolean;
+  model: string | null;
+  detail: string;
+  env: string[];
+  reachable: boolean | null;
+}
+
+export interface ProvidersReport {
+  providers: ProviderStatus[];
+  probed: boolean;
+  recent: {
+    task: string;
+    provider: string;
+    status: string;
+    model: string | null;
+    latency_ms: number | null;
+    created_at: string | null;
+  }[];
+  policy: string;
+}
+
+export interface ImportSource {
+  source_id: string;
+  records: number;
+  last_seen: string | null;
+  attribution: string | null;
+}
+
+export interface Imports {
+  tables: ImportSource[];
+  documents: ImportSource[];
+  accepts: { tables: string[]; documents: string[] };
+  folder: string;
+}
+
+export type ImportResult =
+  | {
+      kind: 'table';
+      source_id: string;
+      records: number;
+      located: number;
+      columns_used: Record<string, string>;
+      notes: string[];
+    }
+  | {
+      kind: 'document';
+      source_id: string;
+      record_key: string;
+      title: string;
+      passages: number;
+      characters: number;
+      notes: string[];
+    };
+
+export type FeedbackVerdict = 'relevant' | 'irrelevant' | 'correct' | 'incorrect' | 'unsure';
+
+export interface JobRecord {
+  id: string;
+  kind: string;
+  title: string;
+  status: string;
+  correlation_id: string;
+  created_at: string;
+  started_at: string | null;
+  finished_at: string | null;
+  progress: string[];
+  result: Record<string, unknown> | null;
+  error: string | null;
+  cancel_requested: boolean;
+}
+
 /* ---- calls ---------------------------------------------------------------- */
 
 /** A call's outcome: the answer, or a sentence saying why there is none. */
@@ -515,7 +679,11 @@ async function call<T>(path: string, signal: AbortSignal, init?: RequestInit): P
     response = await fetch(`${ENGINE_BASE}${path}`, {
       ...init,
       signal,
-      headers: { Accept: 'application/json', ...(init?.body ? { 'Content-Type': 'application/json' } : {}) },
+      // a file upload is multipart, and the browser writes that header itself
+      headers: {
+        Accept: 'application/json',
+        ...(init?.body && !(init.body instanceof FormData) ? { 'Content-Type': 'application/json' } : {}),
+      },
     });
   } catch (err) {
     if (signal.aborted) return { ok: false, problem: 'cancelled' };
@@ -632,6 +800,44 @@ export const engine = {
   },
   regions: (level: 1 | 2, parent: string | null, signal: AbortSignal) =>
     call<Region[]>(`/api/atlas/regions?level=${level}${parent ? `&parent=${q(parent)}` : ''}`, signal),
+
+  /* asking: the query workflow (D-058) */
+  ask: (
+    body: {
+      question: string;
+      route?: 'auto' | 'list' | 'explain';
+      fresh?: boolean;
+      limit?: number;
+      sources?: string[];
+    },
+    signal: AbortSignal,
+  ) => call<AskOutcome>('/api/ask', signal, post(body)),
+  askRuns: (limit: number, signal: AbortSignal) => call<{ runs: QueryRun[] }>(`/api/ask?limit=${limit}`, signal),
+  providers: (probe: boolean, signal: AbortSignal) =>
+    call<ProvidersReport>(`/api/providers?probe=${probe}&recent=10`, signal),
+  imports: (signal: AbortSignal) => call<Imports>('/api/imports', signal),
+  importFile: (form: FormData, signal: AbortSignal) =>
+    call<ImportResult>('/api/imports', signal, { method: 'POST', body: form }),
+  feedback: (
+    body: {
+      subject_kind: 'search_result' | 'passage' | 'answer';
+      subject_id: string;
+      verdict: FeedbackVerdict;
+      note?: string;
+      search_id?: string;
+      query_run_id?: string;
+    },
+    signal: AbortSignal,
+  ) => call<{ id: number }>('/api/feedback', signal, post(body)),
+  jobs: (kind: string | null, limit: number, signal: AbortSignal) =>
+    call<{ jobs: JobRecord[]; durable: boolean }>(
+      `/api/jobs?limit=${limit}${kind ? `&kind=${q(kind)}` : ''}`,
+      signal,
+    ),
+  cancelTask: (id: string, signal: AbortSignal) =>
+    call<Task<unknown>>(`/api/tasks/${q(id)}/cancel`, signal, { method: 'POST' }),
+  cancelSearch: (id: string, signal: AbortSignal) =>
+    call<SearchStatus>(`/api/searches/${q(id)}/cancel`, signal, { method: 'POST' }),
 
   /* what the engine is, and holds */
   knowledge: (signal: AbortSignal) => call<Knowledge>('/api/knowledge', signal),

@@ -24,7 +24,8 @@ export type DeskId =
   | 'archive'
   | 'sources'
   | 'atlas'
-  | 'extracts';
+  | 'extracts'
+  | 'ask';
 
 export interface DeskDefinition {
   id: DeskId;
@@ -136,6 +137,15 @@ export const DESKS: DeskDefinition[] = [
     description:
       'OpenStreetMap’s regional files and Overture’s monthly places, loaded into the engine’s database: each one’s date, its places and regions, and whether it is young enough to answer a search in place of the live service. Loading one is a task on the engine.',
     reads: ['/api/extracts', '/api/extracts/top', '/api/extracts/load', '/api/tasks/{id}'],
+  },
+  {
+    id: 'ask',
+    index: 'I12',
+    title: 'ASK',
+    tagline: 'One question — the engine decides whether it is a search or a reading.',
+    description:
+      'A question is planned by rule: a subject and a place become the engine’s own search, served from a fresh enough saved one and refreshed when stale; anything else is read from the passages local knowledge holds — pages the engine read, files brought in here — each with its source and date. A written answer appears only when a model provider is configured and every sentence it writes is cited to a passage shown; otherwise the passages are the answer, and the desk says why.',
+    reads: ['/api/ask', '/api/providers', '/api/imports', '/api/feedback'],
   },
 ];
 

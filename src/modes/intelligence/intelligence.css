@@ -1040,3 +1040,67 @@
     transition-duration: 1ms;
   }
 }
+
+/* ---- I12 ASK: the plan, the passages, the written answer, the files ------- */
+
+.sv-plan {
+  margin: 0 0 var(--s-1);
+  letter-spacing: 0.08em;
+  overflow-wrap: anywhere;
+}
+.sv-list {
+  margin: var(--s-2) 0 0;
+  padding-left: 1.4em;
+  max-width: 88ch;
+  line-height: 1.6;
+}
+.sv-passages {
+  list-style: none;
+  margin: var(--s-3) 0 0;
+  padding: 0;
+  max-width: 88ch;
+  display: grid;
+  gap: var(--s-2);
+}
+.sv-passage {
+  padding: var(--s-2) 0;
+  border-top: var(--hair) solid var(--rule-faint);
+}
+.sv-passage__meta {
+  margin: 0 0 4px;
+  letter-spacing: 0.08em;
+  overflow-wrap: anywhere;
+}
+.sv-passage__meta a {
+  color: inherit;
+}
+.sv-passage__text {
+  margin: 0;
+  line-height: 1.6;
+}
+.sv-written {
+  margin: var(--s-3) 0 0;
+  padding: var(--s-2) var(--s-3);
+  max-width: 88ch;
+  border-left: 2px solid var(--signal);
+}
+.sv-written__label {
+  margin: 0 0 var(--s-1);
+  letter-spacing: 0.08em;
+}
+.sv-written__text {
+  margin: 0;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.sv-actions--tight {
+  margin-top: 4px;
+  gap: var(--s-2);
+}
+.sv-upload {
+  margin-top: var(--s-2);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--s-2) var(--s-3);
+}
