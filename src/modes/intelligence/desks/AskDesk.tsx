@@ -1,15 +1,18 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import {
   engine,
+  pause,
   type AskOutcome,
   type FeedbackVerdict,
   type ImportResult,
   type Imports,
   type PassageHit,
   type ProvidersReport,
+  type ResultItem,
+  type SearchStatus,
 } from '../engine';
 import { NeedsEngine } from '../EngineLine';
-import { count, isReady, when, type DeskProps } from '../link';
+import { count, isReady, POLL_MS, when, type DeskProps } from '../link';
 
 /**
  * I12 · ASK — ONE QUESTION, ROUTED BY THE ENGINE.
@@ -76,8 +79,35 @@ export default function AskDesk({ engineState, signal, go, receive, take, active
   const [uploadProblem, setUploadProblem] = useState<string | null>(null);
   // bumped after a file is brought in, so what is held is read again
   const [held, setHeld] = useState(0);
+  // a search the list route started: followed here until it finishes, then its businesses
+  const [refresh, setRefresh] = useState<SearchStatus | null>(null);
+  const [refreshed, setRefreshed] = useState<ResultItem[] | null>(null);
   const ready = isReady(engineState);
   const database = ready && engineState.health.local_knowledge;
+
+  const refreshId = typeof outcome?.run.freshness.refresh === 'string' ? outcome.run.freshness.refresh : null;
+  useEffect(() => {
+    if (!refreshId) return;
+    let live = true;
+    void (async () => {
+      let current = outcome?.search ?? null;
+      while (live && !signal.aborted && (!current || current.status === 'queued' || current.status === 'running')) {
+        await pause(POLL_MS, signal);
+        if (!live || signal.aborted) return;
+        const next = await engine.status(refreshId, signal);
+        if (!live || signal.aborted) return;
+        if (!next.ok) return;
+        current = next.value;
+        setRefresh(current);
+      }
+      if (!live || signal.aborted || !current || current.status !== 'done') return;
+      const found = await engine.results(refreshId, 'matched', 0, 8, signal);
+      if (live && found.ok) setRefreshed(found.value.items);
+    })();
+    return () => {
+      live = false;
+    };
+  }, [refreshId, outcome, signal]);
 
   useEffect(
     () =>
@@ -114,6 +144,8 @@ export default function AskDesk({ engineState, signal, go, receive, take, active
     setBusy(true);
     setProblem(null);
     setGiven({});
+    setRefresh(null);
+    setRefreshed(null);
     const got = await engine.ask({ question, route: next.route, fresh: next.fresh, limit: 8 }, signal);
     if (signal.aborted) return;
     setBusy(false);
@@ -164,8 +196,9 @@ export default function AskDesk({ engineState, signal, go, receive, take, active
   const answer = outcome?.answer ?? null;
   const fresh = outcome?.run.freshness ?? {};
   const servedId = typeof fresh.search_id === 'string' ? fresh.search_id : null;
-  const refreshId = typeof fresh.refresh === 'string' ? fresh.refresh : null;
   const configured = providers?.providers.filter((p) => p.configured) ?? [];
+  const refreshState = refresh ?? outcome?.search ?? null;
+  const shownResults = refreshed ?? outcome?.results ?? [];
 
   return (
     <>
@@ -236,8 +269,35 @@ export default function AskDesk({ engineState, signal, go, receive, take, active
                 {servedId
                   ? `Served from a search saved ${when(fresh.finished_at)} (${fresh.age_hours ?? '—'} hours old${fresh.stale ? ', stale' : ''}).`
                   : 'Nothing saved answers these words yet.'}
-                {refreshId ? ` A search was started${servedId ? ' to refresh it' : ''}; SURVEY follows it as it runs.` : ''}
+                {refreshId ? ` A search was started${servedId ? ' to refresh it' : ''}.` : ''}
               </p>
+              {refreshId && refreshState && (
+                <p className="t-mono t-mono-xs sv-plan" role="status" aria-live="polite">
+                  <span className={refreshState.status === 'done' ? undefined : 't-signal'}>
+                    SEARCH {refreshState.status.toUpperCase()}
+                  </span>
+                  {refreshState.stage && (
+                    <>
+                      <span className="t-faint"> · </span>
+                      <span className="t-dim">{refreshState.stage.toUpperCase()}</span>
+                    </>
+                  )}
+                  {refreshState.status === 'done' && (
+                    <>
+                      <span className="t-faint"> · </span>
+                      <span className="t-dim">
+                        {count(refreshState.counts.true ?? 0)} MATCHED · {count(refreshState.counts.unknown ?? 0)} UNDETERMINED
+                      </span>
+                    </>
+                  )}
+                  {refreshState.error && (
+                    <>
+                      <span className="t-faint"> · </span>
+                      <span className="sv-problem">{refreshState.error.toUpperCase()}</span>
+                    </>
+                  )}
+                </p>
+              )}
               <div className="sv-actions">
                 {refreshId && (
                   <button type="button" className="sv-btn sv-btn--signal" onClick={() => go('survey', { searchId: refreshId })}>
@@ -250,9 +310,9 @@ export default function AskDesk({ engineState, signal, go, receive, take, active
                   </button>
                 )}
               </div>
-              {outcome.results.length > 0 && (
+              {shownResults.length > 0 && (
                 <ol className="sv-list t-body-s" aria-label="Businesses">
-                  {outcome.results.map((r) => (
+                  {shownResults.map((r) => (
                     <li key={r.id}>
                       <span>{r.name ?? <span className="t-dim">unnamed</span>}</span>
                       <span className="t-mono t-mono-xs t-dim"> · {r.verdict === 'true' ? 'MATCHES' : r.verdict === 'false' ? 'EXCLUDED' : 'UNDETERMINED'}</span>
