@@ -133,13 +133,16 @@ Frame timing is sampled only while sampling runs, using real `performance.now()`
 
 **INTELLIGENCE — the Commercial Intelligence Engine, on this machine.** The front end of a separate
 program that runs on your machine (`uv run comintel serve` in the commercial-intelligence folder),
-printed on the index as a section of its own with nine desks: SURVEY (every business of a kind in a
-place, with what they share and the records that may be duplicates), BRANDS (what a name stands
-for, its legal entities and its news), AREAS (how a place resolves, drawn), LOCATORS (a brand's own
-store list for a place), SITES (what a website is built and marketed with), DOMAINS (a domain's
-registration, mail records, certificates and archive history), DATASETS (many questions, one
-table), ARCHIVE (what the engine already knows) and SOURCES (every source and the registry behind
-them). Desks hand work to each other. `npm run dev` forwards `/engine` to the engine (`ENGINE_URL`
+printed on the index as a section of its own with eleven desks: SURVEY (every business of a kind in
+a place — matched, undetermined or excluded with the reason — with what they share and the records
+that may be duplicates), BRANDS (what a name stands for, its legal entities and its news), AREAS (how
+a place resolves, drawn), LOCATORS (a brand's own store list for a place), SITES (what a website is
+built and marketed with), DOMAINS (a domain's registration, mail records, certificates and archive
+history), DATASETS (many questions, one table), ARCHIVE (what the engine already knows), SOURCES
+(every source and the registry behind them), ATLAS (a brand's outlets or a kind of business counted
+by state and district from the maps the engine keeps on its machine, each map's count beside the
+other's) and EXTRACTS (those maps: what is held, how old, and loading more). Desks hand work to
+each other. `npm run dev` forwards `/engine` to the engine (`ENGINE_URL`
 to point it elsewhere). Without the engine it says NOT REACHABLE and shows nothing in its place. It
 is the one reality that uses the network, and it keeps nothing.
 

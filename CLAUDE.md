@@ -194,7 +194,7 @@ src/
   modes/timemachine/ Time Machine — one source, seven interaction models
   modes/portal/    Portal — the aperture, with XR reported not assumed
   modes/performance/ Performance — measured values, or UNKNOWN by name
-  modes/intelligence/ Intelligence — nine desks over the Commercial Intelligence Engine (9.0–9.1)
+  modes/intelligence/ Intelligence — eleven desks over the Commercial Intelligence Engine (9.0–9.2)
   audio/           the one audio engine, its voices, and the React binding
   dev/            frame-budget harness (development only)
   components/     launcher, index, sheet furniture, pointer instrument

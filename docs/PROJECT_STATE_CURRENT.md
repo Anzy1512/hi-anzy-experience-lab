@@ -20,7 +20,8 @@ records of what each phase did, and stay that way.
 | 8.11 — product + brand convergence | **CLOSED** |
 | 8.12 — lab independence + product launch foundation | **IN PROGRESS** — §1–§10 done (separation + product architecture), 8.12C done (release contract + canonical re-read); §11–§14 open |
 | 9.0 — SURVEY, the front end for the Commercial Intelligence Engine | **DONE** — became INTELLIGENCE in 9.1 |
-| 9.1 — INTELLIGENCE, a section with a desk for each thing the engine does | **IN PROGRESS** — built and verified against the live engine in development; branch `lab-engine-frontend` |
+| 9.1 — INTELLIGENCE, a section with a desk for each thing the engine does | **DONE** — nine desks, verified against the live engine |
+| 9.2 — ATLAS and EXTRACTS over the engine's local maps; SURVEY shows what it set apart | **IN PROGRESS** — built and verified against the live engine with India loaded; branch `lab-engine-frontend` |
 
 - Branch: `phase-8-12-independence`
 - Gates: `tsc -b` = 0 · `eslint src --max-warnings 0` = 0 ·
@@ -31,10 +32,10 @@ records of what each phase did, and stay that way.
 Seventeen realities, all `online` and enterable, behind a launcher and a Reality
 Index. Not a website and not a component showcase: one company, seventeen
 enterable realities, with a project that can travel between them. The
-seventeenth, INTELLIGENCE (Phases 9.0–9.1), is the front end of a separate
-program, printed on the index as a section of nine desks — see below.
+seventeenth, INTELLIGENCE (Phases 9.0–9.2), is the front end of a separate
+program, printed on the index as a section of eleven desks — see below.
 
-## INTELLIGENCE (PHASES 9.0 → 9.1)
+## INTELLIGENCE (PHASES 9.0 → 9.2)
 
 Plate **09**, a PRODUCT in its own family, INTELLIGENCE, printed on the index as a
 section of its own above the four groups: the Lab's front end for the Commercial
@@ -44,7 +45,7 @@ asks public sources for businesses, brands and places.
 
 Phase 9.0 built one reality, SURVEY. Phase 9.1 made it a section: one reality with
 a desk for each thing the engine does, and the index prints the desks as rows of
-their own (I1–I9), each entering the reality at that desk
+their own (I1–I11), each entering the reality at that desk
 (`src/content/intelligence.ts`; the handover is `src/experience/desk.ts`):
 
 | Desk | What it asks the engine |
@@ -58,11 +59,20 @@ their own (I1–I9), each entering the reality at that desk
 | I7 DATASETS | many questions into one table, as a task, with the engine's CSV, XLSX, GeoJSON and JSON |
 | I8 ARCHIVE | what local knowledge holds, and the searches it remembers, reopened as they were saved |
 | I9 SOURCES | every source and research tool, ready or why not, and the registry of 1,471 tools behind them |
+| I10 ATLAS | a brand's outlets, or a kind of business, counted by state and district from the maps the engine keeps on its own machine (its D-055) — each map's count beside the other's, never added; a brand's offices, works, sellers and namesakes counted apart (D-056) |
+| I11 EXTRACTS | those maps: each extract's date, places and regions, whether it is young enough to answer a search in place of the live service, and loading or refreshing one as a task on the engine |
 
-- **Desks hand work to each other** — a brand to its stores or a survey, a place to
-  a survey or a store locator, a business to its site and domain, a question to a
-  dataset, a saved search back to its ledger — carrying words to start from, never
-  a result. That is the reality's CONTINUE, and it is walked (maturity.ts).
+- **Desks hand work to each other** — a brand to its stores, a survey or its count
+  by state, a place to a survey or a store locator, a business to its site and
+  domain, a question to a dataset, a saved search back to its ledger, a region's
+  count to a survey of it — carrying words to start from, never a result. That is
+  the reality's CONTINUE, and it is walked (maturity.ts).
+- **Phase 9.2 (SURVEY).** An EXCLUDED tab beside MATCHED and UNDETERMINED: each
+  business the question left out, labelled with which of a brand's places it is
+  (OFFICE, WORKS, SELLER, NAMED AFTER IT) and why it is not counted, in the
+  engine's words. The two new desks read the engine's database; when it is off
+  they say so, with the engine's reason and the command that starts it, and make
+  no request.
 - **The address names the desk** (`#/intelligence/brands`), replaced rather than
   pushed, so a reload or a deep link opens the same desk and Back still leaves.
   The experience engine reads only the first segment as the reality.

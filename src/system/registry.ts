@@ -206,13 +206,13 @@ export const PRODUCTS: ProductEntry[] = [
       process:
         'Sends each request to the engine, follows its stages or tasks, and reads back what it found with the evidence behind each fact and the reason for everything it could not decide.',
       result:
-        'Businesses matched or undetermined with the reason, and how far the answer can be trusted; what a brand stands for; how a place resolves; the stores a locator states; a site’s stack; a domain’s records; a dataset from many questions; the sources and the registry behind them.',
+        'Businesses matched, undetermined or excluded with the reason, and how far the answer can be trusted; what a brand stands for; how a place resolves; the stores a locator states; a site’s stack; a domain’s records; a dataset from many questions; the sources and the registry behind them; a brand’s outlets or a kind of business counted by state and district from the maps the engine keeps; what those maps hold and how old they are.',
       artifact:
         'The engine’s own exports of a search or a dataset (CSV, XLSX, GeoJSON, JSON), and a survey summary as copied text, Markdown or JSON.',
       /* Implemented as the desks' own handovers (modes/intelligence/link.ts):
          each names its destination and carries words to start from. */
       continue:
-        'Between its own desks: a brand to its stores or a survey, a place to a survey or a store locator, a business to its site and its domain, a question to a dataset, a saved search back to its ledger.',
+        'Between its own desks: a brand to its stores, a survey or its count by state, a place to a survey or a store locator, a business to its site and its domain, a question to a dataset, a saved search back to its ledger, a region’s count to a survey of it, a kind of business held to its count.',
     },
   },
 
