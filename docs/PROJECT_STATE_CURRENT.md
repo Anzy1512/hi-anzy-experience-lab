@@ -24,17 +24,39 @@ records of what each phase did, and stay that way.
 
 - Branch: `audit-osint-service`
 - Gates: `tsc -b` = 0 · `eslint .` = 0 · `npm run build` passes
-- Audit gates: `npm test` = 274/274 (PGlite) · `npm run closure`, `closure:l4`,
+- Audit gates: `npm test` = 274/274 (PGlite) · `npm run test:pg` = 167/167
+  (Postgres, from a fresh schema) · `npm run closure`, `closure:l4`,
   `closure:l6`, `closure:l7` and `final-test` all pass. The audit's tsconfig now
   includes `test/**`, which it never did — 17 type errors were hiding there,
   including a fixture building half a `Discovery` and an `app.inject` helper
   whose responses were typed `any` all the way down.
+
+  `test:pg` needs a Postgres and a database of its own; it refuses to run
+  against a corpus that already holds anything:
+
+  ```
+  docker compose up -d
+  docker exec hi-anzy-audit-db psql -U audit -d postgres -c "CREATE DATABASE audit_test OWNER audit;"
+  DATABASE_URL=postgres://audit:audit@127.0.0.1:5433/audit_test npm run migrate
+  DATABASE_URL=postgres://audit:audit@127.0.0.1:5433/audit_test CRAWL_ALLOW_PRIVATE_NETWORKS=true CRAWL_PER_HOST_RPS=50 npm run test:pg
+  ```
+
+  Running it for the first time found a defect PGlite had been hiding: two
+  layer 7 tests asserted corpus-wide totals, which only hold where nothing else
+  has written. PGlite hands every suite its own directory; a shared Postgres
+  does not. Both are scoped to what they created now, and the suite passes
+  twice in a row against an accumulating database.
 - Runtime sweep: all 17 realities enter, reach `active`, expose an EXIT control
   and exit without leaving a canvas or a RAF subscriber behind. No console
   errors and no horizontal overflow at 375px. The 32px interaction floor holds
   everywhere, with two documented exemptions: a checkbox whose 32px label is
   the target, and Time Machine's depicted 1995 links, which are inert by
   construction and would be falsified by enlargement.
+- `prefers-reduced-motion` verified by forcing the media query and re-entering
+  the motion-heavy realities. Director, Chaos and Dream render identically —
+  same content, same controls. Living World drops to the `lite` tier: no
+  canvas, Explore withheld with a stated reason, and all ten districts, the
+  plan and guided travel still there. Travel removed, information kept.
   `npm run test:pg` was 128/128 at the layer 6 closure and could not be re-run
   for layer 7 — the Docker engine is not running on this machine, so no
   Postgres was listening on 5433. Layer 7 added no driver-specific SQL.

@@ -489,20 +489,34 @@ describe('E — the budget that is left', () => {
 
 describe('F — metrics', () => {
   it('distinguishes a run that cost nothing from one whose price is unknown', async () => {
-    const m = await metricsFor(d);
-    /* No model has been called in this suite, so zero is a measurement rather
-       than a missing value. UNKNOWN is reserved for calls nobody priced. */
+    /*
+     * Scoped to runs this test made, not to the whole corpus.
+     *
+     * This asserted `metricsFor(d).model.calls === 0` and passed only because
+     * PGlite hands every suite its own directory. On a shared Postgres — which
+     * is what `test:pg` runs — the earlier suites had left five `model_call`
+     * rows behind and the assertion was measuring them. The rule being tested
+     * is about a RUN, so the test scopes to one.
+     */
+    const noCalls = await d.query<{ id: string }>(
+      `insert into audit_run (question, status, started_at, finished_at)
+       values ('a run that called nothing','complete', now(), now()) returning id`,
+    );
+    const quiet = noCalls[0]?.id;
+    assert.ok(quiet !== undefined);
+
+    const m = await metricsFor(d, { runIds: [quiet] });
     assert.equal(m.model.calls, 0);
-    assert.equal(m.model.costMicros, 0);
+    assert.equal(m.model.costMicros, 0, 'no calls cost nothing — a measurement, not a missing value');
 
     await d.query(
-      `insert into model_call (purpose, provider, model, model_class, tokens_in, tokens_out, cost_micros, ok)
-       values ('metric-fixture','scripted','scripted-small','SMALL_MODEL',10,5,null,1)`,
+      `insert into model_call (audit_run_id, purpose, provider, model, model_class, tokens_in, tokens_out, cost_micros, ok)
+       values ($1,'metric-fixture','scripted','scripted-small','SMALL_MODEL',10,5,null,1)`,
+      [quiet],
     );
-    const priced = await metricsFor(d);
+    const priced = await metricsFor(d, { runIds: [quiet] });
     assert.equal(priced.model.calls, 1);
     assert.equal(priced.model.costMicros, null, 'a call with no configured price is UNKNOWN, never free');
-    await d.query(`delete from model_call where purpose = 'metric-fixture'`);
   });
 
   it('offers no precision, recall or F1, because there is no labelled denominator', async () => {
@@ -642,13 +656,28 @@ describe('G — a review is an insert', () => {
     );
   });
 
-  it('reports agreement as null when nobody has said, not as zero', async () => {
+  it('counts only the reviews where somebody actually judged the verifier', async () => {
+    /*
+     * `reviewMetrics` reads the whole corpus, so this asserts what must be true
+     * of any corpus rather than the exact totals of a fresh one. The absolute
+     * version passed only where nothing else had written a review — which on
+     * PGlite is every run, and on a shared Postgres is the first one.
+     */
     const m = await reviewMetrics(d);
     assert.ok(m.reviews > 0);
-    assert.equal(m.verifierAgreement.agreed + m.verifierAgreement.disagreed, 1);
-    assert.equal(m.verifierAgreement.rate, 0);
     assert.ok(m.byVerdict['SUPPORTED'] !== undefined);
     assert.ok(m.withCorrection >= 1);
+
+    /* One reviewer above said the verifier was wrong and nobody has said it was
+       right, so the rate is a real 0 — and 0 is only meaningful because the
+       denominator is not empty. */
+    assert.ok(m.verifierAgreement.agreed + m.verifierAgreement.disagreed > 0);
+    assert.equal(m.verifierAgreement.agreed, 0);
+    assert.equal(m.verifierAgreement.rate, 0);
+    /* The other branch — nothing judged, so the rate is null rather than 0 —
+       needs a corpus with no reviews in it, which this suite no longer has by
+       this point. `closure:l7` covers it: it runs against a fresh database and
+       reads /v1/reviews/metrics before any review exists. */
   });
 
   it('exports an example carrying the evidence that was rejected as well as kept', async () => {
