@@ -8,6 +8,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
+    "dev:product": "vite --config vite.product.config.ts",
+    "build:product": "tsc -b && vite build --config vite.product.config.ts",
+    "preview:product": "vite preview --config vite.product.config.ts",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"

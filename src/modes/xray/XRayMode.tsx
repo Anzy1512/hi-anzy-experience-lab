@@ -395,6 +395,25 @@ export default function XRayMode({ onReady, scope }: ModeViewProps) {
           <ArtifactBar
             formats={['copy', 'markdown', 'json']}
             label={XRAY_COPY.reportLabel}
+            /*
+             * Where the reading goes.
+             *
+             * The report was a download and nothing else: CONTINUE was OPEN
+             * because this instrument measured something and then dropped it
+             * on the floor. ANZY.OS is the destination rather than the
+             * Compiler, which the graph names as the onward MOVE — a move is
+             * a door, a handoff is something carried, and the Compiler claims
+             * no offers, so an artifact addressed to it would sit unclaimed
+             * forever. `specimen` has been in `ArtifactKind` since the kind
+             * was designed; it was never wired to anything.
+             */
+            handoff={{
+              kind: 'specimen',
+              from: 'x-ray',
+              to: 'anzy-os',
+              limits:
+                'Measurements of what THIS window rendered, at the size it was rendered, in this browser. Another viewport, another zoom or another font stack produces different numbers. What the source says and what was measured are kept apart in the report and must stay apart: nothing here is a claim about the source.',
+            }}
             build={() => {
               const subjectName = canonPage ? `${canonPage.name} (${canonPage.route})` : 'THE SHEET';
               const measured = objects.map(

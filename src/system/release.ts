@@ -241,15 +241,11 @@ export const WEBGL_SURFACE: Record<string, string> = {
 export function ownedDependencies(id: string): string[] {
   const m = manifestOf(id);
   if (!m) return [];
-  if (id === 'presence') {
-    /* Not a direct import. Presence reaches three and R3F through Matter's
-       ParticleField, which is the sibling coupling — the dependency is real,
-       and the path to it is the thing that has to be cut. */
-    return [
-      'three (transitively, via modes/matter/ParticleField)',
-      '@react-three/fiber (same path)',
-    ];
-  }
+  /* Presence used to be special-cased here: it reached three and R3F through
+     Matter's ParticleField rather than importing them, so its dependencies
+     were real but its path to them ran through a sibling. The renderer is in
+     `graphics/` now and Presence takes it from the platform like any other
+     spatial mode, so there is nothing left to qualify. */
   return WEBGL_SURFACE[id] ? ['three', '@react-three/fiber'] : [];
 }
 

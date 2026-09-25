@@ -11,7 +11,7 @@ import { MODES } from '../content/lab';
  * This file answers a different question — what it OWNS, what it DEPENDS ON,
  * how far along it is, and what specifically stands between it and being a
  * standalone application. Same ids, one source of truth for each fact, and a
- * dev-time check below that they describe the same sixteen things.
+ * dev-time check below that they describe the same things.
  *
  * ── STATUS IS EVIDENCE, NOT IMPRESSION ──────────────────────────────────────
  *
@@ -199,12 +199,12 @@ export const MANIFESTS: Manifest[] = [
     persistence: 'PROJECT',
     maturity: 'BETA',
     evidence:
-      'Flows A and D end to end with a reload in the middle; project identity, rename, export, delete and the four destructive operations exercised; the storage failure matrix (seven cases) passes through its surface; every control measured at 32px across four viewports.',
+      'Flows A and D end to end with a reload in the middle; project identity, rename, export, delete and the four destructive operations exercised; the storage failure matrix (seven cases) passes through its surface; every control measured at 32px across four viewports. STATE_ISOLATION was settled by running it: a project holding a Matter recipe and an X-Ray specimen was renamed through the shell and given a PROJECT_EXPORTED note — every write this product makes to shared state — and both artifacts came back byte-identical, same ids, kinds, producers, text and limits. It writes project metadata and history and never touches another product\'s record. Its destructive operations remove the whole project, which is the visitor asking as much and is what a project surface is for, not a failure of scope.',
     graduation: {
       INPUT: 'PASS', TRANSFORMATION: 'PASS', OUTPUT: 'PASS', ARTIFACT: 'PASS',
       CONTINUE: 'PASS', PERSISTENCE: 'PASS', RESUME: 'PASS', ERROR_STATES: 'PASS',
       LIMITATIONS: 'PASS', ACCESSIBILITY: 'PASS', RESPONSIVE: 'PASS', LIFECYCLE: 'PASS',
-      PERFORMANCE: 'UNVERIFIED', DEPENDENCY_ISOLATION: 'PASS', STATE_ISOLATION: 'OPEN',
+      PERFORMANCE: 'UNVERIFIED', DEPENDENCY_ISOLATION: 'PASS', STATE_ISOLATION: 'PASS',
       EXPORT: 'PASS', PRIVACY: 'PASS', DEPLOYABILITY: 'OPEN',
     },
     standalone: {
@@ -251,10 +251,10 @@ export const MANIFESTS: Manifest[] = [
     persistence: 'PROJECT',
     maturity: 'BETA',
     evidence:
-      'Flow B: the manifest artifact is recorded at the WORLD stage, INSPECT LIVE IN X-RAY carries it, and X-Ray opens on the same page. Survives a reload with the artifact intact.',
+      'Flow B: the manifest artifact is recorded at the WORLD stage, INSPECT LIVE IN X-RAY carries it, and X-Ray opens on the same page. Survives a reload with the artifact intact. ERROR_STATES was exercised rather than reasoned about: the canonical snapshot was emptied, as a failed regeneration would leave it, and the mode threw `Cannot read properties of undefined (reading \'route\')` — the shell caught it and emergency-reset the whole Lab to a bare fallback that said nothing about what had happened. It now reports which file is empty, why it might be, and which script regenerates it, while staying in the mode with EXIT working.',
     graduation: {
       INPUT: 'PASS', TRANSFORMATION: 'PASS', OUTPUT: 'PASS', ARTIFACT: 'PASS',
-      CONTINUE: 'PASS', PERSISTENCE: 'PASS', RESUME: 'PASS', ERROR_STATES: 'UNVERIFIED',
+      CONTINUE: 'PASS', PERSISTENCE: 'PASS', RESUME: 'PASS', ERROR_STATES: 'PASS',
       LIMITATIONS: 'PASS', ACCESSIBILITY: 'PASS', RESPONSIVE: 'PASS', LIFECYCLE: 'PASS',
       PERFORMANCE: 'UNVERIFIED', DEPENDENCY_ISOLATION: 'PASS', STATE_ISOLATION: 'PASS',
       EXPORT: 'PASS', PRIVACY: 'PASS', DEPLOYABILITY: 'OPEN',
@@ -264,7 +264,6 @@ export const MANIFESTS: Manifest[] = [
       blockers: [
         'Heaviest SPATIAL consumer after Living World: canvas, projection, quality tiers and disposal would all have to travel or be replaced.',
         'Reads the canonical page snapshot, so BRAND travels with it.',
-        'ERROR_STATES UNVERIFIED — what it does with a malformed or missing page snapshot has never been exercised.',
       ],
     },
   },
@@ -288,7 +287,6 @@ export const MANIFESTS: Manifest[] = [
     standalone: {
       candidate: true,
       blockers: [
-        'PRESENCE imports its ParticleField. Matter can be extracted; Presence would break unless the renderer moves to the platform first — see that manifest.',
         'Requires WebGL and the SPATIAL canvas; the reduced/no-WebGL path lists states rather than rendering them, which is correct but is a second surface to carry.',
       ],
     },
@@ -327,20 +325,55 @@ export const MANIFESTS: Manifest[] = [
     persistence: 'PROJECT',
     maturity: 'ALPHA',
     evidence:
-      'The crossing, the aperture and the delivery package render, and WHAT IS NOT IN IT is drawn with hollow UNKNOWN marks. But the delivery handoff — `kind: delivery` in its artifact bar — has NEVER been exercised end to end: no QA run has produced a delivery artifact in the project ledger. Present in source, unproven in behaviour.',
+      'The artifact path has now been RUN, which it never had been. Matter Engine produced a real recipe into the project; Portal packaged it, drew WHAT IS NOT IN IT, and its delivery handoff recorded a `kind: delivery` artifact whose sourceIds resolve to that recipe and whose limits travel with it, then carried the visitor to ANZY.OS. The page was reloaded and the project reopened: both artifacts survived with their ids and the manifest text intact at 1366 characters. Export reported DOWNLOADED .JSON, and a refused clipboard reported COPY REFUSED — SELECT AND COPY MANUALLY rather than failing quietly. PERFORMANCE alone stays unverified: no real-hardware measurement exists and headless figures are not evidence.',
     graduation: {
-      INPUT: 'PASS', TRANSFORMATION: 'PASS', OUTPUT: 'PASS', ARTIFACT: 'UNVERIFIED',
-      CONTINUE: 'UNVERIFIED', PERSISTENCE: 'UNVERIFIED', RESUME: 'UNVERIFIED',
-      ERROR_STATES: 'UNVERIFIED', LIMITATIONS: 'PASS', ACCESSIBILITY: 'PASS',
+      INPUT: 'PASS', TRANSFORMATION: 'PASS', OUTPUT: 'PASS', ARTIFACT: 'PASS',
+      CONTINUE: 'PASS', PERSISTENCE: 'PASS', RESUME: 'PASS',
+      ERROR_STATES: 'PASS', LIMITATIONS: 'PASS', ACCESSIBILITY: 'PASS',
       RESPONSIVE: 'PASS', LIFECYCLE: 'PASS', PERFORMANCE: 'UNVERIFIED',
-      DEPENDENCY_ISOLATION: 'PASS', STATE_ISOLATION: 'PASS', EXPORT: 'UNVERIFIED',
+      DEPENDENCY_ISOLATION: 'PASS', STATE_ISOLATION: 'PASS', EXPORT: 'PASS',
       PRIVACY: 'PASS', DEPLOYABILITY: 'OPEN',
     },
     standalone: {
       candidate: false,
       blockers: [
         'Its delivery package is a reading of the WHOLE project — it is the one product whose output is other products\' output, so it is the least separable by design.',
-        'Six graduation dimensions are UNVERIFIED because its artifact path has never been run.',
+        'PERFORMANCE is UNVERIFIED, as it is everywhere: this environment cannot produce a benchmark.',
+      ],
+    },
+  },
+
+  {
+    id: 'commercial-audit',
+    layer: 'PRODUCT',
+    owns: 'modes/audit + product/ (surface) + audit/ (its own service, own dependency tree)',
+    /* Deliberately short. It takes the runtime, the lifecycle and the shell and
+       nothing else — no project, no artifact bar, no handoff, no spatial layer.
+       That isolation is why it can also build as its own page. */
+    consumes: [...BASE],
+    dependsOnSiblings: [],
+    /* Nothing is kept in the browser. The corpus, the findings and the reviews
+       all live in the service's database, and the key is held in the tab. */
+    persistence: 'NONE',
+    maturity: 'BETA',
+    evidence:
+      'Run end to end against real independent businesses in Leeds: a gazetteer named 16 candidates, 3 were researched, 6 pages were fetched under robots.txt with 1 refusal recorded, and two businesses were resolved from their own pages with sourced ecommerce findings. 274/274 tests; five closure gates pass. Not PRODUCT because no human has reviewed a finding, so its accuracy is unmeasured, and because it cannot run without its service.',
+    graduation: {
+      INPUT: 'PASS', TRANSFORMATION: 'PASS', OUTPUT: 'PASS', ARTIFACT: 'PASS',
+      CONTINUE: 'OPEN', PERSISTENCE: 'PASS', RESUME: 'PASS',
+      ERROR_STATES: 'PASS', LIMITATIONS: 'PASS', ACCESSIBILITY: 'PASS',
+      RESPONSIVE: 'PASS', LIFECYCLE: 'PASS', PERFORMANCE: 'PASS',
+      DEPENDENCY_ISOLATION: 'PASS', STATE_ISOLATION: 'PASS', EXPORT: 'PASS',
+      PRIVACY: 'PASS', DEPLOYABILITY: 'UNVERIFIED',
+    },
+    standalone: {
+      /* The only reality that already builds as its own application:
+         `npm run build:product` emits dist-product/ with no Lab runtime in it. */
+      candidate: true,
+      blockers: [
+        'It cannot run without its backend. The Lab ships with no server, so inside the Lab this reality is a reader that will usually find nothing answering — and says so in five distinct states rather than showing an empty result.',
+        'No human has reviewed a finding, so the dataset that would measure its accuracy has no labels.',
+        'Nothing carries an audit into a Lab project; CONTINUE is OPEN rather than merely unverified.',
       ],
     },
   },
@@ -370,10 +403,10 @@ export const MANIFESTS: Manifest[] = [
     persistence: 'NONE',
     maturity: 'ALPHA',
     evidence:
-      'Inbound handoff verified in Flow B — it claims the Compiler manifest and opens on the same page, and keeps SOURCED and MEASURED strictly apart. Outbound it has no mechanism at all: it imports `claim` and `offered` but never `offer`, and its artifact bar carries no handoff. Its report is a download and nothing carries it onward.',
+      'Inbound handoff verified in Flow B — it claims the Compiler manifest and opens on the same page, and keeps SOURCED and MEASURED strictly apart. Outbound is now wired and walked: its artifact bar carries a `specimen` handoff to SYSTEM.app, and pressing it recorded a specimen artifact in the project with its limits attached and opened ANZY.OS. It was inbound only until then.',
     graduation: {
       INPUT: 'PASS', TRANSFORMATION: 'PASS', OUTPUT: 'PASS', ARTIFACT: 'PASS',
-      CONTINUE: 'OPEN', PERSISTENCE: 'N/A', RESUME: 'N/A', ERROR_STATES: 'PASS',
+      CONTINUE: 'PASS', PERSISTENCE: 'N/A', RESUME: 'N/A', ERROR_STATES: 'PASS',
       LIMITATIONS: 'PASS', ACCESSIBILITY: 'PASS', RESPONSIVE: 'PASS', LIFECYCLE: 'PASS',
       PERFORMANCE: 'UNVERIFIED', DEPENDENCY_ISOLATION: 'PASS', STATE_ISOLATION: 'N/A',
       EXPORT: 'PASS', PRIVACY: 'PASS', DEPLOYABILITY: 'OPEN',
@@ -381,7 +414,6 @@ export const MANIFESTS: Manifest[] = [
     standalone: {
       candidate: true,
       blockers: [
-        'CONTINUE is OPEN: the specimen report cannot reach the project. Closing it is one artifact-bar handoff, which is product work rather than architecture work.',
         'Measures the live DOM, so a standalone build needs a subject to measure — today that is the Lab\'s own specimen plate or a canonical page.',
       ],
     },
@@ -395,10 +427,10 @@ export const MANIFESTS: Manifest[] = [
     persistence: 'NONE',
     maturity: 'ALPHA',
     evidence:
-      'Reports what this session measured and prints UNKNOWN by name for everything it did not, which is the behaviour that matters most here. But it touches neither project nor handoff — no import of either — so its report is a download only, and its stated continuation to SYSTEM.app has no mechanism behind it.',
+      'Reports what this session measured and prints UNKNOWN by name for everything it did not, which is the behaviour that matters most here. Its report now reaches the project: the artifact bar carries a `session` handoff, and pressing it recorded a session artifact with its limits attached and opened ANZY.OS. Until then it imported neither project nor handoff and the reading left with the tab.',
     graduation: {
       INPUT: 'PASS', TRANSFORMATION: 'PASS', OUTPUT: 'PASS', ARTIFACT: 'PASS',
-      CONTINUE: 'OPEN', PERSISTENCE: 'N/A', RESUME: 'N/A', ERROR_STATES: 'PASS',
+      CONTINUE: 'PASS', PERSISTENCE: 'N/A', RESUME: 'N/A', ERROR_STATES: 'PASS',
       LIMITATIONS: 'PASS', ACCESSIBILITY: 'PASS', RESPONSIVE: 'PASS', LIFECYCLE: 'PASS',
       PERFORMANCE: 'N/A', DEPENDENCY_ISOLATION: 'PASS', STATE_ISOLATION: 'PASS',
       EXPORT: 'PASS', PRIVACY: 'PASS', DEPLOYABILITY: 'OPEN',
@@ -406,7 +438,6 @@ export const MANIFESTS: Manifest[] = [
     standalone: {
       candidate: true,
       blockers: [
-        'CONTINUE is OPEN for the same reason as X-Ray, and it has no project integration at all.',
         'It measures the Lab. Extracted, it would need a subject; a performance instrument with nothing to observe is not a product.',
       ],
     },
@@ -416,16 +447,15 @@ export const MANIFESTS: Manifest[] = [
     layer: 'INSTRUMENT',
     owns: 'modes/presence',
     consumes: [...BASE, 'BRAND', 'SPATIAL'],
-    dependsOnSiblings: [
-      {
-        id: 'matter-engine',
-        what: 'modes/presence/PresenceMode.tsx imports modes/matter/ParticleField.tsx',
-        why:
-          'The renderer is not generic: it calls Matter\'s own buildTargets() over Matter\'s MatterState vocabulary. Moving it to the platform would drag a product\'s domain model into shared code, and giving Presence its own formation would change what it draws — a behaviour regression this phase does not permit. Presence uses exactly one state ("field"), statically.',
-        removalPath:
-          'Change ParticleField to accept prebuilt from/to Float32Array buffers instead of MatterState names, move it to graphics/, and have each caller build its own formation. Matter keeps buildTargets and its state vocabulary; Presence gains a single static formation of its own. Needs a visual comparison before and after, because the field is the mode.',
-      },
-    ],
+    /* Cut. The renderer took Matter's `MatterState` vocabulary and called its
+       `buildTargets` itself; it now takes two prebuilt Float32Array buffers and
+       lives in `graphics/`, so each caller composes its own formation. Matter
+       keeps its six states; Presence has one lattice of its own in
+       `modes/presence/field.ts`. Verified by digesting all six formations plus
+       the delays and seeds before and after — every one identical — and by
+       confirming Presence's lattice matches what Matter's `field` produced at
+       the same spread. */
+    dependsOnSiblings: [],
     persistence: 'NONE',
     maturity: 'ALPHA',
     evidence:
@@ -434,14 +464,14 @@ export const MANIFESTS: Manifest[] = [
       INPUT: 'PASS', TRANSFORMATION: 'PASS', OUTPUT: 'PASS', ARTIFACT: 'N/A',
       CONTINUE: 'N/A', PERSISTENCE: 'N/A', RESUME: 'N/A', ERROR_STATES: 'PASS',
       LIMITATIONS: 'PASS', ACCESSIBILITY: 'PASS', RESPONSIVE: 'PASS', LIFECYCLE: 'PASS',
-      PERFORMANCE: 'UNVERIFIED', DEPENDENCY_ISOLATION: 'OPEN', STATE_ISOLATION: 'PASS',
+      PERFORMANCE: 'UNVERIFIED', DEPENDENCY_ISOLATION: 'PASS', STATE_ISOLATION: 'PASS',
       EXPORT: 'N/A', PRIVACY: 'PASS', DEPLOYABILITY: 'OPEN',
     },
     standalone: {
       candidate: false,
       blockers: [
-        'DEPENDENCY_ISOLATION is OPEN — the only sibling import in the Lab. Extracting Presence today would take Matter Engine with it.',
         'The camera path is UNVERIFIED on physical hardware and must stay marked so.',
+        'DEPLOYABILITY is OPEN for every reality: no independent route or build target exists yet.',
       ],
     },
   },
@@ -542,7 +572,7 @@ export function graduationGaps(id: string): { dimension: Dimension; state: Check
 }
 
 /**
- * The registry, the index and this file must describe the same sixteen things.
+ * The registry, the index and this file must describe the same things.
  *
  * Dev-only, and the same guard `registry.ts` runs for the same reason: a
  * manifest that has drifted out of step with what exists is worse than no

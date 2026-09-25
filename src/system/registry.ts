@@ -1,14 +1,14 @@
 /**
- * THE PRODUCT REGISTRY — what each of the sixteen realities actually is.
+ * THE PRODUCT REGISTRY — what each reality on the index actually is.
  *
  * ── WHY THIS EXISTS ─────────────────────────────────────────────────────────
  *
- * The Lab has been presenting sixteen realities as sixteen equivalent choices
- * since Phase 5, and they are not equivalent. Some are tools a person could use
+ * The Lab has been presenting its realities as equivalent choices since
+ * Phase 5, and they are not equivalent. Some are tools a person could use
  * to produce something. Some are instruments that measure. Some are experiences
  * that demonstrate what this studio can build and are not trying to be tools at
  * all. Flattening those into one list was the single biggest reason the product
- * read as "sixteen cool experiments" rather than as a system.
+ * read as a pile of cool experiments rather than as a system.
  *
  * `ModeDefinition.tier` already split the index two ways — flagship and
  * experiment — but that is a statement about billing, not about kind: X-Ray is
@@ -136,6 +136,27 @@ export const PRODUCTS: ProductEntry[] = [
     },
   },
   {
+    id: 'commercial-audit',
+    layer: 'PRODUCT',
+    family: 'ANALYSIS',
+    proposition: 'Read real businesses in a real area and report what can and cannot be established about them.',
+    contract: {
+      input: 'An area, a category and a budget — or a list of URLs.',
+      context:
+        'Pages those businesses publish, fetched under robots.txt with a refusal recorded as a result. A gazetteer names candidates; nothing it says becomes a fact about a business.',
+      process:
+        'Discover, fetch, extract, resolve identity, apply versioned rules, then reject any statement its citation does not support.',
+      result:
+        'Findings marked FACT, DERIVED, UNKNOWN, CONFLICTING or RECOMMENDATION, each with the passage it rests on and what it cannot tell you.',
+      artifact: 'A handoff document carrying every quotation, URL, cost and limitation.',
+      /* Honest null: a person can review a finding and the verdict is stored,
+         but nothing yet carries an audit into a Lab project. Claiming
+         SYSTEM.app here would be a continuation with no mechanism. */
+      continue:
+        'Nowhere in the Lab yet. Findings can be reviewed and exported; no handoff carries them into a project.',
+    },
+  },
+  {
     id: 'reality-compiler',
     layer: 'PRODUCT',
     family: 'ANALYSIS',
@@ -204,12 +225,13 @@ export const PRODUCTS: ProductEntry[] = [
       process: 'Observes real elements and reports boxes, positions, depth and type metrics as this window renders them.',
       result: 'A specimen report separating what the source says from what this window measured.',
       artifact: 'SYSTEM SPECIMEN REPORT — Markdown or JSON.',
-      /* Inbound only. It CLAIMS the Compiler's manifest and opens on the same
-         page, but it offers nothing onward: no `offer()` call, no handoff on
-         its artifact bar. This said SYSTEM.app, which was a continuation with
-         no mechanism behind it — found by the Phase 8.12 dependency map. */
+      /* Both directions now. It CLAIMS the Compiler's manifest and opens on
+         the same page, and its report is offered onward as a `specimen` to
+         SYSTEM.app. It was inbound only until the artifact bar gained a
+         handoff — the continuation named here had no mechanism behind it,
+         which the Phase 8.12 dependency map caught. */
       continue:
-        'Nowhere yet. The report is a download; nothing carries it into the project, and SYSTEM.app does not receive it.',
+        'SYSTEM.app, as a specimen report in the project. The measurement is kept, not just downloaded.',
     },
   },
   {
@@ -237,10 +259,11 @@ export const PRODUCTS: ProductEntry[] = [
       process: 'Counts frames, subscribers, canvases and chunks against a real clock.',
       result: 'A session report in which anything unmeasured is printed UNKNOWN rather than estimated.',
       artifact: 'The session report, as Markdown or JSON.',
-      /* This mode imports neither `project` nor `handoff`. Same correction as
-         X-Ray: a stated continuation with nothing implementing it. */
+      /* It imported neither `project` nor `handoff` and said so. Its artifact
+         bar now carries a `session` handoff, so the reading survives the tab
+         it was taken in. */
       continue:
-        'Nowhere yet. The report is a download; this instrument does not write to the project.',
+        'SYSTEM.app, as a session report in the project. What was measured outlives the tab it was measured in.',
     },
   },
 
@@ -404,7 +427,7 @@ export function incompleteProducts(): { id: string; missing: (keyof ProductContr
 }
 
 /*
- * The registry and the index must describe the same sixteen things.
+ * The registry and the index must describe the same things.
  *
  * A mode added to `content/lab.ts` without a classification here would appear
  * on the index with no layer and silently fall out of every grouping, which is

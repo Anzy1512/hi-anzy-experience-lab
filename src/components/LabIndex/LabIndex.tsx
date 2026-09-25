@@ -352,21 +352,21 @@ export function LabIndex() {
       )}
 
       {/*
-        SIXTEEN THINGS, FOUR KINDS.
+        EVERY REALITY, GROUPED BY KIND.
 
         This was one list of eight and a reverse list of eight, which is a fact
-        about the plate rather than about the work: a visitor met sixteen
+        about the plate rather than about the work: a visitor met a row of
         equivalent choices and had to open each one to find out whether it was a
         tool, a measuring instrument or a piece of cinema. The grouping is now
         by kind, from `system/registry`, and each group says in one line what
         having that kind of thing means.
 
-        Plate numbers are untouched. 01–08 and X1–X8 are identity — the graph,
+        Plate numbers are untouched. 01–09 and X1–X8 are identity — the graph,
         the cross-references and the Terminal all name realities by them — so a
         group can reorder the sheet without renumbering anything on it.
       */}
       {/* The question before the catalogue. Three jobs with an outcome and one
-          open route, above sixteen rows that stay exactly where they were. */}
+          open route, above rows that stay exactly where they were. */}
       <WorkBand />
 
       <div className="index__groups" ref={listRef}>

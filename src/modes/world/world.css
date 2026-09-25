@@ -318,6 +318,10 @@
   align-items: baseline;
   gap: 6px;
   padding: 4px 7px;
+  /* The district navigation is how this reality is moved through on a phone,
+     and 4px of padding around a 22px line left it at 30px — under the Lab's
+     32px floor by two. Measured at 375px, not assumed. */
+  min-height: 32px;
   border: var(--hair) solid transparent;
   color: var(--figure-dim);
   letter-spacing: 0.06em;

@@ -14,7 +14,20 @@ import reactRefresh from 'eslint-plugin-react-refresh';
  * to make the gate pass.
  */
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules', 'qa', 'public'] },
+  /*
+   * `audit` is ignored here deliberately, not overlooked.
+   *
+   * The OSINT audit service lives in this repository and is a different
+   * product with its own package.json, its own dependency tree and its own
+   * tsconfig. Linting it from the Lab's gate would either drag Node and server
+   * rules into a config written for a browser client, or quietly relax the
+   * client's rules to accommodate a server. It has its own `npm run lint`.
+   *
+   * What this preserves is the thing Phase 8.12 spent a phase establishing:
+   * `npm ci && npm run build` at this root still resolves 173 packages and
+   * produces a Lab that needs no backend to exist.
+   */
+  { ignores: ['dist', 'node_modules', 'qa', 'public', 'audit'] },
 
   // ---- application source: type-aware ------------------------------------
   {

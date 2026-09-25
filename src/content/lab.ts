@@ -138,6 +138,21 @@ export const MODES: ModeDefinition[] = [
     requirements: { ...NONE, cost: 'low', mobile: 'full', reducedMotion: 'adapted' },
     load: () => import('../modes/portal/PortalMode'),
   },
+  {
+    id: 'commercial-audit',
+    index: '09',
+    title: 'COMMERCIAL AUDIT',
+    tagline: 'Read a real business, and show the working.',
+    description:
+      'Points at businesses in a real area, reads what they publish, and reports what it could and could not establish. Every conclusion carries the passage it rests on, and what was looked for and not found is reported as not found rather than as absent.',
+    status: 'online',
+    tier: 'flagship',
+    /* Paper: a printed argument on bone stock, so the host's chrome stays
+       legible above it. */
+    material: 'paper',
+    requirements: { ...NONE, cost: 'low', mobile: 'full', reducedMotion: 'full' },
+    load: () => import('../modes/audit/AuditMode'),
+  },
 
   /* ---------------------------------------------------------------------- */
   /* REVERSE SIDE — supporting experiments                                   */

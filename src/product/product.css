@@ -1,0 +1,651 @@
+/*
+ * THE AUDIT SURFACE.
+ *
+ * ── A DOCUMENT, NOT A DASHBOARD ─────────────────────────────────────────────
+ *
+ * Everything here is stock, rules and type. No cards, no rounded panels, no
+ * gradients, no glow, no chrome. A commercial audit is a printed argument: a
+ * claim, then the quotation under it, then what the quotation cannot tell you.
+ * The layout is the argument's structure and nothing else.
+ *
+ * ── ORANGE MEANS SIGNAL ─────────────────────────────────────────────────────
+ *
+ * It marks the active control, the acquired subject and a contradiction. It is
+ * not a heading colour, not an accent, and not decoration. If it starts
+ * appearing anywhere else it comes out.
+ *
+ * ── AND MONO IS THE INSTRUMENT'S VOICE ──────────────────────────────────────
+ *
+ * IBM Plex Mono is used only for values the system measured: token counts,
+ * page counts, states, timestamps, ids. A pseudo-technical label set in mono
+ * because it looks precise would be a lie about where the number came from.
+ */
+
+.audit {
+  min-height: 100dvh;
+  background: var(--ground);
+  color: var(--figure);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+/*
+ * INSIDE THE LAB.
+ *
+ * The mode host is `position: fixed; inset: 0; overflow: hidden` with a chrome
+ * band — plate number, work strip, EXIT — floating across the top. A document
+ * dropped into that is clipped at the fold with no way to scroll, and its own
+ * masthead prints underneath the EXIT control.
+ *
+ * So the surface supplies the scroll the host deliberately does not, and clears
+ * the band by the same offset Performance uses. `min-height` is released
+ * because the box is now the frame rather than the page.
+ */
+.audit[data-frame='lab'] {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+  overflow-y: auto;
+  /* The Lab's scroll stops here rather than chaining to the document behind. */
+  overscroll-behavior: contain;
+  padding-top: calc(var(--trim) * 0.5 + 52px);
+}
+
+.audit__skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: var(--z-chrome);
+  background: var(--figure);
+  color: var(--ground);
+  padding: var(--s-2) var(--s-3);
+}
+.audit__skip:focus {
+  left: var(--trim);
+  top: var(--s-2);
+}
+
+/* ---- masthead ----------------------------------------------------------- */
+
+.audit .masthead {
+  border-bottom: var(--rule-w) solid var(--rule);
+  padding: var(--s-3) var(--trim) var(--s-2);
+  display: grid;
+  gap: var(--s-2);
+}
+
+.audit .masthead__line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-1) var(--s-4);
+  justify-content: space-between;
+}
+
+.audit .masthead__name {
+  margin: 0;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: var(--t-display-s);
+  letter-spacing: var(--tr-display);
+  text-transform: uppercase;
+}
+
+.audit .masthead__name span {
+  color: var(--signal-text);
+}
+
+/* ---- the service line, which is never decorative ------------------------ */
+
+.audit .reach {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-1) var(--s-3);
+}
+
+.audit .reach__state {
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-s);
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+}
+
+.audit .reach__state[data-state='ONLINE'] {
+  color: var(--signal-text);
+}
+.audit .reach__state[data-state='UNREACHABLE'],
+.audit .reach__state[data-state='UNAUTHORISED'] {
+  color: var(--signal-hot-text);
+}
+
+.audit .reach__detail {
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  color: var(--figure-dim);
+}
+
+/* ---- navigation --------------------------------------------------------- */
+
+.audit .tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+}
+
+/* A three-letter section name came out 24px across. The floor applies to both
+   axes, and ASK is as much a target as EVIDENCE. */
+.audit .tabs__item {
+  min-width: 32px;
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: var(--s-1) 0;
+  /* 32px is the interaction floor everywhere in this product. */
+  min-height: 32px;
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-s);
+  letter-spacing: var(--tr-mono);
+  color: var(--figure-dim);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color var(--d-1) var(--e-snap), border-color var(--d-1) var(--e-snap);
+}
+
+.audit .tabs__item[aria-selected='true'] {
+  color: var(--figure);
+  border-bottom-color: var(--signal);
+}
+
+.audit .tabs__item:hover {
+  color: var(--figure);
+}
+
+/* ---- the sheet ---------------------------------------------------------- */
+
+.audit .audit__sheet {
+  padding: var(--s-5) var(--trim) var(--s-7);
+  max-width: 78ch;
+}
+
+.audit .audit__sheet--wide {
+  max-width: none;
+}
+
+.audit .section {
+  margin: 0 0 var(--s-6);
+}
+
+.audit .section__title {
+  margin: 0 0 var(--s-3);
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-s);
+  letter-spacing: var(--tr-mono-wide);
+  text-transform: uppercase;
+  color: var(--figure-dim);
+  border-bottom: var(--rule-w) solid var(--rule-faint);
+  padding-bottom: var(--s-1);
+}
+
+.audit .prose {
+  font-family: var(--f-body);
+  font-size: var(--t-body);
+  line-height: 1.55;
+  margin: 0 0 var(--s-3);
+}
+
+.audit .dim {
+  color: var(--figure-dim);
+}
+
+.audit .value {
+  font-family: var(--f-mono);
+  font-size: var(--t-mono);
+  letter-spacing: var(--tr-mono);
+}
+
+/* ---- the ask form ------------------------------------------------------- */
+
+.audit .field {
+  display: grid;
+  gap: var(--s-1);
+  margin-bottom: var(--s-3);
+}
+
+.audit .field__label {
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  color: var(--figure-dim);
+}
+
+.audit .field__input,
+.audit .field__area {
+  font-family: var(--f-body);
+  font-size: var(--t-body);
+  color: var(--figure);
+  background: var(--c-bone-lit);
+  border: var(--rule-w) solid var(--rule);
+  padding: var(--s-2);
+  min-height: 32px;
+}
+
+.audit .field__area {
+  min-height: 5rem;
+  resize: vertical;
+}
+
+/*
+ * A select, kept in the same stock as every other field.
+ *
+ * `appearance: none` removes the platform chrome so the control reads as part
+ * of the sheet rather than as an operating-system widget dropped onto it, and
+ * the 32px floor is inherited from `.field__input` above rather than restated.
+ */
+select.field__input {
+  appearance: none;
+  border-radius: 0;
+  cursor: pointer;
+  padding-right: var(--s-4);
+  background-image: linear-gradient(45deg, transparent 50%, var(--figure-dim) 50%),
+    linear-gradient(135deg, var(--figure-dim) 50%, transparent 50%);
+  background-position:
+    right var(--s-2) center,
+    right calc(var(--s-2) - 4px) center;
+  background-size: 4px 4px, 4px 4px;
+  background-repeat: no-repeat;
+}
+
+.audit .field__input:focus-visible,
+.audit .field__area:focus-visible,
+.audit .tabs__item:focus-visible,
+.audit .button:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+}
+
+/*
+ * A checkbox with a hit target a person can actually hit.
+ *
+ * The default control is thirteen pixels square, which is below this product's
+ * 32px interaction floor everywhere and unusable on a touch screen. The label
+ * carries the target; the box is drawn larger and the two move together.
+ */
+.audit .check {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  min-height: 32px;
+  padding-right: var(--s-2);
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  color: var(--figure-dim);
+  cursor: pointer;
+}
+
+.audit .check input {
+  inline-size: 18px;
+  block-size: 18px;
+  accent-color: var(--signal);
+  cursor: pointer;
+}
+
+.audit .check:hover {
+  color: var(--figure);
+}
+
+.audit .check input:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+}
+
+.audit .audit__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  align-items: flex-end;
+}
+
+.audit .audit__row > .field {
+  flex: 1 1 12rem;
+  margin-bottom: 0;
+}
+
+.audit .button {
+  appearance: none;
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-s);
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  background: var(--figure);
+  color: var(--ground);
+  border: var(--rule-w) solid var(--figure);
+  padding: 0 var(--s-4);
+  min-height: 32px;
+  cursor: pointer;
+  transition: background var(--d-1) var(--e-snap), color var(--d-1) var(--e-snap);
+}
+
+.audit .button:hover:not(:disabled) {
+  background: var(--signal);
+  border-color: var(--signal);
+  color: var(--c-ink);
+}
+
+.audit .button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.audit .button--quiet {
+  background: none;
+  color: var(--figure);
+}
+
+/* ---- findings ----------------------------------------------------------- */
+
+.audit .finding {
+  border-top: var(--rule-w) solid var(--rule-faint);
+  padding: var(--s-3) 0;
+}
+
+.audit .finding:first-child {
+  border-top: 0;
+}
+
+.audit .finding__statement {
+  margin: 0;
+  font-family: var(--f-body);
+  font-size: var(--t-body);
+  line-height: 1.5;
+}
+
+.audit .finding__meta {
+  margin-top: var(--s-1);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1) var(--s-3);
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-mono);
+  color: var(--figure-dim);
+}
+
+.audit .finding__meta [data-status='CONFLICTING'] {
+  color: var(--signal-hot-text);
+}
+
+.audit .finding__limits {
+  margin: var(--s-1) 0 0;
+  font-family: var(--f-body);
+  font-size: var(--t-body-s);
+  color: var(--figure-dim);
+  line-height: 1.5;
+}
+
+.audit .citation {
+  margin: var(--s-2) 0 0 var(--s-3);
+  border-left: 2px solid var(--rule);
+  padding-left: var(--s-2);
+}
+
+.audit .citation__quote {
+  margin: 0;
+  font-family: var(--f-body);
+  font-size: var(--t-body-s);
+  line-height: 1.5;
+}
+
+.audit .citation__source {
+  display: block;
+  margin-top: var(--s-0);
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  color: var(--figure-dim);
+  overflow-wrap: anywhere;
+}
+
+/*
+ * A citation that is a link has to be reachable with a thumb.
+ *
+ * Everywhere else in this surface a source is text, and 13px of mono is right
+ * for something you read. In the review queue it is the control a person uses
+ * to open the page they are judging — the single most important action on that
+ * card — and at 13px tall it failed the 32px floor. Inline-flex with a minimum
+ * height gives it a real target without changing how it reads.
+ */
+.audit .citation__source a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  color: var(--signal-text);
+  text-decoration-thickness: var(--rule-w);
+  text-underline-offset: 3px;
+}
+
+.audit .citation__source a:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+}
+
+/* ---- tables ------------------------------------------------------------- */
+
+/*
+ * A data table on a phone, scrolled rather than hidden.
+ *
+ * Seven columns of measured values do not fit in 375px, and the alternatives
+ * are worse: dropping columns hides evidence, and stacking each row into a
+ * definition list turns a table somebody is scanning for one number into a
+ * page. The compromise is honest — every column is still there, and reaching
+ * it is a sideways drag, which is a first-class touch gesture rather than a
+ * degraded one.
+ */
+.audit .table-wrap {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.audit .table {
+  width: 100%;
+  min-inline-size: 34rem;
+  border-collapse: collapse;
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-s);
+}
+
+.audit .table th,
+.audit .table td {
+  text-align: left;
+  padding: var(--s-1) var(--s-2) var(--s-1) 0;
+  border-bottom: var(--rule-w) solid var(--rule-faint);
+  vertical-align: top;
+}
+
+.audit .table th {
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+  color: var(--figure-dim);
+  font-weight: 400;
+}
+
+.table td[data-state='DONE'] { color: var(--figure); }
+.table td[data-state='FAILED'] { color: var(--signal-hot-text); }
+.audit .table td[data-state='SKIPPED'],
+.table td[data-state='PENDING'] { color: var(--figure-dim); }
+.table td[data-state='RUNNING'] { color: var(--signal-text); }
+
+.table td[data-outcome='-1'] { color: var(--signal-hot-text); }
+
+/* ---- the graph, drawn as a list because it is one ----------------------- */
+
+.audit .graph {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.audit .graph__task {
+  border-top: var(--rule-w) solid var(--rule-faint);
+  padding: var(--s-2) 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--s-1) var(--s-3);
+}
+
+.audit .graph__key {
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-s);
+  letter-spacing: var(--tr-mono);
+}
+
+.audit .graph__state {
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-mono);
+  color: var(--figure-dim);
+}
+
+.graph__state[data-state='DONE'] { color: var(--figure); }
+.graph__state[data-state='FAILED'] { color: var(--signal-hot-text); }
+.graph__state[data-state='RUNNING'] { color: var(--signal-text); }
+
+.audit .graph__why {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-family: var(--f-body);
+  font-size: var(--t-body-s);
+  color: var(--figure-dim);
+  line-height: 1.5;
+}
+
+/* ---- the plate: a plain plot, drawn from real coordinates --------------- */
+
+.audit .plate {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  /* A plot taller than the window is a plot nobody can read in one go. */
+  max-block-size: 60vh;
+  border: var(--rule-w) solid var(--rule);
+  background: var(--c-bone-lit);
+}
+
+/* Nothing to plot needs a line of type, not a page of empty stock. */
+.audit .plate:has(.plate__empty) {
+  aspect-ratio: auto;
+  min-block-size: 8rem;
+}
+
+.audit .plate__mark {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border: 1px solid var(--figure);
+  background: var(--ground);
+}
+
+.audit .plate__mark[data-selected='true'] {
+  background: var(--signal);
+  border-color: var(--signal);
+}
+
+.audit .plate__empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-s);
+  letter-spacing: var(--tr-mono);
+  color: var(--figure-dim);
+  text-align: center;
+  padding: var(--s-4);
+}
+
+/* ---- limitations, which are part of the finding ------------------------- */
+
+.audit .limits {
+  border-top: 2px solid var(--figure);
+  padding-top: var(--s-2);
+  margin-top: var(--s-5);
+}
+
+.audit .limits__list {
+  margin: 0;
+  padding-left: var(--s-4);
+  font-family: var(--f-body);
+  font-size: var(--t-body-s);
+  line-height: 1.6;
+  color: var(--figure-dim);
+}
+
+.audit .limits__list li + li {
+  margin-top: var(--s-1);
+}
+
+/* ---- the offline notice ------------------------------------------------- */
+
+.audit .notice {
+  border: var(--rule-w) solid var(--rule);
+  border-left: 3px solid var(--signal);
+  padding: var(--s-3);
+  margin: 0 0 var(--s-5);
+}
+
+.audit .notice--refused {
+  border-left-color: var(--signal-hot);
+}
+
+.audit .notice__title {
+  margin: 0 0 var(--s-1);
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-s);
+  letter-spacing: var(--tr-mono);
+  text-transform: uppercase;
+}
+
+.audit .notice__body {
+  margin: 0;
+  font-family: var(--f-body);
+  font-size: var(--t-body-s);
+  line-height: 1.55;
+}
+
+.audit .notice__body + .notice__body {
+  margin-top: var(--s-2);
+}
+
+/* ---- colophon ----------------------------------------------------------- */
+
+.audit .colophon {
+  border-top: var(--rule-w) solid var(--rule);
+  padding: var(--s-3) var(--trim);
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: var(--tr-mono);
+  color: var(--figure-dim);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1) var(--s-4);
+}
+
+/* ---- motion, removed without removing the design ------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  /*
+   * Travel goes; hierarchy, rules, materials and every piece of information
+   * stay exactly as they are. Nothing in this surface conveys meaning through
+   * movement, so there is nothing to replace — which is the correct place to
+   * end up rather than a happy accident.
+   */
+  .audit .tabs__item,
+  .audit .button,
+  .audit .field__input,
+  .audit .field__area {
+    transition-duration: 1ms;
+  }
+}

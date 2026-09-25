@@ -56,6 +56,16 @@ export const COMPILER_COPY = {
   enterWorld: 'ENTER THE WORLD',
   fallback:
     'The structural layer needs WebGL, which is unavailable here. The document still compiles into depth — the scaffolding around it is simply not drawn.',
+  /*
+   * When the canonical snapshot is empty or unreadable.
+   *
+   * It names the file and the commit because this failure is a build problem
+   * in another repository, not something a visitor can act on — and a message
+   * that only said "something went wrong" would send them looking in the wrong
+   * place.
+   */
+  noSource:
+    'There is no page to compile. The canonical snapshot in content/canonicalPages.ts is empty, which means it was never generated or the last capture failed — regenerate it with scripts/capture-canonical-pages.mjs. Nothing has been guessed at in its place.',
   sourceLabel: 'COMPILING',
   manifestLabel: 'THE TRANSFORMATION MANIFEST',
 } as const;

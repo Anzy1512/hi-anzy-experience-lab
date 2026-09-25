@@ -11,7 +11,7 @@ than a standing rule, the state doc and the source code win.
 ## What this is
 
 An interface institution: one company, multiple realities. A launcher, a Reality Index, and
-and **sixteen** realities, all of them built and enterable. There is no longer a
+**seventeen** realities, all of them built and enterable. There is no longer a
 "not yet" row on the index — which raises the bar rather than lowering it: the index is
 now a promise the product has to keep every time.
 
@@ -185,6 +185,7 @@ src/
   modes/timemachine/ Time Machine — one source, seven interaction models
   modes/portal/    Portal — the aperture, with XR reported not assumed
   modes/performance/ Performance — measured values, or UNKNOWN by name
+  modes/audit/     Commercial Audit — reads real businesses; the surface lives in product/
   audio/           the one audio engine, its voices, and the React binding
   dev/            frame-budget harness (development only)
   components/     launcher, index, sheet furniture, pointer instrument
@@ -209,7 +210,7 @@ src/
 
 ## Phase discipline
 
-All sixteen realities are `online`. Phases 1 through 6 are complete or partially complete —
+All seventeen realities are `online`. Phases 1 through 6 are complete or partially complete —
 see `docs/PROJECT_STATE_PRE_PHASE_6_5.md` for exactly which, and for what the next phase is.
 
 **Do not start a new phase without explicit instruction**, and do not infer scope for one

@@ -8,10 +8,11 @@ import { detectWebGPU } from '../../core/capability';
 import { spatialQuality } from '../../spatial/quality';
 import { SpatialCanvas } from '../../spatial/SpatialCanvas';
 import { clamp01, damp, lerp } from '../../spatial/projection';
-import { ParticleField } from './ParticleField';
+import { ParticleField } from '../../graphics/ParticleField';
 import {
   STATE_LABEL,
   STATE_NOTE,
+  buildTargets,
   STATE_ORDER,
   TEXT_MAX,
   resetTypedText,
@@ -67,6 +68,22 @@ export default function MatterMode({ onReady, scope }: ModeViewProps) {
 
   const [state, setState] = useState<MatterState>('dust');
   const [previous, setPrevious] = useState<MatterState>('dust');
+
+  /*
+   * The two formations, built here because they are Matter's vocabulary.
+   *
+   * The field used to take the state NAMES and call `buildTargets` inside
+   * itself, which is what made a renderer know about `MatterState` — and what
+   * made Presence import this mode to draw a field with no states at all.
+   *
+   * `previousTargets` is memoised separately and deliberately not part of the
+   * geometry's dependencies: the field rebuilds when the DESTINATION changes
+   * and reads whatever `from` is at that moment, which is what makes a
+   * transition begin where the last one ended. `setPrevious` runs in the same
+   * update as `setState`, so both are current by the time it rebuilds.
+   */
+  const targets = useMemo(() => buildTargets(state, { count, spread: SPREAD }), [state, count]);
+  const previousTargets = useMemo(() => buildTargets(previous, { count, spread: SPREAD }), [previous, count]);
   const [force, setForce] = useState<ForceMode>('off');
   const [glFailed, setGlFailed] = useState(false);
   const [armed, setArmed] = useState(false);
@@ -281,10 +298,10 @@ export default function MatterMode({ onReady, scope }: ModeViewProps) {
             frameloop={hidden ? 'demand' : 'always'}
             onFailure={onGlFailure}
           >
+            {/* Matter owns its formations; the field only arranges them. */}
             <ParticleField
-              count={count}
-              state={state}
-              previous={previous}
+              from={previousTargets}
+              to={targets}
               progressRef={progressRef}
               forceRef={forceRef}
               spread={SPREAD}

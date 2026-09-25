@@ -21,6 +21,26 @@
       ],
       "port": 4173,
       "autoPort": true
+    },
+    {
+      "name": "product",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:product"
+      ],
+      "port": 5174,
+      "autoPort": true
+    },
+    {
+      "name": "product-preview",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "preview:product"
+      ],
+      "port": 4174,
+      "autoPort": true
     }
   ]
 }

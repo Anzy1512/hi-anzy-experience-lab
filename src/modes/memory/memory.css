@@ -222,6 +222,9 @@
   justify-content: flex-end;
   gap: var(--s-2);
   min-height: 32px;
+  /* Height was already held; width was not, and a right-aligned M.01 tick came
+     out 31px across. The floor is a square, not a line. */
+  min-width: 32px;
   padding: 3px 0;
   color: var(--text-secondary);
   letter-spacing: var(--tr-mono-wide);

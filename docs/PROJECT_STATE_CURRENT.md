@@ -19,16 +19,118 @@ records of what each phase did, and stay that way.
 | 8.10 — project memory + persistence | **CLOSED** |
 | 8.11 — product + brand convergence | **CLOSED** |
 | 8.12 — lab independence + product launch foundation | **IN PROGRESS** — §1–§10 done (separation + product architecture), 8.12C done (release contract + canonical re-read); §11–§14 open |
+| Audit service, layers 1–6 | **CLOSED** — corpus, crawl/index/retrieve, entity graph, intelligence engine, jobs and agents, product API and surface |
+| Audit service, layer 7 | **PARTIAL — blocked on owner review** — live discovery, a real commercial pilot, geography with provenance, quality metrics and the human-review workflow are all built and run; no human has labelled a finding, and the live model path is blocked on a missing key |
 
-- Branch: `phase-8-12-independence`
-- Gates: `tsc -b` = 0 · `eslint src --max-warnings 0` = 0 ·
-  `npm run build` passes
+- Branch: `audit-osint-service`
+- Gates: `tsc -b` = 0 · `eslint .` = 0 · `npm run build` passes
+- Audit gates: `npm test` = 274/274 (PGlite) · `npm run test:pg` = 167/167
+  (Postgres, from a fresh schema) · `npm run closure`, `closure:l4`,
+  `closure:l6`, `closure:l7` and `final-test` all pass. The audit's tsconfig now
+  includes `test/**`, which it never did — 17 type errors were hiding there,
+  including a fixture building half a `Discovery` and an `app.inject` helper
+  whose responses were typed `any` all the way down.
+
+  `test:pg` needs a Postgres and a database of its own; it refuses to run
+  against a corpus that already holds anything:
+
+  ```
+  docker compose up -d
+  docker exec hi-anzy-audit-db psql -U audit -d postgres -c "CREATE DATABASE audit_test OWNER audit;"
+  DATABASE_URL=postgres://audit:audit@127.0.0.1:5433/audit_test npm run migrate
+  DATABASE_URL=postgres://audit:audit@127.0.0.1:5433/audit_test CRAWL_ALLOW_PRIVATE_NETWORKS=true CRAWL_PER_HOST_RPS=50 npm run test:pg
+  ```
+
+  Running it for the first time found a defect PGlite had been hiding: two
+  layer 7 tests asserted corpus-wide totals, which only hold where nothing else
+  has written. PGlite hands every suite its own directory; a shared Postgres
+  does not. Both are scoped to what they created now, and the suite passes
+  twice in a row against an accumulating database.
+- Runtime sweep: all 17 realities enter, reach `active`, expose an EXIT control
+  and exit without leaving a canvas or a RAF subscriber behind. No console
+  errors and no horizontal overflow at 375px. The 32px interaction floor holds
+  everywhere, with two documented exemptions: a checkbox whose 32px label is
+  the target, and Time Machine's depicted 1995 links, which are inert by
+  construction and would be falsified by enlargement.
+- `prefers-reduced-motion` verified by forcing the media query and re-entering
+  the motion-heavy realities. Director, Chaos and Dream render identically —
+  same content, same controls. Living World drops to the `lite` tier: no
+  canvas, Explore withheld with a stated reason, and all ten districts, the
+  plan and guided travel still there. Travel removed, information kept.
+  `npm run test:pg` was 128/128 at the layer 6 closure and could not be re-run
+  for layer 7 — the Docker engine is not running on this machine, so no
+  Postgres was listening on 5433. Layer 7 added no driver-specific SQL.
+
+## THE AUDIT SERVICE
+
+A service in `audit/`, with its own `package.json`, its own dependency tree and
+its own tests. It is **not** part of the Lab's build: `npm ci && npm run build`
+at the root resolves the same 5 runtime and 13 build dependencies and produces a
+Lab that runs with no backend present, exactly as before.
+
+Its reading surface is now a reality on the index (plate 09) and also builds as
+its own page. Both render the same `product/Surface.tsx`, so neither can become
+the older one. The surface's stylesheet is scoped under `.audit` because the
+Lab already owned `.sheet` and `.row` — that collision made the audit's main
+column `position: fixed` and `pointer-events: none` inside the mode host.
+
+| Layer | What it is |
+|---|---|
+| 1 | a corpus that can be retrieved from, on PGlite or Postgres, and proof that it can |
+| 2 | discovery → crawl → extract → chunk → embed → index → hybrid retrieval |
+| 3 | entity resolution and a commercial knowledge graph, with a resolver allowed to refuse |
+| 4 | the intelligence engine: intent, plan, evidence packet, rules, citation gate |
+| 5 | jobs, a task DAG, one orchestrator, three agents with tool contracts |
+| 6 | the product API, and a reading surface built on the Lab's design system |
+| 7 | a real commercial pilot: live discovery, geography with provenance, quality metrics, and a human-review dataset |
+
+The surface is a **separate build** (`npm run build:product` → `dist-product/`).
+It shares the Lab's tokens, its three typefaces and its easing vocabulary, and
+imports none of its runtime — no modes, no engine, no spatial layer, no RAF
+loop. It is built separately so the Lab's entry graph is not disturbed: a second
+Rollup input would make the two share chunks and put a `modulepreload` in the
+Lab's entry document for a page the visitor is not on.
+
+The service holds a key that can spend money and fetch pages, so **no key is
+ever built into the surface**. It asks for one and keeps it in the tab.
+
+### What layer 7 changed
+
+Two discovery paths that need **no credentials**, so the discovery half of the
+architecture can be run rather than described: `SitemapProvider` reads what a
+site published about itself, and a `PlaceProvider` (Nominatim) names businesses
+in an area. Both are adapters behind contracts; neither is special-cased
+downstream.
+
+A **pilot** is a stored specification — area, category, capability filters, and
+every budget — not a script. Its subjects come from a provider, and every
+candidate that did *not* become a subject is stored with the reason, because
+"three breweries in Leeds" and "sixteen found, thirteen unusable" are different
+statements about the world.
+
+Geography now has provenance. `declared` means the business's own page published
+coordinates; a provider name means a gazetteer was asked; `geocode_precision`
+separates a shop front from a town centre, and an AREA match is recorded without
+being plotted.
+
+`verification_feedback` gained a six-value vocabulary and is **append-only**: a
+review never edits the finding, because the pair is the training example.
+
+**Layer 7 is not closed.** Every gate the machine can decide passes
+(`npm run closure:l7`), but no human has reviewed a finding, so the evaluation
+dataset has no labels and the product's accuracy is unmeasured. The live model
+path is BLOCKED with no `ANTHROPIC_API_KEY` and is not faked in its absence.
 
 ## THE PRODUCT
 
-Sixteen realities, all `online` and enterable, behind a launcher and a Reality
-Index. Not a website and not a component showcase: one company, sixteen
-enterable realities, with a project that can travel between them.
+Seventeen realities, all `online` and enterable, behind a launcher and a
+Reality Index. Not a website and not a component showcase: one company,
+seventeen enterable realities, with a project that can travel between them.
+
+COMMERCIAL AUDIT is plate **09**, in PRODUCTS. It is the only reality that
+reads the real world — businesses nobody here chose — and the only one that
+needs a backend, so inside the Lab it usually reports that nothing is
+answering. It still builds as its own page (`npm run build:product`).
 
 ## TAXONOMY
 
@@ -249,6 +351,7 @@ Agency repository present. Full boundary: `docs/AGENCY_LAB_BOUNDARY.md`.
 | Role | Repository | State |
 |---|---|---|
 | **Lab** (this project) | `Anzy1512/hi-anzy-experience-lab` | canonical, public, default `main` |
+| **Audit service** | `audit/` in this repository | its own package; not in the Lab's build |
 | **Agency** (commercial production) | `Anzy1512/hi-anzy-website-2.0` | canonical, **read only from here** |
 | Previous commercial site | `Anzy1512/hi-anzy-platform` | **LEGACY** — reference only |
 

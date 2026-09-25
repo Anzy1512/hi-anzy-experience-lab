@@ -10,7 +10,8 @@ import { pointer, setPointerIntent } from '../../core/pointer';
 import { spatialQuality } from '../../spatial/quality';
 import { SpatialCanvas } from '../../spatial/SpatialCanvas';
 import { clamp01, damp, lerp } from '../../spatial/projection';
-import { ParticleField } from '../matter/ParticleField';
+import { ParticleField } from '../../graphics/ParticleField';
+import { buildPresenceField, PRESENCE_SPREAD } from './field';
 import {
   useCameraMotion,
   type CameraDiagnostics,
@@ -84,6 +85,15 @@ export default function PresenceMode({ onReady, scope }: ModeViewProps) {
   const coarse = useCoarsePointer();
   const quality = useMemo(() => spatialQuality(capability), [capability]);
   const count = COUNTS[quality.profile] ?? 0;
+  /*
+   * Presence's own formation.
+   *
+   * It used to ask Matter Engine for the one called "field", which meant this
+   * instrument imported a sibling product to stand up its own subject. The
+   * arrangement is the same shell it always drew; it is now described here,
+   * where the mode that depends on it can be read without opening another.
+   */
+  const formation = useMemo(() => buildPresenceField(count, PRESENCE_SPREAD), [count]);
 
   const [source, setSource] = useState<Source>('pointer');
   const [armed, setArmed] = useState(false);
@@ -280,14 +290,13 @@ export default function PresenceMode({ onReady, scope }: ModeViewProps) {
               setGlFailed(true);
             }}
           >
-            {/* Matter Engine's field, reused. Presence supplies the force. */}
+            {/* One formation, held still. Presence supplies the force. */}
             <ParticleField
-              count={count}
-              state="field"
-              previous="field"
+              from={formation}
+              to={formation}
               progressRef={progressRef}
               forceRef={forceRef}
-              spread={860}
+              spread={PRESENCE_SPREAD}
               reduced={reduced}
               captureRef={NO_CAPTURE}
             />
