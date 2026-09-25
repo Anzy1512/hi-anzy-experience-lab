@@ -199,12 +199,12 @@ export const MANIFESTS: Manifest[] = [
     persistence: 'PROJECT',
     maturity: 'BETA',
     evidence:
-      'Flows A and D end to end with a reload in the middle; project identity, rename, export, delete and the four destructive operations exercised; the storage failure matrix (seven cases) passes through its surface; every control measured at 32px across four viewports.',
+      'Flows A and D end to end with a reload in the middle; project identity, rename, export, delete and the four destructive operations exercised; the storage failure matrix (seven cases) passes through its surface; every control measured at 32px across four viewports. STATE_ISOLATION was settled by running it: a project holding a Matter recipe and an X-Ray specimen was renamed through the shell and given a PROJECT_EXPORTED note — every write this product makes to shared state — and both artifacts came back byte-identical, same ids, kinds, producers, text and limits. It writes project metadata and history and never touches another product\'s record. Its destructive operations remove the whole project, which is the visitor asking as much and is what a project surface is for, not a failure of scope.',
     graduation: {
       INPUT: 'PASS', TRANSFORMATION: 'PASS', OUTPUT: 'PASS', ARTIFACT: 'PASS',
       CONTINUE: 'PASS', PERSISTENCE: 'PASS', RESUME: 'PASS', ERROR_STATES: 'PASS',
       LIMITATIONS: 'PASS', ACCESSIBILITY: 'PASS', RESPONSIVE: 'PASS', LIFECYCLE: 'PASS',
-      PERFORMANCE: 'UNVERIFIED', DEPENDENCY_ISOLATION: 'PASS', STATE_ISOLATION: 'OPEN',
+      PERFORMANCE: 'UNVERIFIED', DEPENDENCY_ISOLATION: 'PASS', STATE_ISOLATION: 'PASS',
       EXPORT: 'PASS', PRIVACY: 'PASS', DEPLOYABILITY: 'OPEN',
     },
     standalone: {
