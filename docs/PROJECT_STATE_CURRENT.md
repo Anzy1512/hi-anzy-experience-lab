@@ -78,7 +78,7 @@ their own (I1–I12), each entering the reality at that desk
   no request.
 - **Phase 9.4 (SURVEY).** The same survey can be asked BY CATEGORY AND FILTERS instead
   of in words (`desks/CategoryAsk.tsx`): kinds of business from the engine's catalogue
-  (1,057, in 18 sectors, each with how many places India's Overture extract holds), a
+  (1,056, in 18 sectors, each with how many places India's Overture extract holds), a
   place or a radius, and the filters that apply to those kinds — yes/no, any-of options,
   ranges — then those that apply to any business. The engine reads the form back (READ
   AS) and runs it as the specification a question would become; everything after the
