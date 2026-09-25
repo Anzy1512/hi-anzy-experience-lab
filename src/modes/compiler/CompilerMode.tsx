@@ -12,7 +12,7 @@ import { SpatialCanvas } from '../../spatial/SpatialCanvas';
 import { useSpatialCells, type SpatialCell } from '../../spatial/useSpatialCells';
 import { clamp01, damp, lerp, PERSPECTIVE, type Viewport } from '../../spatial/projection';
 import { CompilerDocument } from './CompilerDocument';
-import { CANONICAL_PAGES, CANONICAL_PAGES_COMMIT } from '../../content/canonicalPages';
+import { CANONICAL_PAGES, CANONICAL_PAGES_COMMIT, type CanonicalPage } from '../../content/canonicalPages';
 import { ArtifactBar } from '../../artifacts/ArtifactBar';
 import { toMarkdown } from '../../artifacts/artifact';
 import { recordArtifact } from '../../system/project';
@@ -68,7 +68,21 @@ export default function CompilerMode({ onReady, onExit, scope }: ModeViewProps) 
    * page's own cells rather than against a stale plane table.
    */
   const [pageIndex, setPageIndex] = useState(0);
-  const page = CANONICAL_PAGES[pageIndex] ?? CANONICAL_PAGES[0];
+  /*
+   * Typed as possibly absent, which it genuinely is.
+   *
+   * The Lab does not run `noUncheckedIndexedAccess`, so `CANONICAL_PAGES[0]`
+   * types as a `CanonicalPage` even when the array is empty — and this mode
+   * dereferences `page.name`, `page.route` and `page.file` throughout. The
+   * snapshot is generated from another repository by
+   * `scripts/capture-canonical-pages.mjs`; a failed or partial regeneration
+   * leaves it empty, and the failure was a TypeError caught by the shell's
+   * window handler, which emergency-resets to a blank sheet saying nothing
+   * about what happened. Widening the type here is what makes the guard below
+   * something the compiler enforces rather than something a reader has to
+   * notice.
+   */
+  const page: CanonicalPage | undefined = CANONICAL_PAGES[pageIndex] ?? CANONICAL_PAGES[0];
   const rootRef = useRef<HTMLDivElement>(null);
   const docRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
@@ -297,6 +311,25 @@ export default function CompilerMode({ onReady, onExit, scope }: ModeViewProps) 
 
   /* Where the manifest is carried when the visitor sends it on. */
   const manifestTo = useHandoffTarget('reality-compiler', ['x-ray', 'anzy-os'], 'anzy-os');
+
+  /*
+   * NO SUBJECT TO COMPILE.
+   *
+   * Every hook above has already run, so returning here is safe, and `onReady`
+   * fires from its own effect either way — the mode host is told the mode is
+   * up and EXIT works, rather than the watchdog waiting six seconds for a mode
+   * that will never arrive. Saying which file is missing and at which commit is
+   * the difference between a blank sheet and a fault somebody can go and fix.
+   */
+  if (page === undefined) {
+    return (
+      <div className="rc" ref={rootRef} data-stage="document">
+        <p className="rc-fallback t-mono t-mono-xs" role="status">
+          {COMPILER_COPY.noSource}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div

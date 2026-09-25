@@ -251,10 +251,10 @@ export const MANIFESTS: Manifest[] = [
     persistence: 'PROJECT',
     maturity: 'BETA',
     evidence:
-      'Flow B: the manifest artifact is recorded at the WORLD stage, INSPECT LIVE IN X-RAY carries it, and X-Ray opens on the same page. Survives a reload with the artifact intact.',
+      'Flow B: the manifest artifact is recorded at the WORLD stage, INSPECT LIVE IN X-RAY carries it, and X-Ray opens on the same page. Survives a reload with the artifact intact. ERROR_STATES was exercised rather than reasoned about: the canonical snapshot was emptied, as a failed regeneration would leave it, and the mode threw `Cannot read properties of undefined (reading \'route\')` — the shell caught it and emergency-reset the whole Lab to a bare fallback that said nothing about what had happened. It now reports which file is empty, why it might be, and which script regenerates it, while staying in the mode with EXIT working.',
     graduation: {
       INPUT: 'PASS', TRANSFORMATION: 'PASS', OUTPUT: 'PASS', ARTIFACT: 'PASS',
-      CONTINUE: 'PASS', PERSISTENCE: 'PASS', RESUME: 'PASS', ERROR_STATES: 'UNVERIFIED',
+      CONTINUE: 'PASS', PERSISTENCE: 'PASS', RESUME: 'PASS', ERROR_STATES: 'PASS',
       LIMITATIONS: 'PASS', ACCESSIBILITY: 'PASS', RESPONSIVE: 'PASS', LIFECYCLE: 'PASS',
       PERFORMANCE: 'UNVERIFIED', DEPENDENCY_ISOLATION: 'PASS', STATE_ISOLATION: 'PASS',
       EXPORT: 'PASS', PRIVACY: 'PASS', DEPLOYABILITY: 'OPEN',
@@ -264,7 +264,6 @@ export const MANIFESTS: Manifest[] = [
       blockers: [
         'Heaviest SPATIAL consumer after Living World: canvas, projection, quality tiers and disposal would all have to travel or be replaced.',
         'Reads the canonical page snapshot, so BRAND travels with it.',
-        'ERROR_STATES UNVERIFIED — what it does with a malformed or missing page snapshot has never been exercised.',
       ],
     },
   },
