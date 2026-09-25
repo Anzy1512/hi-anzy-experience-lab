@@ -225,12 +225,13 @@ export const PRODUCTS: ProductEntry[] = [
       process: 'Observes real elements and reports boxes, positions, depth and type metrics as this window renders them.',
       result: 'A specimen report separating what the source says from what this window measured.',
       artifact: 'SYSTEM SPECIMEN REPORT — Markdown or JSON.',
-      /* Inbound only. It CLAIMS the Compiler's manifest and opens on the same
-         page, but it offers nothing onward: no `offer()` call, no handoff on
-         its artifact bar. This said SYSTEM.app, which was a continuation with
-         no mechanism behind it — found by the Phase 8.12 dependency map. */
+      /* Both directions now. It CLAIMS the Compiler's manifest and opens on
+         the same page, and its report is offered onward as a `specimen` to
+         SYSTEM.app. It was inbound only until the artifact bar gained a
+         handoff — the continuation named here had no mechanism behind it,
+         which the Phase 8.12 dependency map caught. */
       continue:
-        'Nowhere yet. The report is a download; nothing carries it into the project, and SYSTEM.app does not receive it.',
+        'SYSTEM.app, as a specimen report in the project. The measurement is kept, not just downloaded.',
     },
   },
   {
@@ -258,10 +259,11 @@ export const PRODUCTS: ProductEntry[] = [
       process: 'Counts frames, subscribers, canvases and chunks against a real clock.',
       result: 'A session report in which anything unmeasured is printed UNKNOWN rather than estimated.',
       artifact: 'The session report, as Markdown or JSON.',
-      /* This mode imports neither `project` nor `handoff`. Same correction as
-         X-Ray: a stated continuation with nothing implementing it. */
+      /* It imported neither `project` nor `handoff` and said so. Its artifact
+         bar now carries a `session` handoff, so the reading survives the tab
+         it was taken in. */
       continue:
-        'Nowhere yet. The report is a download; this instrument does not write to the project.',
+        'SYSTEM.app, as a session report in the project. What was measured outlives the tab it was measured in.',
     },
   },
 

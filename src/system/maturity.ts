@@ -403,10 +403,10 @@ export const MANIFESTS: Manifest[] = [
     persistence: 'NONE',
     maturity: 'ALPHA',
     evidence:
-      'Inbound handoff verified in Flow B — it claims the Compiler manifest and opens on the same page, and keeps SOURCED and MEASURED strictly apart. Outbound it has no mechanism at all: it imports `claim` and `offered` but never `offer`, and its artifact bar carries no handoff. Its report is a download and nothing carries it onward.',
+      'Inbound handoff verified in Flow B — it claims the Compiler manifest and opens on the same page, and keeps SOURCED and MEASURED strictly apart. Outbound is now wired and walked: its artifact bar carries a `specimen` handoff to SYSTEM.app, and pressing it recorded a specimen artifact in the project with its limits attached and opened ANZY.OS. It was inbound only until then.',
     graduation: {
       INPUT: 'PASS', TRANSFORMATION: 'PASS', OUTPUT: 'PASS', ARTIFACT: 'PASS',
-      CONTINUE: 'OPEN', PERSISTENCE: 'N/A', RESUME: 'N/A', ERROR_STATES: 'PASS',
+      CONTINUE: 'PASS', PERSISTENCE: 'N/A', RESUME: 'N/A', ERROR_STATES: 'PASS',
       LIMITATIONS: 'PASS', ACCESSIBILITY: 'PASS', RESPONSIVE: 'PASS', LIFECYCLE: 'PASS',
       PERFORMANCE: 'UNVERIFIED', DEPENDENCY_ISOLATION: 'PASS', STATE_ISOLATION: 'N/A',
       EXPORT: 'PASS', PRIVACY: 'PASS', DEPLOYABILITY: 'OPEN',
@@ -414,7 +414,6 @@ export const MANIFESTS: Manifest[] = [
     standalone: {
       candidate: true,
       blockers: [
-        'CONTINUE is OPEN: the specimen report cannot reach the project. Closing it is one artifact-bar handoff, which is product work rather than architecture work.',
         'Measures the live DOM, so a standalone build needs a subject to measure — today that is the Lab\'s own specimen plate or a canonical page.',
       ],
     },
@@ -428,10 +427,10 @@ export const MANIFESTS: Manifest[] = [
     persistence: 'NONE',
     maturity: 'ALPHA',
     evidence:
-      'Reports what this session measured and prints UNKNOWN by name for everything it did not, which is the behaviour that matters most here. But it touches neither project nor handoff — no import of either — so its report is a download only, and its stated continuation to SYSTEM.app has no mechanism behind it.',
+      'Reports what this session measured and prints UNKNOWN by name for everything it did not, which is the behaviour that matters most here. Its report now reaches the project: the artifact bar carries a `session` handoff, and pressing it recorded a session artifact with its limits attached and opened ANZY.OS. Until then it imported neither project nor handoff and the reading left with the tab.',
     graduation: {
       INPUT: 'PASS', TRANSFORMATION: 'PASS', OUTPUT: 'PASS', ARTIFACT: 'PASS',
-      CONTINUE: 'OPEN', PERSISTENCE: 'N/A', RESUME: 'N/A', ERROR_STATES: 'PASS',
+      CONTINUE: 'PASS', PERSISTENCE: 'N/A', RESUME: 'N/A', ERROR_STATES: 'PASS',
       LIMITATIONS: 'PASS', ACCESSIBILITY: 'PASS', RESPONSIVE: 'PASS', LIFECYCLE: 'PASS',
       PERFORMANCE: 'N/A', DEPENDENCY_ISOLATION: 'PASS', STATE_ISOLATION: 'PASS',
       EXPORT: 'PASS', PRIVACY: 'PASS', DEPLOYABILITY: 'OPEN',
@@ -439,7 +438,6 @@ export const MANIFESTS: Manifest[] = [
     standalone: {
       candidate: true,
       blockers: [
-        'CONTINUE is OPEN for the same reason as X-Ray, and it has no project integration at all.',
         'It measures the Lab. Extracted, it would need a subject; a performance instrument with nothing to observe is not a product.',
       ],
     },

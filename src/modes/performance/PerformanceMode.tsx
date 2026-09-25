@@ -370,7 +370,23 @@ export default function PerformanceMode({ onReady, scope }: ModeViewProps) {
         */}
         <section className="pf-group pf-group--export">
           <h2 className="t-mono t-mono-xs pf-group__title">THE SESSION REPORT</h2>
-          <ArtifactBar formats={['copy', 'markdown', 'json']} build={buildReport} />
+          {/*
+            The session report can now reach the project.
+            CONTINUE was OPEN because this instrument wrote to nothing: the
+            report was a download and the measurement left with the tab. The
+            `session` kind was designed for exactly this and never wired.
+          */}
+          <ArtifactBar
+            formats={['copy', 'markdown', 'json']}
+            build={buildReport}
+            handoff={{
+              kind: 'session',
+              from: 'performance',
+              to: 'anzy-os',
+              limits:
+                'Measured in this session, in this browser, on this machine. Anything the browser does not expose is printed UNKNOWN rather than estimated. A headless or throttled environment produces figures that are not benchmarks, and this report cannot tell which kind it was taken in — so it is a record of a session, never a statement about the software.',
+            }}
+          />
         </section>
       </div>
     </div>
