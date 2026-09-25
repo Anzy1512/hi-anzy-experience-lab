@@ -326,20 +326,20 @@ export const MANIFESTS: Manifest[] = [
     persistence: 'PROJECT',
     maturity: 'ALPHA',
     evidence:
-      'The crossing, the aperture and the delivery package render, and WHAT IS NOT IN IT is drawn with hollow UNKNOWN marks. But the delivery handoff — `kind: delivery` in its artifact bar — has NEVER been exercised end to end: no QA run has produced a delivery artifact in the project ledger. Present in source, unproven in behaviour.',
+      'The artifact path has now been RUN, which it never had been. Matter Engine produced a real recipe into the project; Portal packaged it, drew WHAT IS NOT IN IT, and its delivery handoff recorded a `kind: delivery` artifact whose sourceIds resolve to that recipe and whose limits travel with it, then carried the visitor to ANZY.OS. The page was reloaded and the project reopened: both artifacts survived with their ids and the manifest text intact at 1366 characters. Export reported DOWNLOADED .JSON, and a refused clipboard reported COPY REFUSED — SELECT AND COPY MANUALLY rather than failing quietly. PERFORMANCE alone stays unverified: no real-hardware measurement exists and headless figures are not evidence.',
     graduation: {
-      INPUT: 'PASS', TRANSFORMATION: 'PASS', OUTPUT: 'PASS', ARTIFACT: 'UNVERIFIED',
-      CONTINUE: 'UNVERIFIED', PERSISTENCE: 'UNVERIFIED', RESUME: 'UNVERIFIED',
-      ERROR_STATES: 'UNVERIFIED', LIMITATIONS: 'PASS', ACCESSIBILITY: 'PASS',
+      INPUT: 'PASS', TRANSFORMATION: 'PASS', OUTPUT: 'PASS', ARTIFACT: 'PASS',
+      CONTINUE: 'PASS', PERSISTENCE: 'PASS', RESUME: 'PASS',
+      ERROR_STATES: 'PASS', LIMITATIONS: 'PASS', ACCESSIBILITY: 'PASS',
       RESPONSIVE: 'PASS', LIFECYCLE: 'PASS', PERFORMANCE: 'UNVERIFIED',
-      DEPENDENCY_ISOLATION: 'PASS', STATE_ISOLATION: 'PASS', EXPORT: 'UNVERIFIED',
+      DEPENDENCY_ISOLATION: 'PASS', STATE_ISOLATION: 'PASS', EXPORT: 'PASS',
       PRIVACY: 'PASS', DEPLOYABILITY: 'OPEN',
     },
     standalone: {
       candidate: false,
       blockers: [
         'Its delivery package is a reading of the WHOLE project — it is the one product whose output is other products\' output, so it is the least separable by design.',
-        'Six graduation dimensions are UNVERIFIED because its artifact path has never been run.',
+        'PERFORMANCE is UNVERIFIED, as it is everywhere: this environment cannot produce a benchmark.',
       ],
     },
   },
