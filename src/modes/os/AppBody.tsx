@@ -350,7 +350,9 @@ export function CapabilityBody({
         <Row k="WEBGL" v={webgl ? 'AVAILABLE' : 'UNAVAILABLE'} />
         <Row k="VIEWPORT" v={`${viewport.w} × ${viewport.h}`} />
         <Row k="SHEETS OPEN" v={String(sheets)} />
-        <Row k="NETWORK" v="NONE" />
+        {/* One path since Phase 9.0: INTELLIGENCE asks the engine on this machine, when a
+            visitor asks it to. Nothing else in the Lab touches the network. */}
+        <Row k="NETWORK" v="INTELLIGENCE → LOCAL ENGINE ONLY" />
         <Row k="STORAGE" v="NONE" />
       </dl>
 

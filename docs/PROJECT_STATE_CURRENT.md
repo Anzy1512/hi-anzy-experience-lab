@@ -19,6 +19,11 @@ records of what each phase did, and stay that way.
 | 8.10 — project memory + persistence | **CLOSED** |
 | 8.11 — product + brand convergence | **CLOSED** |
 | 8.12 — lab independence + product launch foundation | **IN PROGRESS** — §1–§10 done (separation + product architecture), 8.12C done (release contract + canonical re-read); §11–§14 open |
+| 9.0 — SURVEY, the front end for the Commercial Intelligence Engine | **DONE** — became INTELLIGENCE in 9.1 |
+| 9.1 — INTELLIGENCE, a section with a desk for each thing the engine does | **DONE** — nine desks, verified against the live engine |
+| 9.2 — ATLAS and EXTRACTS over the engine's local maps; SURVEY shows what it set apart | **DONE** — built and verified against the live engine with India loaded; branch `lab-engine-frontend` |
+| 9.3 — ASK: one question the engine routes itself, over the passages it holds; providers and files brought in | **IN PROGRESS** — built and verified against the live engine (its D-058); branch `lab-engine-frontend` |
+| 9.4 — SURVEY by category and filters, over the engine's catalogue | **DONE** — built and verified against the live engine (its D-064–D-067); branch `lab-engine-frontend` |
 
 - Branch: `phase-8-12-independence`
 - Gates: `tsc -b` = 0 · `eslint src --max-warnings 0` = 0 ·
@@ -26,9 +31,85 @@ records of what each phase did, and stay that way.
 
 ## THE PRODUCT
 
-Sixteen realities, all `online` and enterable, behind a launcher and a Reality
-Index. Not a website and not a component showcase: one company, sixteen
-enterable realities, with a project that can travel between them.
+Seventeen realities, all `online` and enterable, behind a launcher and a Reality
+Index. Not a website and not a component showcase: one company, seventeen
+enterable realities, with a project that can travel between them. The
+seventeenth, INTELLIGENCE (Phases 9.0–9.2), is the front end of a separate
+program, printed on the index as a section of eleven desks — see below.
+
+## INTELLIGENCE (PHASES 9.0 → 9.2)
+
+Plate **09**, a PRODUCT in its own family, INTELLIGENCE, printed on the index as a
+section of its own above the four groups: the Lab's front end for the Commercial
+Intelligence Engine — a separate program (`comintel serve`, from the
+commercial-intelligence repository) that runs on the visitor's own machine and
+asks public sources for businesses, brands and places.
+
+Phase 9.0 built one reality, SURVEY. Phase 9.1 made it a section: one reality with
+a desk for each thing the engine does, and the index prints the desks as rows of
+their own (I1–I12), each entering the reality at that desk
+(`src/content/intelligence.ts`; the handover is `src/experience/desk.ts`):
+
+| Desk | What it asks the engine |
+|---|---|
+| I1 SURVEY | a question → businesses matched and undetermined, the ledger, the plate, RELATIONS (what they share) and POSSIBLE DUPLICATES (pairs to judge, kept in local knowledge) |
+| I2 BRANDS | what a brand name stands for (the brand index, All the Places), the legal entities named like it (GLEIF) and the news naming it (GDELT) |
+| I3 AREAS | how a place resolves: its boundary drawn, size, box, and whether a search asks for it whole |
+| I4 LOCATORS | a brand's own store locator read for a place, as a task |
+| I5 SITES | one website's platform, technologies, tracking accounts, payments, contacts and profiles |
+| I6 DOMAINS | a domain's registration (RDAP), mail and verification records (DNS), certificates (CT) and archive captures, as a task |
+| I7 DATASETS | many questions into one table, as a task, with the engine's CSV, XLSX, GeoJSON and JSON |
+| I8 ARCHIVE | what local knowledge holds, and the searches it remembers, reopened as they were saved |
+| I9 SOURCES | every source and research tool, ready or why not, and the registry of 1,471 tools behind them |
+| I10 ATLAS | a brand's outlets, or a kind of business, counted by state and district from the maps the engine keeps on its own machine (its D-055) — each map's count beside the other's, never added; a brand's offices, works, sellers and namesakes counted apart (D-056) |
+| I11 EXTRACTS | those maps: each extract's date, places and regions, whether it is young enough to answer a search in place of the live service, and loading or refreshing one as a task on the engine |
+| I12 ASK | one question, planned by the engine's rules: a subject and a place become a search (served from a fresh enough saved one, refreshed when stale, handed to SURVEY); anything else is read from the passages local knowledge holds — pages a survey read, files brought in on the desk — each with its source and the day it was confirmed. A written answer appears only when a model provider is configured on the engine and every sentence cites a passage shown; the providers are named by the variables that configure them, never a value; a verdict on a passage or an answer is sent as reviewed feedback (the engine's D-058) |
+
+- **Desks hand work to each other** — a brand to its stores, a survey or its count
+  by state, a place to a survey or a store locator, a business to its site and
+  domain, a question to a dataset, a saved search back to its ledger, a region's
+  count to a survey of it — carrying words to start from, never a result. That is
+  the reality's CONTINUE, and it is walked (maturity.ts).
+- **Phase 9.2 (SURVEY).** An EXCLUDED tab beside MATCHED and UNDETERMINED: each
+  business the question left out, labelled with which of a brand's places it is
+  (OFFICE, WORKS, SELLER, NAMED AFTER IT) and why it is not counted, in the
+  engine's words. The two new desks read the engine's database; when it is off
+  they say so, with the engine's reason and the command that starts it, and make
+  no request.
+- **Phase 9.4 (SURVEY).** The same survey can be asked BY CATEGORY AND FILTERS instead
+  of in words (`desks/CategoryAsk.tsx`): kinds of business from the engine's catalogue
+  (1,056, in 18 sectors, each with how many places India's Overture extract holds), a
+  place or a radius, and the filters that apply to those kinds — yes/no, any-of options,
+  ranges — then those that apply to any business. The engine reads the form back (READ
+  AS) and runs it as the specification a question would become; everything after the
+  SURVEY button is the existing desk. Built only from SURVEY's own controls (the radio
+  switch, fields, checks, the READ AS line, `.sv-done` disclosures).
+- **The address names the desk** (`#/intelligence/brands`), replaced rather than
+  pushed, so a reload or a deep link opens the same desk and Back still leaves.
+  The experience engine reads only the first segment as the reality.
+- **The one network path in the Lab.** Only `src/modes/intelligence/engine.ts`
+  fetches, only to the engine: `/engine/...`, which Vite forwards to `ENGINE_URL`
+  (default `http://127.0.0.1:8765`) in development and preview, or
+  `VITE_ENGINE_URL` when a build names one. Every request any desk has in flight is
+  cancelled when the visitor leaves; every poll stops with it (verified: no request
+  after Escape).
+- **No engine, no pretence.** Without the engine the reality says NOT REACHABLE,
+  prints the command that starts it and offers LOOK AGAIN; every desk says it has
+  nothing to show and its actions stay disabled. A deployed Lab reaches no engine.
+- **Nothing kept.** No storage, no project write. The only write any desk makes is
+  a judgement on POSSIBLE DUPLICATES, which the engine keeps in its own database
+  when the visitor records one with a reason.
+- **Rules.** "No new realities" was lifted for this reality alone in 9.0, by
+  explicit instruction; 9.1 adds desks inside it, not realities. "No backend"
+  holds: the Lab serves nothing. "No new dependencies" holds.
+- **Verified in a browser** against the live engine (Phase 9.1): all nine desks
+  answered — Haldiram's in Noida (18 matched in 102 s, running on while other
+  desks were used), RELATIONS and POSSIBLE DUPLICATES, a brand with its GLEIF
+  entities and parents, Noida resolved and drawn, Vishal Mega Mart's locator (4
+  stores inside), a site read, haldiram.com's four records, a two-question dataset
+  with all four files answering, the archive reopening a saved search, the sources
+  and a registry search. Handovers walked; the engine stopped and recovered; no
+  page overflow at 375 or 1280; the three dev guards silent on a fresh load.
 
 ## TAXONOMY
 
@@ -323,6 +404,11 @@ are Playwright driver snippets, not standalone Node programs).
   decision, because it changes what Time Machine displays.
 
 ## STANDING RULES
+
+Phase 9.0 lifts one of them, for one reality, by explicit instruction: "no new
+realities" does not stand in the way of INTELLIGENCE (built as SURVEY). Every
+other rule below still holds — including "no backend": the engine it talks to
+is a separate program the visitor runs, not a server this repository ships.
 
 Unchanged and not up for reinterpretation: no AI layer · no automation engine ·
 no backend · no accounts · no analytics · no new dependencies · no framework

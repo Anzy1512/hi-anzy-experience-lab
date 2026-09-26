@@ -44,7 +44,10 @@ interface Loc {
 function readLocation(): Loc {
   const hash = window.location.hash;
   if (hash.startsWith('#/')) {
-    const id = hash.slice(2);
+    /* The reality is the first segment. A reality with parts of its own names
+       them after it (`#/intelligence/brands`) and reads that part itself; the
+       engine only ever navigates between realities. */
+    const id = hash.slice(2).split('/')[0];
     const mode = findMode(id);
     // A deep link to an unbuilt mode resolves to the index rather than an error.
     if (mode && isEnterable(mode)) return { stage: 'mode', modeId: id };

@@ -344,6 +344,31 @@ export const MANIFESTS: Manifest[] = [
       ],
     },
   },
+  {
+    id: 'intelligence',
+    layer: 'PRODUCT',
+    owns: 'modes/intelligence',
+    consumes: [...BASE, 'ARTIFACT', 'DESIGN'],
+    dependsOnSiblings: [],
+    persistence: 'NONE',
+    maturity: 'PROTOTYPE',
+    evidence:
+      'Phase 9.1, against the live engine: all nine desks answered — a Haldiram’s survey of Noida (18 matched, relations, possible duplicates), a brand with its GLEIF entities and parents, Noida resolved and drawn, Vishal Mega Mart’s own locator (4 stores inside), a site read, a domain’s four public records, a two-question dataset with its four files, the archive reopening a saved search, the sources and the registry; handovers walked end to end; engine stopped: NOT REACHABLE by name, LOOK AGAIN recovered; no request after exit. Phase 9.2, with all of India loaded on the engine (743,591 OpenStreetMap places, 2,982,601 Overture places, 36 states and union territories, 784 districts): ATLAS counted Haldiram’s outlets by state from both maps side by side (OpenStreetMap 96, Overture 272; Delhi 27 and 76), with its works, sellers, offices and namesakes set apart, drilled Delhi into its eight districts, and handed South Delhi to SURVEY with the question prefilled and the caret placed; EXTRACTS listed every extract with its date, places, regions and size, answered in a tenth of a second once the engine kept summaries, and handed a kind of business to ATLAS; SURVEY’s EXCLUDED tab named the four Haldiram’s places set apart — an office, works, a skill centre and a lodge bearing the name — each with its reason. With the engine’s database off, both new desks said so with the engine’s reason and the command that starts it, and made no request. No page overflow at 375; the three dev guards silent. Not yet against a deployment, where no engine is reachable.',
+    graduation: {
+      INPUT: 'PASS', TRANSFORMATION: 'PASS', OUTPUT: 'PASS', ARTIFACT: 'PASS',
+      CONTINUE: 'PASS', ERROR_STATES: 'PASS', LIMITATIONS: 'PASS',
+      ACCESSIBILITY: 'UNVERIFIED', RESPONSIVE: 'PASS', LIFECYCLE: 'PASS',
+      PERFORMANCE: 'UNVERIFIED', DEPENDENCY_ISOLATION: 'PASS', STATE_ISOLATION: 'PASS',
+      EXPORT: 'PASS', PRIVACY: 'PASS', DEPLOYABILITY: 'OPEN',
+    },
+    standalone: {
+      candidate: true,
+      blockers: [
+        'It is a front end for a separate program: without the engine running beside it, it can only say that the engine is not there.',
+        'A deployed Lab reaches no engine: the address is local, and no hosted engine exists.',
+      ],
+    },
+  },
 
   /* ---- INSTRUMENTS ------------------------------------------------------ */
   {

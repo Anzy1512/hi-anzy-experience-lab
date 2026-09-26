@@ -1,5 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { findMode, MODES } from '../../content/lab';
+import { DESKS, type DeskDefinition } from '../../content/intelligence';
+import { deskVisited, lastDesk, requestDesk } from '../../experience/desk';
 import { groupMembers, INDEX_GROUPS } from '../../system/registry';
 import { ProductContract } from '../Product/ProductContract';
 import { WorkBand } from '../Work/WorkBand';
@@ -119,6 +121,60 @@ function Row({ mode, expanded, onToggle, visited }: RowProps) {
           </ul>
         </div>
       </div>
+    </li>
+  );
+}
+
+/**
+ * A DESK OF THE INTELLIGENCE REALITY, PRINTED AS A ROW OF ITS OWN.
+ *
+ * The same row as a reality's — same plate, same rules, same proximity — but
+ * it enters INTELLIGENCE at this desk rather than at its first. Which desk is
+ * handed over once (`experience/desk.ts`); the entry itself is the ordinary
+ * one, so everything that follows an entry (the trail, the transition, the way
+ * back) is the reality's, not a second mechanism beside it.
+ */
+function DeskRow({ desk }: { desk: DeskDefinition }) {
+  const { enterMode } = useExperience();
+  const onClick = useCallback(() => {
+    requestDesk(desk.id);
+    enterMode('intelligence');
+  }, [desk.id, enterMode]);
+
+  return (
+    <li
+      className="row"
+      data-mode-id="intelligence"
+      data-desk-id={desk.id}
+      data-status="online"
+      data-expanded="false"
+      data-visited={deskVisited(desk.id) ? 'true' : 'false'}
+    >
+      <button
+        type="button"
+        className="row__hit"
+        onClick={onClick}
+        onPointerEnter={() => setPointerIntent('enter')}
+        onPointerLeave={() => setPointerIntent('default')}
+        onFocus={() => setPointerIntent('enter')}
+        onBlur={() => setPointerIntent('default')}
+        aria-label={`Enter INTELLIGENCE at ${desk.title}. ${desk.tagline} Needs the engine running on this machine.`}
+      >
+        <span className="row__trace" aria-hidden="true" />
+        <span className="row__index t-index" aria-hidden="true">
+          {desk.index}
+        </span>
+        <span className="row__title t-display" aria-hidden="true">
+          {desk.title}
+        </span>
+        <span className="row__tagline t-body-s t-dim" aria-hidden="true">
+          {desk.tagline}
+        </span>
+        <span className="row__status t-mono t-mono-xs" aria-hidden="true">
+          ONLINE
+        </span>
+        <span className="row__scan" aria-hidden="true" />
+      </button>
     </li>
   );
 }
@@ -284,7 +340,11 @@ export function LabIndex() {
   useEffect(() => {
     const from = takeReturningFrom();
     if (!from) return;
-    const row = listRef.current?.querySelector<HTMLElement>(`[data-mode-id="${from}"] .row__hit`);
+    // the engine's reality is printed as desks: back to the row of the desk that was open
+    const desk = from === 'intelligence' ? lastDesk() : null;
+    const row = listRef.current?.querySelector<HTMLElement>(
+      desk ? `[data-desk-id="${desk}"] .row__hit` : `[data-mode-id="${from}"] .row__hit`,
+    );
     row?.focus();
   }, []);
 
@@ -375,6 +435,8 @@ export function LabIndex() {
             .map((id) => findMode(id))
             .filter((m): m is ModeDefinition => Boolean(m));
           if (!members.length) return null;
+          // the engine's reality is printed as its desks: each is what a visitor comes for
+          const asDesks = group.key === 'intelligence' && members.some((m) => m.id === 'intelligence');
           return (
             <section className="index__group" key={group.key} data-group={group.key}>
               <header className="index__group-head">
@@ -382,15 +444,17 @@ export function LabIndex() {
                 <p className="t-mono t-mono-xs t-dim index__group-note">{group.note}</p>
               </header>
               <ul className="index__list">
-                {members.map((mode) => (
-                  <Row
-                    key={mode.id}
-                    mode={mode}
-                    expanded={expanded === mode.id}
-                    onToggle={onToggle}
-                    visited={hasVisited(mode.id)}
-                  />
-                ))}
+                {asDesks
+                  ? DESKS.map((desk) => <DeskRow key={desk.id} desk={desk} />)
+                  : members.map((mode) => (
+                      <Row
+                        key={mode.id}
+                        mode={mode}
+                        expanded={expanded === mode.id}
+                        onToggle={onToggle}
+                        visited={hasVisited(mode.id)}
+                      />
+                    ))}
               </ul>
             </section>
           );

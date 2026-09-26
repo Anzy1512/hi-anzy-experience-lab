@@ -38,7 +38,9 @@ import { useDisposable } from '../../spatial/disposal';
  * open holds no frame loop.
  */
 
-const NODE_COUNT = 16;
+/* Counted, never written down: a seventeenth reality once got no node here, and
+   an edge to it would have indexed past the end of the lattice. */
+const NODE_COUNT = MODES.length;
 
 /**
  * SIZED BY THE FRAME, NOT BY THE PROJECTION.
