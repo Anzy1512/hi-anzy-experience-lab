@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { engine, type SiteReading } from '../engine';
+import { engine, type SiteReading, type SiteSignals } from '../engine';
 import { NeedsEngine } from '../EngineLine';
 import { domainOf, isReady, type DeskProps } from '../link';
 
@@ -177,6 +177,7 @@ export default function SitesDesk({ engineState, signal, go, receive, take }: De
               </div>
             )}
           </dl>
+          {p.signals && <Signals s={p.signals} />}
           <p className="t-body-s t-dim">Only this page was read. Something it does not show is not said to be absent.</p>
           {domain && (
             <p className="sv-actions">
@@ -188,6 +189,56 @@ export default function SitesDesk({ engineState, signal, go, receive, take }: De
         </section>
       )}
     </>
+  );
+}
+
+/**
+ * FOUND AND READ — what the page shows about being found by a search engine and read by a
+ * visitor (the engine's D-069). Measured values in the instrument's voice; the engine's own
+ * observations under them. They describe the page. None of them is a verdict on the business.
+ */
+function Signals({ s }: { s: SiteSignals }) {
+  const yes = (v: boolean | null) => (v === null ? '—' : v ? 'YES' : 'NO');
+  const facts: [string, string][] = [
+    ['HTTPS', s.https ? 'YES' : 'NO'],
+    ['REDIRECTS', String(s.redirects.length)],
+    ['CANONICAL', s.canonical ? (s.canonical_is_self ? 'THIS PAGE' : 'ANOTHER PAGE') : 'NONE'],
+    ['INDEXABLE', s.noindex ? 'ASKS NOT TO BE' : 'NOT REFUSED'],
+    ['TITLE', `${s.title_chars} CHARS`],
+    ['DESCRIPTION', `${s.description_chars} CHARS`],
+    ['H1', String(s.h1_count)],
+    ['LANGUAGE', s.lang ? s.lang.toUpperCase() : 'NONE'],
+    ['VIEWPORT', yes(s.viewport)],
+    ['STRUCTURED DATA', s.structured_data_types.length > 0 ? s.structured_data_types.join(', ') : 'NONE'],
+    ['ROBOTS.TXT', s.robots_txt.toUpperCase()],
+    [
+      'SITEMAP',
+      s.sitemap === 'reachable'
+        ? `REACHABLE${s.sitemap_entries !== null ? ` · ${s.sitemap_entries} ENTRIES` : ''}`
+        : (s.sitemap ?? 'NOT CHECKED').toUpperCase().replace('_', ' '),
+    ],
+    ['PAGE WEIGHT', `${(s.html_bytes / 1024).toFixed(0)} KB`],
+    ...(s.response_ms !== null ? ([['ANSWERED IN', `${(s.response_ms / 1000).toFixed(2)} S`]] as [string, string][]) : []),
+  ];
+  return (
+    <section className="sv-signals" aria-label="Found and read">
+      <h3 className="t-mono t-mono-xs sv-label">FOUND AND READ</h3>
+      <dl className="sv-signals__grid">
+        {facts.map(([k, v]) => (
+          <div key={k}>
+            <dt>{k}</dt>
+            <dd className="t-mono t-mono-xs">{v}</dd>
+          </div>
+        ))}
+      </dl>
+      {s.observations.length > 0 && (
+        <ul className="sv-signals__notes t-body-s">
+          {s.observations.map((o) => (
+            <li key={o}>{o}</li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 

@@ -156,6 +156,29 @@ export interface SearchForm {
   filters: FormFilter[];
 }
 
+export interface PushTarget {
+  id: 'mautic';
+  name: string;
+  configured: boolean;
+  detail: string;
+  creates: string;
+  set_by: string[];
+}
+
+export interface PushOutcome {
+  target: string;
+  search_id: string;
+  dry_run: boolean;
+  considered: number;
+  created: number;
+  updated: number;
+  unchanged: number;
+  matched_existing: number;
+  skipped: { entity_id: string; reason: string }[];
+  failed: { entity_id: string; reason: string }[];
+  previews: { entity_id: string; action: string; external_id: string | null; fields: Record<string, string> }[];
+}
+
 export interface FormPreview {
   description: string;
   warnings: string[];
@@ -401,6 +424,38 @@ export interface SiteProfile {
   profiles: { network: string; url: string }[];
   listings: { platform: string; url: string }[];
   amenities: { field: string; value: unknown; read_from: string }[];
+  /** what the page shows about being found and read (the engine's D-069); null when not read */
+  signals: SiteSignals | null;
+}
+
+export interface SiteSignals {
+  https: boolean;
+  redirects: string[];
+  upgraded_to_https: boolean | null;
+  host_form: 'www' | 'bare';
+  response_ms: number | null;
+  html_bytes: number;
+  canonical: string | null;
+  canonical_is_self: boolean | null;
+  meta_robots: string | null;
+  x_robots_tag: string | null;
+  noindex: boolean;
+  title_chars: number;
+  description_chars: number;
+  h1_count: number;
+  lang: string | null;
+  viewport: boolean;
+  hreflang: string[];
+  open_graph: boolean;
+  structured_data_types: string[];
+  robots_txt: 'rules' | 'unavailable' | 'unreachable';
+  robots_detail: string;
+  sitemaps_declared: string[];
+  sitemap: 'reachable' | 'missing' | 'unreachable' | 'not_checked' | null;
+  sitemap_kind: string | null;
+  sitemap_entries: number | null;
+  /** the signals worth pointing out, in the engine's words: about the page, never the business */
+  observations: string[];
 }
 
 export interface SiteReading {
@@ -808,9 +863,17 @@ export const engine = {
 
   /* searches */
   start: (
-    body: ({ query: string } | { form: SearchForm }) & { depth?: string; checks?: number; fresh?: boolean },
+    body: ({ query: string; radius_km?: number } | { form: SearchForm }) & {
+      depth?: string;
+      checks?: number;
+      fresh?: boolean;
+    },
     signal: AbortSignal,
   ) => call<SearchStatus>('/api/searches', signal, post(body)),
+  /* where a search's businesses can be sent (the engine's D-070) */
+  pushTargets: (signal: AbortSignal) => call<PushTarget[]>('/api/push/targets', signal),
+  push: (id: string, body: { target: 'mautic'; verdict?: Verdict; limit?: number; dry_run?: boolean }, signal: AbortSignal) =>
+    call<Task<PushOutcome>>(`/api/searches/${q(id)}/push`, signal, post(body)),
   status: (id: string, signal: AbortSignal) => call<SearchStatus>(`/api/searches/${q(id)}`, signal),
   results: (id: string, verdict: Verdict, offset: number, limit: number, signal: AbortSignal) =>
     call<{ items: ResultItem[] }>(

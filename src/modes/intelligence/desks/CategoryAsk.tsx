@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import RadiusMeter from '../RadiusMeter';
 import {
   engine,
   type CatalogueCategory,
@@ -57,7 +58,7 @@ export default function CategoryAsk({ ready, signal, initialPlace, onForm }: Cat
   const [found, setFound] = useState<Keyed<CatalogueCategory[]> | null>(null);
   const [kinds, setKinds] = useState<CatalogueCategory[]>([]);
   const [place, setPlace] = useState(initialPlace ?? '');
-  const [radius, setRadius] = useState('');
+  const [radius, setRadius] = useState<number | null>(null);
   const [filters, setFilters] = useState<Keyed<CatalogueFilter[]> | null>(null);
   const [chosen, setChosen] = useState<Chosen>(NONE);
   const [reading, setReading] = useState<Keyed<{ description: string; warnings: string[] }> | null>(null);
@@ -124,11 +125,10 @@ export default function CategoryAsk({ ready, signal, initialPlace, onForm }: Cat
         if (Number.isFinite(hi)) asked.push({ filter: f.id, op: 'at_most', value: hi });
       }
     }
-    const km = Number.parseFloat(radius);
     return {
       categories: kindIds,
       place: place.trim(),
-      ...(Number.isFinite(km) && km > 0 ? { radius_km: km } : {}),
+      ...(radius !== null ? { radius_km: radius } : {}),
       filters: asked,
     };
   }, [applicable, chosen, kindIds, place, radius]);
@@ -166,6 +166,7 @@ export default function CategoryAsk({ ready, signal, initialPlace, onForm }: Cat
 
   return (
     <>
+      <h3 className="t-mono t-mono-xs sv-step">1 · WHAT</h3>
       <div className="sv-ask__row">
         <label className="t-mono t-mono-xs sv-field">
           SECTOR
@@ -235,7 +236,8 @@ export default function CategoryAsk({ ready, signal, initialPlace, onForm }: Cat
         </p>
       ))}
 
-      <div className="sv-ask__row">
+      <h3 className="t-mono t-mono-xs sv-step">2 · WHERE</h3>
+      <div className="sv-ask__row sv-ask__row--where">
         <label className="t-mono t-mono-xs sv-field">
           PLACE
           <input
@@ -247,20 +249,15 @@ export default function CategoryAsk({ ready, signal, initialPlace, onForm }: Cat
             onChange={(e) => setPlace(e.target.value)}
           />
         </label>
-        <label className="t-mono t-mono-xs sv-field">
-          WITHIN KM
-          <input
-            type="number"
-            min={0.1}
-            max={1000}
-            step="any"
-            inputMode="decimal"
-            placeholder="ITS OUTLINE"
-            value={radius}
-            onChange={(e) => setRadius(e.target.value)}
-          />
-        </label>
+        <RadiusMeter value={radius} onChange={setRadius} />
       </div>
+
+      <h3 className="t-mono t-mono-xs sv-step">3 · CRITERIA</h3>
+      {kinds.length === 0 && (
+        <p className="t-mono t-mono-xs sv-place">
+          <span className="t-faint">THE FILTERS THAT APPLY APPEAR ONCE A KIND OF BUSINESS IS CHOSEN</span>
+        </p>
+      )}
 
       {specific.length > 0 && (
         <details className="sv-done" open>

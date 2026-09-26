@@ -17,6 +17,8 @@ import {
   type Verdict,
 } from '../engine';
 import CategoryAsk from './CategoryAsk';
+import SendTo from './SendTo';
+import RadiusMeter from '../RadiusMeter';
 import { Plate, type Mark } from '../Plate';
 import { NeedsEngine } from '../EngineLine';
 import { POLL_MS, domainOf, isReady, when, type DeskProps, type Handover } from '../link';
@@ -111,6 +113,8 @@ export default function SurveyDesk({ engineState, signal, go, receive, take }: D
   const [question, setQuestion] = useState(initial?.question ?? '');
   const [how, setHow] = useState<'words' | 'category'>('words');
   const [form, setForm] = useState<SearchForm | null>(null);
+  // a question's own radius, apart from its words: the meter's stop, or the place's outline
+  const [radius, setRadius] = useState<number | null>(null);
   const [place, setPlace] = useState<string | null>(initial?.place ?? null);
   const [depth, setDepth] = useState<(typeof DEPTHS)[number]>('standard');
   const [checks, setChecks] = useState('');
@@ -216,7 +220,9 @@ export default function SurveyDesk({ engineState, signal, go, receive, take }: D
         const n = Number.parseInt(checks, 10);
         const extra = { depth, ...(Number.isFinite(n) && n >= 0 ? { checks: n } : {}) };
         const begun = await engine.start(
-          byCategory && form ? { form, ...extra } : { query: asked, ...extra },
+          byCategory && form
+            ? { form, ...extra }
+            : { query: asked, ...(radius !== null ? { radius_km: radius } : {}), ...extra },
           signal,
         );
         if (run !== runId.current) return;
@@ -228,7 +234,7 @@ export default function SurveyDesk({ engineState, signal, go, receive, take }: D
         await follow(begun.value.id, run, started);
       })();
     },
-    [asked, checks, depth, follow, form, how, ready, reset, signal],
+    [asked, checks, depth, follow, form, how, radius, ready, reset, signal],
   );
 
   /* ---- what other desks hand this one ------------------------------------- */
@@ -403,6 +409,7 @@ export default function SurveyDesk({ engineState, signal, go, receive, take }: D
                 <span className="t-faint">READ AS · —</span>
               )}
             </p>
+            <RadiusMeter value={radius} onChange={setRadius} outlineLabel="AS THE QUESTION SAYS" />
           </>
         )}
         <div className="sv-ask__row">
@@ -540,6 +547,8 @@ export default function SurveyDesk({ engineState, signal, go, receive, take }: D
               ))}
             </ul>
           )}
+
+          <SendTo searchId={search.id} signal={signal} />
 
           <div className="sv-views" role="tablist" aria-label="Read the answer as">
             {(

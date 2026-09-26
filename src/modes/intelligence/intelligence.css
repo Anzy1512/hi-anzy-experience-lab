@@ -1137,3 +1137,136 @@
   flex-wrap: wrap;
   gap: 0 var(--s-3);
 }
+
+/* ---- sites: found and read — measured values on a ruled grid, notes as prose ----- */
+.sv-signals {
+  margin-top: var(--s-3);
+  border-top: var(--hair) solid var(--rule);
+  padding-top: var(--s-2);
+}
+.sv-signals__grid {
+  margin: var(--s-2) 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: var(--s-1) var(--s-3);
+}
+.sv-signals__grid div {
+  display: grid;
+  gap: 2px;
+  padding-bottom: 4px;
+  border-bottom: var(--hair) solid var(--rule);
+}
+.sv-signals__grid dt {
+  font-family: var(--f-mono);
+  font-size: var(--t-mono-xs);
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+}
+.sv-signals__grid dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.sv-signals__notes {
+  margin: var(--s-2) 0 0;
+  padding-left: 1.1em;
+  line-height: 1.55;
+}
+
+/* ---- the radius meter: a hairline track, a square thumb, the value in mono ---------- */
+.sv-meter {
+  display: grid;
+  grid-template-columns: minmax(12rem, 22rem) auto;
+  align-items: center;
+  gap: 4px var(--s-2);
+  min-height: 32px;
+}
+.sv-meter .sv-label {
+  grid-column: 1 / -1;
+}
+.sv-meter__range {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 32px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.sv-meter__range::-webkit-slider-runnable-track {
+  height: var(--hair);
+  background: var(--rule);
+}
+.sv-meter__range::-moz-range-track {
+  height: var(--hair);
+  background: var(--rule);
+}
+.sv-meter__range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  border: var(--hair) solid var(--figure);
+  background: var(--ground);
+  transition: border-color var(--d-1) var(--e-snap), background-color var(--d-1) var(--e-snap);
+}
+.sv-meter__range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: var(--hair) solid var(--figure);
+  border-radius: 0;
+  background: var(--ground);
+}
+.sv-meter__range:focus-visible {
+  outline: none;
+}
+.sv-meter__range:focus-visible::-webkit-slider-thumb,
+.sv-meter__range:hover::-webkit-slider-thumb {
+  border-color: var(--signal);
+  background: var(--signal);
+}
+.sv-meter__range:focus-visible::-moz-range-thumb,
+.sv-meter__range:hover::-moz-range-thumb {
+  border-color: var(--signal);
+  background: var(--signal);
+}
+.sv-meter__value {
+  min-width: 11ch;
+  letter-spacing: 0.1em;
+  color: var(--figure);
+}
+.sv-ask__row--where {
+  align-items: end;
+}
+
+/* the three steps of a survey by category: numbered like the desks, ruled apart */
+.sv-step {
+  margin: var(--s-3) 0 0;
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule);
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+.sv-step:first-of-type {
+  margin-top: var(--s-2);
+}
+
+/* ---- send to: the engine's targets, its counts, nothing of ours ------------------- */
+.sv-sendto {
+  margin-top: var(--s-3);
+  padding-top: var(--s-2);
+  border-top: var(--hair) solid var(--rule);
+}
+.sv-sendto h3 {
+  margin: 0 0 var(--s-1);
+  letter-spacing: var(--tr-mono-wide);
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+.sv-sendto__target + .sv-sendto__target {
+  margin-top: var(--s-2);
+}
+.sv-counts--push {
+  margin-top: var(--s-2);
+}
+
